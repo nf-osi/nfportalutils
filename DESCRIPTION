@@ -12,4 +12,12 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.0.0
+RoxygenNote: 7.1.1
+Imports: 
+    dplyr,
+    reticulate,
+    textmineR,
+    magrittr,
+    glue,
+    stopwords,
+    readr
