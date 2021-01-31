@@ -6,7 +6,6 @@ synapseclient <- NULL
 
   if(syn_inst){
     synapseclient <<- reticulate::import('synapseclient', delay_load = T)
-    syn <<- synapseclient$Synapse()
   }
 
 }
