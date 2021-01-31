@@ -36,6 +36,8 @@ add_publication <- function(publication_table_id,
 
   #TODO: Check schema up-front and convert metadata to json in correct format
 
+  .check_login()
+
     schema <- .syn$get(entity = publication_table_id)
 
     pub_table <- .syn$tableQuery(glue::glue('select * from {publication_table_id}'))$filepath %>%

@@ -8,8 +8,10 @@
 
 calculate_related_studies <- function(study_table_id, n_clust, dry_run = TRUE){
 
+  .check_login()
+
   ##query the study table
-  query <- syn$tableQuery(glue::glue("select * from {study_table_id}", includeRowIdAndRowVersion=T))
+  query <- .syn$tableQuery(glue::glue("select * from {study_table_id}", includeRowIdAndRowVersion=T))
 
   studies <- query$filepath %>%
     readr::read_csv(na=character()) %>% ##asDataFrame() & reticulate return rowIdAndRowVersion as concatenated rownames, read_csv reads them in as columns
