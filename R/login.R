@@ -16,6 +16,6 @@ syn_login <- function(username = NULL, password = NULL){
 #' @returns A message.
 .check_login <- function(){
   if(!exists(".syn")){
-    stop('`syn_login` has not yet been run, or the Python `synapseclient` is otherwise unavailable')
+    stop('Please run `nfportalutils::syn_login()` prior to running functions that require a connection to Synapse. (Alternatively, the Python `synapseclient` is unavailable.)')
   }
 }
