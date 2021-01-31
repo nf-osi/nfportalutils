@@ -2,12 +2,12 @@ Package: nfportalutils
 Title: What the Package Does (One Line, Title Case)
 Version: 0.0.0.9000
 Authors@R: 
-    person(given = "First",
-           family = "Last",
+    person(given = "Allaway",
+           family = "Robert",
            role = c("aut", "cre"),
-           email = "first.last@example.com",
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
+           email = "robert.allaway@sagebionetworks.org",
+           comment = c(ORCID = "0000-0003-3573-3565"))
+Description: Provides functions for easy maintainence of NF Data Portal data. 
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
@@ -21,8 +21,8 @@ Imports:
     glue,
     stopwords,
     readr
-URL: https://github.com/allaway/nfportalutils
-BugReports: https://github.com/allaway/nfportalutils/issues
+URL: https://github.com/nf-osi/nfportalutils
+BugReports: https://github.com/nf-osi/nfportalutils/issues
 Suggests: 
     testthat (>= 2.0.0)
 Config/testthat/edition: 2

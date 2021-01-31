@@ -4,24 +4,16 @@
 <!-- badges: start -->
 <!-- badges: end -->
 
-The goal of nfportalutils is to ...
+The goal of nfportalutils is to provide convenience functions for updating NF-OSI file metadata and portal data. 
 
 ## Installation
 
-You can install the released version of nfportalutils from [CRAN](https://CRAN.R-project.org) with:
+You can install nfportalutils from here:
 
 ``` r
-install.packages("nfportalutils")
+remotes::install_github("nf-osi/nfportalutils")
 ```
 
-## Example
-
-This is a basic example which shows you how to solve a common problem:
-
-``` r
-library(nfportalutils)
-## basic example code
-```
 
 ## Code of Conduct
   
