@@ -23,3 +23,6 @@ Imports:
     readr
 URL: https://github.com/allaway/nfportalutils
 BugReports: https://github.com/allaway/nfportalutils/issues
+Suggests: 
+    testthat (>= 2.0.0)
+Config/testthat/edition: 2

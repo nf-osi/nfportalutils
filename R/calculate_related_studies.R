@@ -5,7 +5,7 @@
 #' @param dry_run Default = TRUE. Skips upload to table and instead prints study tibble.
 #' @return If dry_run == T, returns study tibble and skips upload.
 #' @export
-#'
+
 calculate_related_studies <- function(study_table_id, n_clust, dry_run = TRUE){
 
   ##query the study table

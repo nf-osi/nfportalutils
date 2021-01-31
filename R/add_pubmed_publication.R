@@ -1,4 +1,7 @@
 #' Add a publication to the publication table.
+#'
+#' DEPRECATED
+#'
 #' @description Add a publication to the publication table. Requires that the publication be listed in PubMed.
 #' @param publication_table_id The synapse id of the portal publication table. Must have write access.
 #' @param pmid The PubMed ID (*not* PMCID) of the publication to be added. Provide this *or* a DOI.
@@ -17,9 +20,9 @@
 #'                funding_agency = c(toJSON("CTF")),
 #'                disease_focus = c(toJSON("Neurofibromatosis 2")),
 #'                manifestation = c(toJSON("Meningioma")),
-#'                dry_run = F)
+#'                dry_run = T)
 #' @export
-#'
+
 add_pubmed_publication <- function(publication_table_id, pmid = NA, doi = NA, study_name, study_id, funding_agency, disease_focus, manifestation, dry_run = T){
 
   #TODO: Check schema up-front and convert metadata to json in correct format
@@ -40,8 +43,7 @@ add_pubmed_publication <- function(publication_table_id, pmid = NA, doi = NA, st
   }else{ ##otherwise look for all data
     pmids <- easyPubMed::fetch_pubmed_data(pmids, format = "xml", retmax = 1)
 
-    pmids_df <- pmids %>%
-      easyPubMed::article_to_df()
+    pmids_df <- easyPubMed::article_to_df(pmids)
 
     author_list <- pmids_df %>% tidyr::unite(name, firstname, lastname, sep = " ") %>%
       purrr::pluck('name') %>% jsonlite::toJSON() %>% c()

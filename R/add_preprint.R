@@ -19,7 +19,7 @@
 #'                dry_run = F)
 #' @export
 #'
-add_preprint <- function(publication_table_id, email_address, doi, study_name, study_id, funding_agency, disease_focus, manifestation, dry_run = T){
+add_publication <- function(publication_table_id, email_address, doi, study_name, study_id, funding_agency, disease_focus, manifestation, dry_run = T){
 
   #TODO: Check schema up-front and convert metadata to json in correct format
 
@@ -39,14 +39,27 @@ add_preprint <- function(publication_table_id, email_address, doi, study_name, s
       }else{
         ##otherwise look for all data
 
+        if(dois_df$authors[[1]])
+
         author_list <- dois_df$authors[[1]] %>%
           select(given, family) %>%
-          dplyr::transmute(name = glue::glue('{given} {family}')) %>%
-          purrr::pluck('name') %>%
-          jsonlite::toJSON() %>%
-          c()
+          filter(!is.na(given) | !is.na(family)) %>%
+          dplyr::transmute(name = glue::glue('{given} {family}'))
+
+        if("name" %in% colnames(dois_df$authors[[1]])){
+          consortium_list <- dois_df$authors[[1]] %>%
+            filter(!is.na(name)) %>%
+            select(name)
+          author_list <- bind_rows(author_list, consortium_list)
+        }
+        #TODO: Fix this so that consortium shows up in correct position in list
+
         #wrapping json in c() is necessary to coerce to data frame near end of function
 
+         author_list <- author_list %>%
+            purrr::pluck('name') %>%
+            jsonlite::toJSON() %>%
+            c()
         ##extract other metadata
         journal <- dois_df$journal_name
 
