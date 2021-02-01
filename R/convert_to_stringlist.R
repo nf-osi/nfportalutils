@@ -1,7 +1,7 @@
 #' Convert a delimited string to a stringlist annotation
 #' @description Converts a delimited string to a stringlist annotation and adjust the associated schema in the portal fileview.
 #' @param fileview_id The synapse id of a fileview. Must have the desired annotations in the schema, and must have the files to annotate included in the scope. Must have write access to the files you want to re-annotate.
-#' @param annotation A character string of the annotation you'd like to switch from a delimited string to a stringlist.
+#' @param annotation_key A character string of the annotation you'd like to switch from a delimited string to a stringlist.
 #' @param sep Default = ",". The delimiter in the character string.
 #' @param trimws Default = TRUE. Remove white space at the beginning and end of list items (e.g. "NF1, NF2" and "NF1,NF2" will yield the same STRING_LIST result).
 #' @param dry_run Default = TRUE. Skips upload to table and instead prints study tibble.
