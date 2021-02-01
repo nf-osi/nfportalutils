@@ -2,7 +2,7 @@
 % Please edit documentation in R/add_publication.R
 \name{add_publication}
 \alias{add_publication}
-\title{Add a publication to the publication table. Publication must be in unpaywall database to retrieve info.}
+\title{Add a publication to the publication table.}
 \usage{
 add_publication(
   publication_table_id,
@@ -45,7 +45,7 @@ add_publication(
 If dry_run == T, returns publication metadata to be added.
 }
 \description{
-Add a publication to the publication table.
+Add a publication to the publication table. Publication must be in unpaywall database to retrieve info.
 }
 \examples{
 add_publication(publication_table_id = 'syn16857542',

@@ -104,11 +104,12 @@ calculate_related_studies <- function(study_table_id, n_clust, dry_run = TRUE){
 #' @param table_id The synapse id of the table to update.
 #' @param new_data The updated table.
 #' @param etag An etag of the latest version of the table. If not provided, will query table_id to retrieve latest etag.
-#'
+#' @export
+
 .update_table_data <- function(table_id, new_data, etag = NULL){
-  schema <- syn$get(table_id)
+  schema <- .syn$get(table_id)
   if(is.null(etag)){
-    etag <- syn$tableQuery(glue::glue("select * from {study_table_id}"))$etag
+    etag <- .syn$tableQuery(glue::glue("select * from {table_id}"))$etag
   }
-  table <- syn$store(synapse$Table(schema, studies_updated, etag=etag))
+  table <- .syn$store(synapseclient$Table(schema, new_data, etag=etag))
 }

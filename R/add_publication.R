@@ -1,5 +1,5 @@
-#' Add a publication to the publication table. Publication must be in unpaywall database to retrieve info.
-#' @description Add a publication to the publication table.
+#' Add a publication to the publication table.
+#' @description Add a publication to the publication table. Publication must be in unpaywall database to retrieve info.
 #' @param publication_table_id The synapse id of the portal publication table. Must have write access.
 #' @param email_address A valid email address. Is used to request metadata from the Unpaywall API.
 #' @param doi The DOI of the preprint to be added.
@@ -128,16 +128,17 @@ add_publication <- function(publication_table_id,
 #' Adds a row to a table.
 #' @param schema A synapse table Schema object.
 #' @param new_row A data frame of one or more rows that match the provided schema.
+#' @export
 .store_publication <- function(schema, new_row){
 
   table <- .syn$store(synapseclient$Table(schema, new_row))
 
 }
 
-.pluck_column_type_and_name <- function(column){
-  coltype <- purrr::pluck(column, "columnType")
-  name <- purrr::pluck(column, "name")
-
-  c(coltype, name)
-}
+# .pluck_column_type_and_name <- function(column){
+#   coltype <- purrr::pluck(column, "columnType")
+#   name <- purrr::pluck(column, "name")
 #
+#   c(coltype, name)
+# }
+
