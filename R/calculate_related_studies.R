@@ -15,7 +15,7 @@ calculate_related_studies <- function(study_table_id, n_clust, dry_run = TRUE){
 
   studies <- query$filepath %>%
     readr::read_csv(na=character()) %>% ##asDataFrame() & reticulate return rowIdAndRowVersion as concatenated rownames, read_csv reads them in as columns
-    select(-relatedStudies)
+    dplyr::select(-relatedStudies)
 
   ##create a document object using the study summaries
   dtm <- textmineR::CreateDtm(doc_vec = studies$summary,
@@ -78,12 +78,12 @@ calculate_related_studies <- function(study_table_id, n_clust, dry_run = TRUE){
 
 
   similar_studies <- clustering %>%
-    as_tibble(rownames = "relatedStudies")
+    tibble::as_tibble(rownames = "relatedStudies")
 
   source_studies <-  clustering %>%
-   as_tibble(rownames = "studyId")
+   tibble::as_tibble(rownames = "studyId")
 
-  ids <- full_join(similar_studies,source_studies) %>%
+  ids <- dplyr::full_join(similar_studies,source_studies) %>%
     dplyr::filter(relatedStudies != studyId) %>% #remove self-association
     dplyr::group_by(studyId) %>%
     dplyr::summarise(relatedStudies = jsonlite::toJSON(relatedStudies)) %>%
