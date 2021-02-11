@@ -15,7 +15,7 @@ calculate_related_studies <- function(study_table_id, n_clust, dry_run = TRUE){
 
   studies <- query$filepath %>%
     readr::read_csv(na=character()) %>% ##asDataFrame() & reticulate return rowIdAndRowVersion as concatenated rownames, read_csv reads them in as columns
-    select(-relatedStudies)
+    dplyr::select(-relatedStudies)
 
   ##create a document object using the study summaries
   dtm <- textmineR::CreateDtm(doc_vec = studies$summary,
