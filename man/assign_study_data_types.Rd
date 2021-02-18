@@ -33,5 +33,7 @@ assign_study_data_types(
 If dry_run == T, returns study tibble and skips upload.
 }
 \description{
-Summarize fileview annotations into a string-list column on another table. For example, use this function to summarize all of the "dataType" annotations for a each study into a STRINGLIST annotation on the Study table of a portal.
+Summarize fileview annotations into a string-list column on another table.
+
+For example, use this function to summarize all of the "dataType" annotations for a each study into a STRINGLIST annotation on the Study table of a portal. Overwrites whatever is currently in the target column.
 }

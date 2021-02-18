@@ -1,4 +1,4 @@
-#' Add a publication to the publication table.
+#' Add a publication or preprint to the publication table via the Unpaywall API.
 #' @description Add a publication to the publication table. Publication must be in unpaywall database to retrieve info.
 #' @param publication_table_id The synapse id of the portal publication table. Must have write access.
 #' @param email_address A valid email address. Is used to request metadata from the Unpaywall API.
@@ -12,8 +12,9 @@
 #' @param manifestation The manifestation(s) that are associated with the publication.
 #' @param dry_run Default = TRUE. Skips upload to table and instead prints formatted publication metadata.
 #' @return If dry_run == T, returns publication metadata to be added.
-#' @examples add_publication(publication_table_id = 'syn16857542',
-#'               doi = '10.1074/jbc.RA120.014960',
+#' @examples add_publication_from_unpaywall(publication_table_id = 'syn16857542',
+#'                email = 'foo@bar.com'
+#'                doi = '10.1074/jbc.RA120.014960',
 #'                study_name = c(toJSON("Synodos NF2")),
 #'                study_id = c(toJSON("syn2343195")),
 #'                funding_agency = c(toJSON("CTF")),
@@ -22,7 +23,7 @@
 #'                dry_run = T)
 #' @export
 #'
-add_publication <- function(publication_table_id,
+add_publication_from_unpaywall <- function(publication_table_id,
                             email_address,
                             doi,
                             is_preprint = F,
@@ -111,7 +112,7 @@ add_publication <- function(publication_table_id,
 
         colnames <- pub_table %>% filter(is.na(doi))
 
-        new_row <- bind_rows(colnames, new_data)
+        new_row <- dplyr::bind_rows(colnames, new_data)
 
           if(dry_run == F & nrow(new_row) > 0){
             .store_publication(schema, new_row)
