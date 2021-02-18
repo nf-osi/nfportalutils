@@ -96,7 +96,6 @@ add_publication_from_unpaywall <- function(publication_table_id,
         ## default function doesn't get accurate publication date, but rather the listing date. use different function to get publication year:
         year <- dois_df$year %>% as.double()
 
-        #This function was written with preprints in mind, but should be able to parse publications too. this
         pmids <- easyPubMed::get_pubmed_ids(doi) ##query pubmed for pmid
 
         pmid <- pmids$IdList$Id[1] %>% as.double()

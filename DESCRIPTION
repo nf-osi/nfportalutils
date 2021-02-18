@@ -20,7 +20,13 @@ Imports:
     magrittr,
     glue,
     stopwords,
-    readr
+    readr,
+    roadoi,
+    easyPubMed,
+    tibble,
+    stringr,
+    purrr,
+    jsonlite
 URL: https://github.com/nf-osi/nfportalutils
 BugReports: https://github.com/nf-osi/nfportalutils/issues
 Suggests: 
