@@ -1,5 +1,5 @@
 #' Add a publication to the publication table.
-#' @description Add a publication to the publication table. Requires that the publication be listed in PubMed.
+#' @description Add a publication to the publication table. Requires that the publication be listed in PubMed. For parameter-provided metadata (e.g. "studyName"), function must a JSON-formatted character vector if the destination Synapse column is of "STRING_LIST" format. Currently, this function does not evaluate the schema, so this must be checked manually.
 #' @param publication_table_id The synapse id of the portal publication table. Must have write access.
 #' @param pmid The PubMed ID (*not* PMCID) of the publication to be added.
 #' @param study_name The name(s) of the study that are associated with the publication.
@@ -14,7 +14,7 @@
 #'                study_name = c(toJSON("Synodos NF2")),
 #'                study_id = c(toJSON("syn2343195")),
 #'                funding_agency = c(toJSON("CTF")),
-#'                disease_focus = c(toJSON("Neurofibromatosis 2")),
+#'                disease_focus = "Neurofibromatosis 2",
 #'                manifestation = c(toJSON("Meningioma")),
 #'                dry_run = T)
 #' @export

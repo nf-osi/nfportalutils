@@ -36,7 +36,7 @@ add_publication_from_pubmed(
 If dry_run == T, returns publication metadata to be added.
 }
 \description{
-Add a publication to the publication table. Requires that the publication be listed in PubMed.
+Add a publication to the publication table. Requires that the publication be listed in PubMed. For parameter-provided metadata (e.g. "studyName"), function must a JSON-formatted character vector if the destination Synapse column is of "STRING_LIST" format. Currently, this function does not evaluate the schema, so this must be checked manually.
 }
 \examples{
 add_publication_from_pubmed(publication_table_id = 'syn16857542',
@@ -44,7 +44,7 @@ add_publication_from_pubmed(publication_table_id = 'syn16857542',
                study_name = c(toJSON("Synodos NF2")),
                study_id = c(toJSON("syn2343195")),
                funding_agency = c(toJSON("CTF")),
-               disease_focus = c(toJSON("Neurofibromatosis 2")),
+               disease_focus = "Neurofibromatosis 2",
                manifestation = c(toJSON("Meningioma")),
                dry_run = T)
 }
