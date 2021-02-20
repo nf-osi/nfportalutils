@@ -83,7 +83,7 @@ add_publication_from_pubmed <- function(publication_table_id, pmid, study_name, 
           new_row <- dplyr::bind_rows(colnames, new_data)
 
           if(dry_run == F){
-            .store_publication(schema, new_row)
+            .store_rows(schema, new_row)
             glue::glue('{pmid} added!')
           }else{
             print(new_row)

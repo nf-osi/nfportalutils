@@ -7,7 +7,7 @@
 #' @param dry_run Default = TRUE. Skips upload to table and instead prints study tibble.
 #' @return If dry_run == T, returns study tibble and skips upload.
 #' @export
-
+#'
 convert_to_stringlist <- function(fileview_id, annotation_key, sep = ",", trim_ws = TRUE, dry_run = TRUE){
 
   .check_login()

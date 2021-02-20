@@ -115,7 +115,7 @@ add_publication_from_unpaywall <- function(publication_table_id,
         new_row <- dplyr::bind_rows(colnames, new_data)
 
           if(dry_run == F & nrow(new_row) > 0){
-            .store_publication(schema, new_row)
+            .store_rows(schema, new_row)
             glue::glue('{doi} added!')
           }else if(nrow(new_row) == 0){
             'error in generating new row, aborting'
@@ -130,7 +130,7 @@ add_publication_from_unpaywall <- function(publication_table_id,
 #' @param schema A synapse table Schema object.
 #' @param new_row A data frame of one or more rows that match the provided schema.
 #' @export
-.store_publication <- function(schema, new_row){
+.store_rows <- function(schema, new_row){
 
   table <- .syn$store(synapseclient$Table(schema, new_row))
 
