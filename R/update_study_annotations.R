@@ -5,6 +5,10 @@
 #' @param annotations A vector of annotations to gather from the study table, and assign to the files.
 #' @param dry_run Default = TRUE Skips upload of annotations unless set to FALSE.
 #' @return If dry_run == T, returns updated annotations as a tibble.
+#' @example update_study_annotations(study_table_id = "syn16787123",
+#'                                  fileview_id = "syn16858331",
+#'                                  annotations = c("studyId","studyName","initiative","fundingAgency")
+#'                                  dry_run = T)
 #' @export
 #'
 update_study_annotations <- function(study_table_id, fileview_id, annotations, dry_run = T){
@@ -28,8 +32,8 @@ update_study_annotations <- function(study_table_id, fileview_id, annotations, d
     dplyr::select(ROW_ID, ROW_VERSION, ROW_ETAG, projectId) %>%
     dplyr::mutate(studyId = projectId) %>%
     dplyr::left_join(study_table, by = "studyId") %>%
-    dplyr::filter_at(all_of(annotations), all_vars(!is.na(.))) %>%
-    dplyr::select(any_of(colnames(fv)))
+    dplyr::filter_at(dplyr::all_of(annotations), dplyr::all_vars(!is.na(.))) %>%
+    dplyr::select(dplyr::any_of(colnames(fv)))
 
   skipped <- fv$ROW_ID[!fv$ROW_ID %in% fv_updated$ROW_ID]
 
