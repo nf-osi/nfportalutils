@@ -28,8 +28,8 @@ update_study_annotations <- function(study_table_id, fileview_id, annotations, d
     dplyr::select(ROW_ID, ROW_VERSION, ROW_ETAG, projectId) %>%
     dplyr::mutate(studyId = projectId) %>%
     dplyr::left_join(study_table, by = "studyId") %>%
-    dplyr::filter_at(all_of(annotations), all_vars(!is.na(.))) %>%
-    dplyr::select(any_of(colnames(fv)))
+    dplyr::filter_at(dplyr::all_of(annotations), dplyr::all_vars(!is.na(.))) %>%
+    dplyr::select(dplyr::any_of(colnames(fv)))
 
   skipped <- fv$ROW_ID[!fv$ROW_ID %in% fv_updated$ROW_ID]
 
