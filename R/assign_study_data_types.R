@@ -9,7 +9,7 @@
 #' @param valid_values A vector of valid values for the source_colname. e.g. the output of running `get_valid_values_from_json_schema()`
 #' @param dry_run Default = TRUE. Skips upload to table and instead prints study tibble.
 #' @return If dry_run == T, returns study tibble and skips upload.
-#' @example assign_study_data_types(study_table_id = 'syn16787123', fileview_id = 'syn16858331', group_colname = 'studyId', source_colname = "dataType", sep = ",", valid_values = get_valid_values_from_json_schema(), dry_run = T)
+#' @examples assign_study_data_types(study_table_id = 'syn16787123', fileview_id = 'syn16858331', group_colname = 'studyId', source_colname = "dataType", sep = ",", valid_values = get_valid_values_from_json_schema(), dry_run = T)
 #' @export
 assign_study_data_types <- function(study_table_id, fileview_id, group_colname = "studyId",
                                     source_colname = "dataType", sep = ",", valid_values, dry_run = TRUE){
