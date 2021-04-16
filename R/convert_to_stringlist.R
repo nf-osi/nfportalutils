@@ -34,6 +34,7 @@ convert_to_stringlist <- function(fileview_id, annotation_key, sep = ",", trim_w
     .replace_string_column_with_stringlist_column(table_id = fileview_id, column_name = annotation_key, max_str_len = max_str_len)
   }else{
     message(glue::glue("{length(ls_annotations)} files will be updated when dry_run = F."))
+    return(ls_annotations)
   }
 }
 
