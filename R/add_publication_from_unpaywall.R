@@ -110,7 +110,7 @@ add_publication_from_unpaywall <- function(publication_table_id,
                                  "studyName"= study_name, "studyId"=study_id,"fundingAgency"= funding_agency,"diseaseFocus"= disease_focus,
                                  "manifestation"=manifestation)
 
-        colnames <- pub_table %>% filter(is.na(doi))
+        colnames <- pub_table %>% dplyr::filter(is.na(doi))
 
         new_row <- dplyr::bind_rows(colnames, new_data)
 
