@@ -4,9 +4,12 @@
 #' @param n_clust The target number of clusters to generate. In practice, I've found that the number of total summaries divided by 3 is a good starting point (100 studies = 33 clusters).
 #' @param dry_run Default = TRUE. Skips upload to table and instead prints study tibble.
 #' @return If dry_run == T, returns study tibble and skips upload.
-#' @example calculate_related_studies(study_table_id = "syn16787123",
-#'                                    n_clust = 36,
-#'                                    dry_run = T)
+#' @examples
+#' \dontrun{ 
+#'  calculate_related_studies(study_table_id = "syn16787123",
+#'                            n_clust = 36,
+#'                            dry_run = T)
+#'}
 #' @export
 
 calculate_related_studies <- function(study_table_id, n_clust, dry_run = TRUE){

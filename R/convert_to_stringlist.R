@@ -3,7 +3,7 @@
 #' @param fileview_id The synapse id of a fileview. Must have the desired annotations in the schema, and must have the files to annotate included in the scope. Must have write access to the files you want to re-annotate.
 #' @param annotation_key A character string of the annotation you'd like to switch from a delimited string to a stringlist.
 #' @param sep Default = ",". The delimiter in the character string.
-#' @param trimws Default = TRUE. Remove white space at the beginning and end of list items (e.g. "NF1, NF2" and "NF1,NF2" will yield the same STRING_LIST result).
+#' @param trim_ws Default = TRUE. Remove white space at the beginning and end of list items (e.g. "NF1, NF2" and "NF1,NF2" will yield the same STRING_LIST result).
 #' @param dry_run Default = TRUE. Skips upload to table and instead prints study tibble.
 #' @return If dry_run == T, returns study tibble and skips upload.
 #' @export
@@ -42,7 +42,7 @@ convert_to_stringlist <- function(fileview_id, annotation_key, sep = ",", trim_w
 #' @description Converts a delimited string to a stringlist annotation and adjust the associated schema in the portal fileview.
 #' @param string A character string.
 #' @param sep Default = ",". The delimiter in the character string.
-#' @param trimws Default = TRUE. Remove white space at the beginning and end of list items (e.g. "NF1, NF2" and "NF1,NF2" will yield the same STRING_LIST result).
+#' @param trim_ws Default = TRUE. Remove white space at the beginning and end of list items (e.g. "NF1, NF2" and "NF1,NF2" will yield the same STRING_LIST result).
 #' @export
 #'
 .delim_string_to_vector <- function(string, sep, trim_ws = T){
@@ -70,11 +70,11 @@ convert_to_stringlist <- function(fileview_id, annotation_key, sep = ",", trim_w
   .syn$set_annotations(entity)
 }
 
-#' Modify a single annotation on a single file.
-#' @description Modifies a single annotation value on a single (existing) synapse file. Guts of this ripped from @jaeddy gist (https://gist.github.com/jaeddy/1cf49f7851945beedb39d431134734af)
-#' @param synapse_id A synapse entity id.
-#' @param key The key of the annotation to modify.
-#' @param value The value to change the annotation to.
+#' Replace string column with stringlist column
+#' @description Guts of this ripped from @jaeddy gist (https://gist.github.com/jaeddy/1cf49f7851945beedb39d431134734af)
+#' @param table_id A synapse entity id.
+#' @param column_name The column name of relevant column to modify.
+#' @param max_str_len Max string length to be set in schema of new column.
 #' @export
 #'
 .replace_string_column_with_stringlist_column <- function(table_id, column_name, max_str_len){

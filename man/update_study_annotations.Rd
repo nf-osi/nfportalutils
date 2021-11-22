@@ -21,3 +21,11 @@ If dry_run == T, returns updated annotations as a tibble.
 \description{
 Adds studyId, studyName, initiative, funder annotations to a set of files from a fileview query. Assumes that projectId==studyId. You must have the Synapse default view column "type" present in your view. After running this function, changes may take a few minutes to propagate through Synapse.
 }
+\examples{
+\dontrun{
+update_study_annotations(study_table_id = "syn16787123",
+                         fileview_id = "syn16858331",
+                         annotations = c("studyId","studyName","initiative","fundingAgency"),
+                         dry_run = T)
+}
+}
