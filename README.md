@@ -2,6 +2,7 @@
 # nfportalutils
 
 <!-- badges: start -->
+[![R-CMD-check](https://github.com/anngvu/nfportalutils/workflows/R-CMD-check/badge.svg)](https://github.com/anngvu/nfportalutils/actions)
 <!-- badges: end -->
 
 The goal of nfportalutils is to provide convenience functions for updating NF-OSI file metadata and portal data. 
