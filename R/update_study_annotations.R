@@ -5,10 +5,13 @@
 #' @param annotations A vector of annotations to gather from the study table, and assign to the files.
 #' @param dry_run Default = TRUE Skips upload of annotations unless set to FALSE.
 #' @return If dry_run == T, returns updated annotations as a tibble.
-#' @examples update_study_annotations(study_table_id = "syn16787123",
-#'                                  fileview_id = "syn16858331",
-#'                                  annotations = c("studyId","studyName","initiative","fundingAgency")
-#'                                  dry_run = T)
+#' @examples 
+#' \dontrun{
+#' update_study_annotations(study_table_id = "syn16787123",
+#'                          fileview_id = "syn16858331",
+#'                          annotations = c("studyId","studyName","initiative","fundingAgency"),
+#'                          dry_run = T)
+#' }
 #' @export
 #'
 update_study_annotations <- function(study_table_id, fileview_id, annotations, dry_run = T){

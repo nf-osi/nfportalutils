@@ -15,6 +15,8 @@ syn_login(username = NULL, password = NULL)
 Logs into Synapse.
 }
 \examples{
+\dontrun{
 library(nfportalutils)
 syn_login()
+}
 }

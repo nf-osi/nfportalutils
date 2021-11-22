@@ -51,8 +51,9 @@ Add a publication to the publication table. Publication must be in unpaywall dat
 
 }
 \examples{
+\dontrun{  
 add_publication_from_unpaywall(publication_table_id = 'syn16857542',
-               email = 'foo@bar.com'
+               email_address = 'foo@bar.com',
                doi = '10.1074/jbc.RA120.014960',
                study_name = c(toJSON("Synodos NF2")),
                study_id = c(toJSON("syn2343195")),
@@ -60,4 +61,5 @@ add_publication_from_unpaywall(publication_table_id = 'syn16857542',
                disease_focus = "Neurofibromatosis 2",
                manifestation = c(toJSON("Meningioma")),
                dry_run = T)
+}                
 }

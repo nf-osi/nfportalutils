@@ -13,18 +13,18 @@ add_people_from_table(
 )
 }
 \arguments{
-\item{dry_run}{Default = TRUE. Skips upload to table and instead prints study tibble.}
+\item{people_table_id}{The synapse id of the table used for referencing people.}
 
-\item{fileview_id}{The synapse id of a fileview. Must have the desired annotations in the schema, and must have the files to annotate included in the scope. Must have write access to the files you want to re-annotate.}
+\item{people_column}{Column name within the people table that contains the relevant people values.}
 
-\item{annotation_key}{A character string of the annotation you'd like to switch from a delimited string to a stringlist.}
+\item{source_table_id}{The synapse id of the source table.}
 
-\item{sep}{Default = ",". The delimiter in the character string.}
+\item{source_column}{Column name within the source table that contains the relevant source values.}
 
-\item{trimws}{Default = TRUE. Remove white space at the beginning and end of list items (e.g. "NF1, NF2" and "NF1,NF2" will yield the same STRING_LIST result).}
+\item{dry_run}{Default = TRUE Skips upload of annotations unless set to FALSE.}
 }
 \value{
-If dry_run == T, returns study tibble and skips upload.
+If dry_run == T, prints preview of updated people table, otherwise uploads the updates.
 }
 \description{
 Update the People table from a source Table or View column

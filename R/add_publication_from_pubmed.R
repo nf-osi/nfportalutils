@@ -9,7 +9,9 @@
 #' @param manifestation The manifestation(s) that are associated with the publication.
 #' @param dry_run Default = TRUE. Skips upload to table and instead prints formatted publication metadata.
 #' @return If dry_run == T, returns publication metadata to be added.
-#' @examples add_publication_from_pubmed(publication_table_id = 'syn16857542',
+#' @examples 
+#' \dontrun{
+#' add_publication_from_pubmed(publication_table_id = 'syn16857542',
 #'                pmid = '33574490',
 #'                study_name = c(toJSON("Synodos NF2")),
 #'                study_id = c(toJSON("syn2343195")),
@@ -17,6 +19,7 @@
 #'                disease_focus = "Neurofibromatosis 2",
 #'                manifestation = c(toJSON("Meningioma")),
 #'                dry_run = T)
+#'}
 #' @export
 #'
 add_publication_from_pubmed <- function(publication_table_id, pmid, study_name, study_id, funding_agency, disease_focus, manifestation, dry_run = T){

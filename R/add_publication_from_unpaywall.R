@@ -13,8 +13,10 @@
 #' @param dry_run Default = TRUE. Skips upload to table and instead prints formatted publication metadata.
 #' @note
 #' @return If dry_run == T, returns publication metadata to be added.
-#' @examples add_publication_from_unpaywall(publication_table_id = 'syn16857542',
-#'                email = 'foo@bar.com'
+#' @examples
+#' \dontrun{  
+#' add_publication_from_unpaywall(publication_table_id = 'syn16857542',
+#'                email_address = 'foo@bar.com',
 #'                doi = '10.1074/jbc.RA120.014960',
 #'                study_name = c(toJSON("Synodos NF2")),
 #'                study_id = c(toJSON("syn2343195")),
@@ -22,6 +24,7 @@
 #'                disease_focus = "Neurofibromatosis 2",
 #'                manifestation = c(toJSON("Meningioma")),
 #'                dry_run = T)
+#'}                
 #' @export
 #'
 add_publication_from_unpaywall <- function(publication_table_id,

@@ -1,11 +1,11 @@
 #' Update the People table from a source Table or View column
 #' @description
-#' @param fileview_id The synapse id of a fileview. Must have the desired annotations in the schema, and must have the files to annotate included in the scope. Must have write access to the files you want to re-annotate.
-#' @param annotation_key A character string of the annotation you'd like to switch from a delimited string to a stringlist.
-#' @param sep Default = ",". The delimiter in the character string.
-#' @param trimws Default = TRUE. Remove white space at the beginning and end of list items (e.g. "NF1, NF2" and "NF1,NF2" will yield the same STRING_LIST result).
-#' @param dry_run Default = TRUE. Skips upload to table and instead prints study tibble.
-#' @return If dry_run == T, returns study tibble and skips upload.
+#' @param people_table_id The synapse id of the table used for referencing people.
+#' @param people_column Column name within the people table that contains the relevant people values. 
+#' @param source_table_id The synapse id of the source table.
+#' @param source_column Column name within the source table that contains the relevant source values.
+#' @inheritParams update_study_annotations
+#' @return If dry_run == T, prints preview of updated people table, otherwise uploads the updates.
 #' @export
 #'
 add_people_from_table <- function(people_table_id, people_column, source_table_id, source_column, dry_run = T){

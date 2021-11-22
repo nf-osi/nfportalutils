@@ -26,7 +26,11 @@ Imports:
     tibble,
     stringr,
     purrr,
-    jsonlite
+    jsonlite,
+    httr,
+    lubridate,
+    rlang,
+    tidyr
 URL: https://github.com/nf-osi/nfportalutils
 BugReports: https://github.com/nf-osi/nfportalutils/issues
 Suggests: 

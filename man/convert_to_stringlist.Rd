@@ -19,9 +19,9 @@ convert_to_stringlist(
 
 \item{sep}{Default = ",". The delimiter in the character string.}
 
-\item{dry_run}{Default = TRUE. Skips upload to table and instead prints study tibble.}
+\item{trim_ws}{Default = TRUE. Remove white space at the beginning and end of list items (e.g. "NF1, NF2" and "NF1,NF2" will yield the same STRING_LIST result).}
 
-\item{trimws}{Default = TRUE. Remove white space at the beginning and end of list items (e.g. "NF1, NF2" and "NF1,NF2" will yield the same STRING_LIST result).}
+\item{dry_run}{Default = TRUE. Skips upload to table and instead prints study tibble.}
 }
 \value{
 If dry_run == T, returns study tibble and skips upload.
