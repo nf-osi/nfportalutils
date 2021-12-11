@@ -7,6 +7,7 @@
 #' @param label Button label text.
 #' @param url URL that the button will link to.
 #' @param align Button alignment, can be one of "None", "Left", "Right", or "Center" (defaults to "None").
+#' @export
 button_widget <- function(label, 
                           url, 
                           align = c("None", "Left", "Right", "Center")) {
@@ -64,6 +65,7 @@ wiki_mod <- function(content, project_id, subpage = NULL,
 #' If there are multiple subpages of same name, it's not clear which is the right one to remove.
 #' @param subpage Name of the subpage
 #' @inheritParams wiki_mod
+#' @export
 remove_wiki_subpage <- function(project_id, subpage) {
   wiki_meta <- .syn$getWikiHeaders(project_id) %>% unlist() 
   wiki_meta <- lapply(wiki_meta, function(x) as.character(x) %>% jsonlite::fromJSON())
