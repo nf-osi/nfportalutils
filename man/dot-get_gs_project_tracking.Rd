@@ -13,16 +13,16 @@
 )
 }
 \arguments{
-\item{sheet}{Sheet URL or id. See \link{\code{googlesheets4::read_sheet}}.}
+\item{sheet}{Sheet URL or id. See \code{\link[googlesheets4]{read_sheet}}.}
 
 \item{creds}{Path to JSON creds file (service account token).}
 
-\item{cols}{List of columns that map to required parameters for \link{\code{new_project}}.
+\item{cols}{List of columns that map to required parameters for \code{\link{new_project}}.
 Defaults are provided.}
 }
 \description{
 Currently, project tracking data is stored in a private GoogleSheet.
-For \link{\code{new_project}}, this wraps \code{googlesheets4} to get the needed data.
+For \code{\link{new_project}}, this wraps \code{googlesheets4} to get the needed data.
 }
 \details{
 If \code{creds} is not provided, i.e. there is no service account token,

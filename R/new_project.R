@@ -132,6 +132,8 @@ new_project <- function(name,
 #' Make a user or group full admin of a Synapse entity
 #'
 #' Convenience method to set admin permissions
+#' @param entity The Synapse entity, e.g. project or folder.
+#' @param principal_id User or team id that will have the configured access to the entity.
 make_admin <- function(entity, principal_id) {
   admin <- .syn$setPermissions(entity = entity,
                                principalId = principal_id,
@@ -160,6 +162,7 @@ make_folder <- function(parent, folders) {
 #'
 #' A convenience wrapper around `make_folder` with NF defaults.
 #' @param project The project Synapse id or object.
+#' @param folders Names of the standard set of folders.
 add_default_folders <- function(project, folders = c("Analysis", "Milestone Reports", "Raw Data")) {
    make_folder(parent = project, folders)
 }
@@ -167,7 +170,7 @@ add_default_folders <- function(project, folders = c("Analysis", "Milestone Repo
 #' Get and parse data from Google Sheets for initializing a new project
 #'
 #' Currently, project tracking data is stored in a private GoogleSheet.
-#' For \link{\code{new_project}}, this wraps `googlesheets4` to get the needed data.
+#' For \code{\link{new_project}}, this wraps `googlesheets4` to get the needed data.
 #'
 #' If `creds` is not provided, i.e. there is no service account token,
 #' then usage requires authenticating the Tidyverse API in the browser to get an API token on your behalf.
@@ -175,9 +178,9 @@ add_default_folders <- function(project, folders = c("Analysis", "Milestone Repo
 #' ("The Tidyverse API Packages project never receives your data or the permission to access your data."
 #' -- see https://www.tidyverse.org/google_privacy_policy/.)
 #'
-#' @param sheet Sheet URL or id. See \link{\code{googlesheets4::read_sheet}}.
+#' @param sheet Sheet URL or id. See \code{\link[googlesheets4]{read_sheet}}.
 #' @param creds Path to JSON creds file (service account token).
-#' @param cols List of columns that map to required parameters for \link{\code{new_project}}.
+#' @param cols List of columns that map to required parameters for \code{\link{new_project}}.
 #' Defaults are provided.
 .get_gs_project_tracking  <- function(sheet,
                                       creds = NULL,

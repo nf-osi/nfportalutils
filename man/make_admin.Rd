@@ -6,6 +6,11 @@
 \usage{
 make_admin(entity, principal_id)
 }
+\arguments{
+\item{entity}{The Synapse entity, e.g. project or folder.}
+
+\item{principal_id}{User or team id that will have the configured access to the entity.}
+}
 \description{
 Convenience method to set admin permissions
 }

@@ -11,6 +11,8 @@ add_default_folders(
 }
 \arguments{
 \item{project}{The project Synapse id or object.}
+
+\item{folders}{Names of the standard set of folders.}
 }
 \description{
 A convenience wrapper around \code{make_folder} with NF defaults.
