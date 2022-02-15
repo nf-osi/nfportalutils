@@ -30,7 +30,8 @@ Imports:
     httr,
     lubridate,
     rlang,
-    tidyr
+    tidyr,
+    googlesheets4
 URL: https://github.com/nf-osi/nfportalutils
 BugReports: https://github.com/nf-osi/nfportalutils/issues
 Suggests: 
