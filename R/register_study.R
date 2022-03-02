@@ -1,0 +1,71 @@
+#' Register a study in Portal - Studies
+#' 
+#' Basically create a row for a new NF-OSI project study in Portal - Studies table
+#' 
+#' @inheritParams new_project
+#' @param project_id The Synapse project id, used as the studyId.
+#' @param nf_focus NF type focus.
+#' @param nf_manifestation NF manifestation(s) studied.
+#' @param fileview_id Synapse id of the study project's main fileview.
+#' @param study_status Status of study, defaults to "Active" for new projects.
+#' @param data_status Status of the data, defaults to "None" for new projects.
+#' @param terms_access Access requirements blurb, uses a default for new projects.
+#' @param terms_acknowledgement Blurb for how study should be acknowledged if materials are reused. 
+#' Unless specified by PI/leads at inception, leave blank for new projects and update later.
+#' @param study_table_id The Synapse id of the portal study table. 
+register_study <- function(name,
+                           project_id, 
+                           abstract, 
+                           lead, 
+                           institution, 
+                           nf_focus, 
+                           nf_manifestation,
+                           fileview_id,
+                           funder = c("CTF", "GFF", "NTAP"),
+                           initiative,
+                           study_status = "Active",
+                           data_status = "None",
+                           terms_access = "The data from this study is currently under embargo. Please contact the principal investigator for access to the data.",
+                           terms_acknowledgement = 'The data from this study are still under embargo, therefore, if you have been granted access by the data contributor, you must work with them to determine how to acknowledge your collaboration in any manuscripts that arise. In addition, please acknowledge the NF Data Portal like so: “The results published here are in whole or in part based on data obtained from the NF Data Portal (http://www.nf.synapse.org, RRID:SCR_021683) and made available through the NF Open Science Initiative.”',
+                           grant_doi = "",
+                           study_table_id = "syn16787123") {
+  
+  schema <- .syn$get(study_table_id)
+  new_row <- data.frame(studyName = name,
+                       studyId = project_id,
+                       summary = abstract,                   
+                       initiative = initiative,                
+                       studyLeads = as.character(jsonlite::toJSON(lead)), # STRLIST                
+                       institutions = as.character(jsonlite::toJSON(institution)),  # STRLIST  
+                       manifestation = as.character(jsonlite::toJSON(nf_manifestation)),  # STRLIST  
+                       diseaseFocus = as.character(jsonlite::toJSON(nf_focus)),  # STRLIST  
+                       studyStatus = study_status,
+                       dataStatus = data_status,
+                       fundingAgency = as.character(jsonlite::toJSON(funder)),  # STRLIST  
+                       accessRequirements = terms_access,
+                       acknowledgementStatements = terms_acknowledgement,
+                       dataType = "", # STRLIST  
+                       relatedStudies = "", # STRLIST  
+                       studyFileviewId = fileview_id,
+                       id = project_id,
+                       grantDOI = as.character(jsonlite::toJSON(grant_doi)), # STRLIST                   
+                       Resource_id = "") # STRLIST  
+  .syn$store(synapseclient$Table(schema, new_row))
+  
+}
+
+#' Register new project scope in "Portal - Files"
+#' @description Add a new project to the scope of the "Portal - Files" entity view so that files for that project can be surfaced in portal.
+#' 
+#' @param project_id The project id, i.e. container, that will be added to the scope of the view.
+#' @param portal_files_view Synapse id of "Portal - Files" entity view.
+register_study_files <- function(project_id, 
+                                 portal_fileview = "syn16858331") {
+  
+  new_scope_id <- sub("syn", "", project_id)
+  portal_fileview <- .syn$get(portal_fileview)
+  # Works, but maybe there's a better implementation with python?
+  reticulate::py_set_attr(portal_fileview, "scopeIds", c(portal_fileview$properties$scopeIds, new_scope_id))
+  .syn$store(portal_fileview)
+}
+
