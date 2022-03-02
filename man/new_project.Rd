@@ -44,7 +44,9 @@ Set up a new NF project with wiki, folders, fileview, and permissions.
 Most parameters come from a project intake & data sharing plan (DSP) form.
 Aside from default folders, folders are tailored for data mentioned in DSP.
 The NF-OSI team is hard-coded to be admin in addition to the funder team indicated by \code{funder}.
-
+Since this is intended for actual new projects, it will fail if a same existing project is detected.
+}
+\details{
 After project is created, NF Portal representation requires registration in backend:
 \itemize{
 \item New study row added to the Portal - Studies table.

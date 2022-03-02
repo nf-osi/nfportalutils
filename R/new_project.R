@@ -116,7 +116,8 @@ new_project_strict <- function(project_name) {
 }
 
 #' Create default project fileview
-#'
+#' 
+#' @param project A project entity.
 add_default_fileview <- function(project) { 
   view <- synapseclient$EntityViewSchema(
     name="Project Files and Metadata",
