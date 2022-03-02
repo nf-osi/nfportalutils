@@ -132,7 +132,7 @@ add_default_fileview <- function(project) {
       synapseclient$Column(name="individualID", columnType="STRING", maximumSize="213"),
       synapseclient$Column(name="nf1Genotype", columnType="STRING", maximumSize="8"),
       synapseclient$Column(name="nf2Genotype", columnType="STRING", maximumSize="7"),
-      synapseclient$Column(name="species", columnType="STRING", maximumSize="15"),
+      synapseclient$Column(name="species", columnType="STRING", maximumSize="100"),
       synapseclient$Column(name="resourceType", columnType="STRING", maximumSize="50"),
       synapseclient$Column(name="isCellLine", columnType="STRING", maximumSize="50"),
       synapseclient$Column(name="isMultiSpecimen", columnType="STRING", maximumSize="50"),
