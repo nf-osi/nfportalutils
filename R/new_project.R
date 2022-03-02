@@ -168,7 +168,7 @@ add_default_folders <- function(project, folders = c("Analysis", "Milestone Repo
 }
 
 #' Get and parse data from Google Sheets for initializing a new project
-#'
+#' 
 #' Currently, project tracking data is stored in a private GoogleSheet.
 #' For \code{\link{new_project}}, this wraps `googlesheets4` to get the needed data.
 #'
@@ -177,12 +177,13 @@ add_default_folders <- function(project, folders = c("Analysis", "Milestone Repo
 #' This doesn't actually give the googlesheets4 project access to any data
 #' ("The Tidyverse API Packages project never receives your data or the permission to access your data."
 #' -- see https://www.tidyverse.org/google_privacy_policy/.)
-#'
+#' @name get_gs_project_tracking
 #' @param sheet Sheet URL or id. See \code{\link[googlesheets4]{read_sheet}}.
 #' @param creds Path to JSON creds file (service account token).
 #' @param cols List of columns that map to required parameters for \code{\link{new_project}}.
 #' Defaults are provided.
-.get_gs_project_tracking  <- function(sheet,
+#' @export
+get_gs_project_tracking  <- function(sheet,
                                       creds = NULL,
                                       cols = c(name = "studyName",
                                                pi = "studyPI",
@@ -191,7 +192,12 @@ add_default_folders <- function(project, folders = c("Analysis", "Milestone Repo
                                                abstract = "abstract",
                                                institution = "institutions",
                                                funder = "fundingAgency",
-                                               initiative = "initiative")) {
+                                               initiative = "initiative",
+                                               disease = "diseaseFocus",
+                                               manifestations = "diseaseManifestations",
+                                               grant_doi = "grantDOI"
+                                               )
+                                             ) {
 
   if(!is.null(creds) && file.exists(creds)) googlesheets4::gs4_auth(path = creds)
   # read_sheet will check if some auth is available
@@ -200,10 +206,6 @@ add_default_folders <- function(project, folders = c("Analysis", "Milestone Repo
   projects
 }
 
-#' @rdname get_new_project_data
-#' Right now `get_new_project_data` is user-facing alias for `.get_googlesheets_new_project_data`
-#' so we don't have to think too much about the underlying API being used;
-#' if data is eventually stored/retrieved with a different backend
-#' (i.e. SQL database, Smartsheets, Airtable, etc.), this should point to the new method.
-
-get_project_tracking <- .get_gs_project_tracking
+#' @rdname get_gs_project_tracking
+#' @export
+get_project_tracking <- get_gs_project_tracking
