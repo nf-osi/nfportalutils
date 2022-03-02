@@ -1,9 +1,10 @@
 #' Create a new project
 #'
-#' @description Set up a new NF project with wiki, folders, fileview, and permissions.
+#' Set up a new NF project with wiki, folders, fileview, and permissions.
 #' Most parameters come from a project intake & data sharing plan (DSP) form.
 #' Aside from default folders, folders are tailored for data mentioned in DSP.
 #' The NF-OSI team is hard-coded to be admin in addition to the funder team indicated by `funder`.
+#' Since this is intended for actual new projects, it will fail if a same existing project is detected.
 #'
 #' After project is created, NF Portal representation requires registration in backend:
 #' - New study row added to the Portal - Studies table.
@@ -32,9 +33,8 @@ new_project <- function(name,
                         webview = FALSE) {
 
   .check_login()
-
-  project <- synapseclient$Project(name)
-  project <- .syn$store(project)
+  
+  project <- new_project_strict(name)
 
   # WIKI -----------------------------------------------------------------------#
 
@@ -127,6 +127,30 @@ new_project <- function(name,
   #TODO: add snippet to add the project to the Portal Files view scope
   #TODO: add snippet to add the project to the Portal Studies table as a row
   return(project)
+}
+
+#' Create a strictly new project
+#' 
+#' Internal handler for creating a project that
+#' first checks whether project already exists and disallows overwriting.
+#' For a less strict version that allows overwriting with a warning, 
+#' e.g. named `update_project`, implement with
+#' `createOrUpdate = TRUE` and then compare createdOn and modifiedOn to issue a warning
+#' (which would be more informative than current Python client).
+#' @param project_name Name of project to be created.
+new_project_strict <- function(project_name) {
+  id <- try(.syn$findEntityId(project_name)) 
+  if(class(id) == "try-error") { 
+    # Error with 403 code if exists without writable permissions
+    stop("Project not created because of name collision with a non-NF project.", call. = FALSE)
+  } else if(class(id) == "character") {
+    # Likely already administering project if returns actual synID
+    stop("Project not created because of name collision with a current project. Check project entity?" , call. = FALSE) 
+  } else { # NULL
+    project <- synapseclient$Project(project_name)
+    project <- .syn$store(project, createOrUpdate = FALSE)
+    project
+  }
 }
 
 #' Make a user or group full admin of a Synapse entity
