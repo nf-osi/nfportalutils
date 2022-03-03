@@ -19,6 +19,7 @@ syn_login <- function(username = NULL, password = NULL, authtoken = Sys.getenv("
   } else {
     .syn$login(authToken = authtoken)
   }
+  invisible(.syn)
 }
 
 #' Checks .syn object exists.

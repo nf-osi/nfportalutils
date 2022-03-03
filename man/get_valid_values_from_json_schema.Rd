@@ -6,7 +6,7 @@
 \usage{
 get_valid_values_from_json_schema(
  
-    schema_url = "https://raw.githubusercontent.com/nf-osi/schematic/develop/data/schema_org_schemas/NF.jsonld",
+    schema_url = "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld",
   parent_name = "DataType",
   parent_context = "bts"
 )

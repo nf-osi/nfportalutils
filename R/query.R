@@ -12,7 +12,7 @@ table_query <- function(table_id, columns = "*", includeRowIdAndRowVersion = F) 
   .check_login()
   
   table <- .syn$tableQuery(glue::glue('select {glue::glue_collapse(columns, sep = ",")} from {table_id}'),
-                           includeRowIdAndRowVersion = F)$filepath %>%
+                           includeRowIdAndRowVersion = includeRowIdAndRowVersion)$filepath %>%
     readr::read_csv(na=character())
   table
 }
