@@ -72,7 +72,7 @@ assign_study_data_types <- function(study_table_id, fileview_id, group_colname =
 #' @param parent_context Default = bts. The JSON-LD context for the value in question.
 #' @return A character vector of values.
 #' @export
-get_valid_values_from_json_schema <- function(schema_url = 'https://raw.githubusercontent.com/nf-osi/schematic/develop/data/schema_org_schemas/NF.jsonld',
+get_valid_values_from_json_schema <- function(schema_url = 'https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld',
                                               parent_name = 'DataType',
                                               parent_context = 'bts'){
 

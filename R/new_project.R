@@ -1,9 +1,10 @@
 #' Create a new project
 #'
-#' @description Set up a new NF project with wiki, folders, fileview, and permissions.
+#' Set up a new NF project with wiki, folders, fileview, and permissions.
 #' Most parameters come from a project intake & data sharing plan (DSP) form.
 #' Aside from default folders, folders are tailored for data mentioned in DSP.
 #' The NF-OSI team is hard-coded to be admin in addition to the funder team indicated by `funder`.
+#' Since this is intended for actual new projects, it will fail if a same existing project is detected.
 #'
 #' After project is created, NF Portal representation requires registration in backend:
 #' - New study row added to the Portal - Studies table.
@@ -32,9 +33,8 @@ new_project <- function(name,
                         webview = FALSE) {
 
   .check_login()
-
-  project <- synapseclient$Project(name)
-  project <- .syn$store(project)
+  
+  project <- new_project_strict(name)
 
   # WIKI -----------------------------------------------------------------------#
 
@@ -83,51 +83,85 @@ new_project <- function(name,
   # make_folder(parent = data_folder$properties$id, folders = c(""))
 
   # Add Project Files and Metadata fileview, add NF schema; currently doesn't add facets
-  view <- synapseclient$EntityViewSchema(name="Project Files and Metadata",
-                                    columns=list(
-                                     synapseclient$Column(name="assay", columnType="STRING", maximumSize="57"),
-                                     synapseclient$Column(name="consortium", columnType="STRING", maximumSize="24"),
-                                     synapseclient$Column(name="dataSubtype", columnType="STRING", maximumSize="13"),
-                                     synapseclient$Column(name="dataType", columnType="STRING", maximumSize="30"),
-                                     synapseclient$Column(name="diagnosis", columnType="STRING", maximumSize="39"),
-                                     synapseclient$Column(name="tumorType", columnType="STRING", maximumSize="90"),
-                                     synapseclient$Column(name="fileFormat", columnType="STRING", maximumSize="13"),
-                                     synapseclient$Column(name="fundingAgency", columnType="STRING", maximumSize="12"),
-                                     synapseclient$Column(name="individualID", columnType="STRING", maximumSize="213"),
-                                     synapseclient$Column(name="nf1Genotype", columnType="STRING", maximumSize="8"),
-                                     synapseclient$Column(name="nf2Genotype", columnType="STRING", maximumSize="7"),
-                                     synapseclient$Column(name="species", columnType="STRING", maximumSize="15"),
-                                     synapseclient$Column(name="resourceType", columnType="STRING", maximumSize="50"),
-                                     synapseclient$Column(name="isCellLine", columnType="STRING", maximumSize="50"),
-                                     synapseclient$Column(name="isMultiSpecimen", columnType="STRING", maximumSize="50"),
-                                     synapseclient$Column(name="isMultiIndividual", columnType="STRING", maximumSize="50"),
-                                     synapseclient$Column(name="studyId", columnType="ENTITYID"),
-                                     synapseclient$Column(name="studyName", columnType="LARGETEXT"),
-                                     synapseclient$Column(name="specimenID", columnType="STRING", maximumSize="300"),
-                                     synapseclient$Column(name="sex", columnType="STRING", maximumSize="50"),
-                                     synapseclient$Column(name="age", columnType="STRING", maximumSize="50"),
-                                     synapseclient$Column(name="readPair", columnType="INTEGER"),
-                                     synapseclient$Column(name="progressReportNumber", columnType="INTEGER"),
-                                     synapseclient$Column(name="accessType", columnType="STRING", maximumSize="50"),
-                                     synapseclient$Column(name="accessTeam", columnType="USERID"),
-                                     synapseclient$Column(name="cellType", columnType="STRING", maximumSize="300"),
-                                     synapseclient$Column(name="modelOf", columnType="STRING", maximumSize="50"),
-                                     synapseclient$Column(name="compoundName", columnType="STRING", maximumSize="156"),
-                                     synapseclient$Column(name="experimentalCondition", columnType="STRING", maximumSize="58"),
-                                     synapseclient$Column(name="modelSystemName", columnType="STRING", maximumSize="42"),
-                                     synapseclient$Column(name="isXenograft", columnType="STRING", maximumSize="5"),
-                                     synapseclient$Column(name="transplantationType", columnType="STRING", maximumSize="50")),
-                                   parent=project,
-                                   scopes=project,
-                                   includeEntityTypes=list(synapseclient$EntityViewType$FILE),
-                                   add_default_columns=TRUE)
-  view <- .syn$store(view)
+  add_default_fileview(project)
 
   if(webview) .syn$onweb(project)
   #TODO: add snippet to add the project to the Portal Files view scope
   #TODO: add snippet to add the project to the Portal Studies table as a row
   return(project)
 }
+
+#' Create a strictly new project
+#' 
+#' Internal handler for creating a project that
+#' first checks whether project already exists and disallows overwriting.
+#' For a less strict version that allows overwriting with a warning, 
+#' e.g. named `update_project`, implement with
+#' `createOrUpdate = TRUE` and then compare createdOn and modifiedOn to issue a warning
+#' (which would be more informative than current Python client).
+#' @param project_name Name of project to be created.
+new_project_strict <- function(project_name) {
+  id <- try(.syn$findEntityId(project_name)) 
+  if(class(id) == "try-error") { 
+    # Error with 403 code if exists without writable permissions
+    stop("Project not created because of name collision with a non-NF project.", call. = FALSE)
+  } else if(class(id) == "character") {
+    # Likely already administering project if returns actual synID
+    stop("Project not created because of name collision with a current project. Check project entity?" , call. = FALSE) 
+  } else { # NULL
+    project <- synapseclient$Project(project_name)
+    project <- .syn$store(project, createOrUpdate = FALSE)
+    project
+  }
+}
+
+#' Create default project fileview
+#' 
+#' @param project A project entity.
+add_default_fileview <- function(project) { 
+  view <- synapseclient$EntityViewSchema(
+    name="Project Files and Metadata",
+    columns=list(
+      synapseclient$Column(name="assay", columnType="STRING", maximumSize="57"),
+      synapseclient$Column(name="consortium", columnType="STRING", maximumSize="24"),
+      synapseclient$Column(name="dataSubtype", columnType="STRING", maximumSize="13"),
+      synapseclient$Column(name="dataType", columnType="STRING", maximumSize="30"),
+      synapseclient$Column(name="diagnosis", columnType="STRING", maximumSize="39"),
+      synapseclient$Column(name="tumorType", columnType="STRING", maximumSize="90"),
+      synapseclient$Column(name="fileFormat", columnType="STRING", maximumSize="13"),
+      synapseclient$Column(name="fundingAgency", columnType="STRING", maximumSize="12"),
+      synapseclient$Column(name="individualID", columnType="STRING", maximumSize="213"),
+      synapseclient$Column(name="nf1Genotype", columnType="STRING", maximumSize="8"),
+      synapseclient$Column(name="nf2Genotype", columnType="STRING", maximumSize="7"),
+      synapseclient$Column(name="species", columnType="STRING", maximumSize="100"),
+      synapseclient$Column(name="resourceType", columnType="STRING", maximumSize="50"),
+      synapseclient$Column(name="isCellLine", columnType="STRING", maximumSize="50"),
+      synapseclient$Column(name="isMultiSpecimen", columnType="STRING", maximumSize="50"),
+      synapseclient$Column(name="isMultiIndividual", columnType="STRING", maximumSize="50"),
+      synapseclient$Column(name="studyId", columnType="ENTITYID"),
+      synapseclient$Column(name="studyName", columnType="LARGETEXT"),
+      synapseclient$Column(name="specimenID", columnType="STRING", maximumSize="300"),
+      synapseclient$Column(name="sex", columnType="STRING", maximumSize="50"),
+      synapseclient$Column(name="age", columnType="STRING", maximumSize="50"),
+      synapseclient$Column(name="readPair", columnType="INTEGER"),
+      synapseclient$Column(name="progressReportNumber", columnType="INTEGER"),
+      synapseclient$Column(name="accessType", columnType="STRING", maximumSize="50"),
+      synapseclient$Column(name="accessTeam", columnType="USERID"),
+      synapseclient$Column(name="cellType", columnType="STRING", maximumSize="300"),
+      synapseclient$Column(name="modelOf", columnType="STRING", maximumSize="50"),
+      synapseclient$Column(name="compoundName", columnType="STRING", maximumSize="156"),
+      synapseclient$Column(name="experimentalCondition", columnType="STRING", maximumSize="58"),
+      synapseclient$Column(name="modelSystemName", columnType="STRING", maximumSize="42"),
+      synapseclient$Column(name="isXenograft", columnType="STRING", maximumSize="5"),
+      synapseclient$Column(name="transplantationType", columnType="STRING", maximumSize="50")),
+    parent = project,
+    scopes = project,
+    includeEntityTypes = list(synapseclient$EntityViewType$FILE),
+    add_default_columns = TRUE)
+  view <- .syn$store(view)
+  invisible(view)
+}
+
 
 #' Make a user or group full admin of a Synapse entity
 #'
@@ -168,7 +202,7 @@ add_default_folders <- function(project, folders = c("Analysis", "Milestone Repo
 }
 
 #' Get and parse data from Google Sheets for initializing a new project
-#'
+#' 
 #' Currently, project tracking data is stored in a private GoogleSheet.
 #' For \code{\link{new_project}}, this wraps `googlesheets4` to get the needed data.
 #'
@@ -177,12 +211,13 @@ add_default_folders <- function(project, folders = c("Analysis", "Milestone Repo
 #' This doesn't actually give the googlesheets4 project access to any data
 #' ("The Tidyverse API Packages project never receives your data or the permission to access your data."
 #' -- see https://www.tidyverse.org/google_privacy_policy/.)
-#'
+#' @name get_gs_project_tracking
 #' @param sheet Sheet URL or id. See \code{\link[googlesheets4]{read_sheet}}.
 #' @param creds Path to JSON creds file (service account token).
 #' @param cols List of columns that map to required parameters for \code{\link{new_project}}.
 #' Defaults are provided.
-.get_gs_project_tracking  <- function(sheet,
+#' @export
+get_gs_project_tracking  <- function(sheet,
                                       creds = NULL,
                                       cols = c(name = "studyName",
                                                pi = "studyPI",
@@ -191,7 +226,12 @@ add_default_folders <- function(project, folders = c("Analysis", "Milestone Repo
                                                abstract = "abstract",
                                                institution = "institutions",
                                                funder = "fundingAgency",
-                                               initiative = "initiative")) {
+                                               initiative = "initiative",
+                                               disease = "diseaseFocus",
+                                               manifestations = "diseaseManifestations",
+                                               grant_doi = "grantDOI"
+                                               )
+                                             ) {
 
   if(!is.null(creds) && file.exists(creds)) googlesheets4::gs4_auth(path = creds)
   # read_sheet will check if some auth is available
@@ -200,10 +240,6 @@ add_default_folders <- function(project, folders = c("Analysis", "Milestone Repo
   projects
 }
 
-#' @rdname get_new_project_data
-#' Right now `get_new_project_data` is user-facing alias for `.get_googlesheets_new_project_data`
-#' so we don't have to think too much about the underlying API being used;
-#' if data is eventually stored/retrieved with a different backend
-#' (i.e. SQL database, Smartsheets, Airtable, etc.), this should point to the new method.
-
-get_project_tracking <- .get_gs_project_tracking
+#' @rdname get_gs_project_tracking
+#' @export
+get_project_tracking <- get_gs_project_tracking
