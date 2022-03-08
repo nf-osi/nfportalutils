@@ -2,7 +2,7 @@
 % Please edit documentation in R/convert_to_stringlist.R
 \name{.replace_string_column_with_stringlist_column}
 \alias{.replace_string_column_with_stringlist_column}
-\title{Modify a single annotation on a single file.}
+\title{Replace string column with stringlist column}
 \usage{
 .replace_string_column_with_stringlist_column(
   table_id,
@@ -11,12 +11,12 @@
 )
 }
 \arguments{
-\item{synapse_id}{A synapse entity id.}
+\item{table_id}{A synapse entity id.}
 
-\item{key}{The key of the annotation to modify.}
+\item{column_name}{The column name of relevant column to modify.}
 
-\item{value}{The value to change the annotation to.}
+\item{max_str_len}{Max string length to be set in schema of new column.}
 }
 \description{
-Modifies a single annotation value on a single (existing) synapse file. Guts of this ripped from @jaeddy gist (https://gist.github.com/jaeddy/1cf49f7851945beedb39d431134734af)
+Guts of this ripped from @jaeddy gist (https://gist.github.com/jaeddy/1cf49f7851945beedb39d431134734af)
 }

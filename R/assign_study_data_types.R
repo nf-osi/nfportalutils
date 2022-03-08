@@ -2,14 +2,23 @@
 #' @description Summarize fileview annotations into a string-list column on another table.
 #' @description For example, use this function to summarize all of the "dataType" annotations for a each study into a STRINGLIST annotation on the Study table of a portal. Overwrites whatever is currently in the target column.
 #' @param study_table_id The synapse id of the portal study table. Must have write access.
-#' @param fileview The Synapse ID of the portal fileview.
+#' @param fileview_id The Synapse ID of the portal fileview.
 #' @param group_colname The column name to group by and join on (such as the default = 'studyId')
 #' @param source_colname The column name to summarize and add to the study_table_id table. The column must exist in both schemas, and must be a STRINGLIST-type column in the "study_table_id" table.
 #' @param sep If any delimited values exist in the source_colname column, pass the delimiter here so that these cases are included.
 #' @param valid_values A vector of valid values for the source_colname. e.g. the output of running `get_valid_values_from_json_schema()`
 #' @param dry_run Default = TRUE. Skips upload to table and instead prints study tibble.
 #' @return If dry_run == T, returns study tibble and skips upload.
-#' @example assign_study_data_types(study_table_id = 'syn16787123', fileview_id = 'syn16858331', group_colname = 'studyId', source_colname = "dataType", sep = ",", valid_values = get_valid_values_from_json_schema(), dry_run = T)
+#' @examples 
+#' \dontrun{
+#' assign_study_data_types(study_table_id = 'syn16787123', 
+#'                        fileview_id = 'syn16858331', 
+#'                        group_colname = 'studyId', 
+#'                        source_colname = "dataType", 
+#'                        sep = ",", 
+#'                        valid_values = get_valid_values_from_json_schema(), 
+#'                        dry_run = T)
+#'}                        
 #' @export
 assign_study_data_types <- function(study_table_id, fileview_id, group_colname = "studyId",
                                     source_colname = "dataType", sep = ",", valid_values, dry_run = TRUE){
@@ -63,7 +72,7 @@ assign_study_data_types <- function(study_table_id, fileview_id, group_colname =
 #' @param parent_context Default = bts. The JSON-LD context for the value in question.
 #' @return A character vector of values.
 #' @export
-get_valid_values_from_json_schema <- function(schema_url = 'https://raw.githubusercontent.com/nf-osi/schematic/develop/data/schema_org_schemas/NF.jsonld',
+get_valid_values_from_json_schema <- function(schema_url = 'https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld',
                                               parent_name = 'DataType',
                                               parent_context = 'bts'){
 

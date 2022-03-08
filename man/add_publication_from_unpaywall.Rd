@@ -21,7 +21,7 @@ add_publication_from_unpaywall(
 \arguments{
 \item{publication_table_id}{The synapse id of the portal publication table. Must have write access.}
 
-\item{email_address}{A valid email address. Is used to request metadata from the Unpaywall API.}
+\item{email_address}{A valid email address. Is used to request metadata from the Unpaywall API. Please change the example to a real email address to help Unpaywall accurately track usage.}
 
 \item{doi}{The DOI of the preprint to be added.}
 
@@ -45,16 +45,21 @@ add_publication_from_unpaywall(
 If dry_run == T, returns publication metadata to be added.
 }
 \description{
-Add a publication to the publication table. Publication must be in unpaywall database to retrieve info.
+Add a publication to the publication table. Publication must be in unpaywall database to retrieve info. For parameter-provided metadata (e.g. "studyName"), function must a JSON-formatted character vector if the destination Synapse column is of "STRING_LIST" format. Currently, this function does not evaluate the schema, so this must be checked manually.
+}
+\note{
+
 }
 \examples{
+\dontrun{  
 add_publication_from_unpaywall(publication_table_id = 'syn16857542',
-               email = 'foo@bar.com'
+               email_address = 'foo@bar.com',
                doi = '10.1074/jbc.RA120.014960',
                study_name = c(toJSON("Synodos NF2")),
                study_id = c(toJSON("syn2343195")),
                funding_agency = c(toJSON("CTF")),
-               disease_focus = c(toJSON("Neurofibromatosis 2")),
+               disease_focus = "Neurofibromatosis 2",
                manifestation = c(toJSON("Meningioma")),
                dry_run = T)
+}                
 }

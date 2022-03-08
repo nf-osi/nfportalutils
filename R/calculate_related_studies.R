@@ -1,9 +1,15 @@
 #' Calculate and add related studies to study table.
 #' @description Processes study summary text to identify clusters of related studies. Calculates tf-idf values for 1 and 2 length ngrams, and clusters studies using the ward.D clustering method. Updates data in a STRINGLIST column "relatedStudies."
 #' @param study_table_id The synapse id of the portal study table. Must have write access.
-#' @param n_clust The target number of clusters to generate. In practice, I've found that the number of total summaries divided by 4 is a good starting point (100 studies = 25 clusters).
+#' @param n_clust The target number of clusters to generate. In practice, I've found that the number of total summaries divided by 3 is a good starting point (100 studies = 33 clusters).
 #' @param dry_run Default = TRUE. Skips upload to table and instead prints study tibble.
 #' @return If dry_run == T, returns study tibble and skips upload.
+#' @examples
+#' \dontrun{ 
+#'  calculate_related_studies(study_table_id = "syn16787123",
+#'                            n_clust = 36,
+#'                            dry_run = T)
+#'}
 #' @export
 
 calculate_related_studies <- function(study_table_id, n_clust, dry_run = TRUE){

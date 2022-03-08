@@ -1,5 +1,5 @@
 #' Add a publication to the publication table.
-#' @description Add a publication to the publication table. Requires that the publication be listed in PubMed.
+#' @description Add a publication to the publication table. Requires that the publication be listed in PubMed. For parameter-provided metadata (e.g. "studyName"), function must a JSON-formatted character vector if the destination Synapse column is of "STRING_LIST" format. Currently, this function does not evaluate the schema, so this must be checked manually.
 #' @param publication_table_id The synapse id of the portal publication table. Must have write access.
 #' @param pmid The PubMed ID (*not* PMCID) of the publication to be added.
 #' @param study_name The name(s) of the study that are associated with the publication.
@@ -9,14 +9,17 @@
 #' @param manifestation The manifestation(s) that are associated with the publication.
 #' @param dry_run Default = TRUE. Skips upload to table and instead prints formatted publication metadata.
 #' @return If dry_run == T, returns publication metadata to be added.
-#' @examples add_publication_from_pubmed(publication_table_id = 'syn16857542',
+#' @examples 
+#' \dontrun{
+#' add_publication_from_pubmed(publication_table_id = 'syn16857542',
 #'                pmid = '33574490',
 #'                study_name = c(toJSON("Synodos NF2")),
 #'                study_id = c(toJSON("syn2343195")),
 #'                funding_agency = c(toJSON("CTF")),
-#'                disease_focus = c(toJSON("Neurofibromatosis 2")),
+#'                disease_focus = "Neurofibromatosis 2",
 #'                manifestation = c(toJSON("Meningioma")),
 #'                dry_run = T)
+#'}
 #' @export
 #'
 add_publication_from_pubmed <- function(publication_table_id, pmid, study_name, study_id, funding_agency, disease_focus, manifestation, dry_run = T){
@@ -83,7 +86,7 @@ add_publication_from_pubmed <- function(publication_table_id, pmid, study_name, 
           new_row <- dplyr::bind_rows(colnames, new_data)
 
           if(dry_run == F){
-            .store_publication(schema, new_row)
+            .store_rows(schema, new_row)
             glue::glue('{pmid} added!')
           }else{
             print(new_row)

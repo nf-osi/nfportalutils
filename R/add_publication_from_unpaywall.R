@@ -1,7 +1,7 @@
 #' Add a publication or preprint to the publication table via the Unpaywall API.
-#' @description Add a publication to the publication table. Publication must be in unpaywall database to retrieve info.
+#' @description Add a publication to the publication table. Publication must be in unpaywall database to retrieve info. For parameter-provided metadata (e.g. "studyName"), function must a JSON-formatted character vector if the destination Synapse column is of "STRING_LIST" format. Currently, this function does not evaluate the schema, so this must be checked manually.
 #' @param publication_table_id The synapse id of the portal publication table. Must have write access.
-#' @param email_address A valid email address. Is used to request metadata from the Unpaywall API.
+#' @param email_address A valid email address. Is used to request metadata from the Unpaywall API. Please change the example to a real email address to help Unpaywall accurately track usage.
 #' @param doi The DOI of the preprint to be added.
 #' @param is_preprint Default = FALSE. Set to TRUE if DOI is from a preprint.
 #' @param preprint_server Provide preprint server name. Must be one of 'bioRxiv', 'medRxiv', 'chemRxiv', 'arXiv'
@@ -11,16 +11,20 @@
 #' @param disease_focus The disease focus(s) that are associated with the publication.
 #' @param manifestation The manifestation(s) that are associated with the publication.
 #' @param dry_run Default = TRUE. Skips upload to table and instead prints formatted publication metadata.
+#' @note
 #' @return If dry_run == T, returns publication metadata to be added.
-#' @examples add_publication_from_unpaywall(publication_table_id = 'syn16857542',
-#'                email = 'foo@bar.com'
+#' @examples
+#' \dontrun{  
+#' add_publication_from_unpaywall(publication_table_id = 'syn16857542',
+#'                email_address = 'foo@bar.com',
 #'                doi = '10.1074/jbc.RA120.014960',
 #'                study_name = c(toJSON("Synodos NF2")),
 #'                study_id = c(toJSON("syn2343195")),
 #'                funding_agency = c(toJSON("CTF")),
-#'                disease_focus = c(toJSON("Neurofibromatosis 2")),
+#'                disease_focus = "Neurofibromatosis 2",
 #'                manifestation = c(toJSON("Meningioma")),
 #'                dry_run = T)
+#'}                
 #' @export
 #'
 add_publication_from_unpaywall <- function(publication_table_id,
@@ -109,12 +113,12 @@ add_publication_from_unpaywall <- function(publication_table_id,
                                  "studyName"= study_name, "studyId"=study_id,"fundingAgency"= funding_agency,"diseaseFocus"= disease_focus,
                                  "manifestation"=manifestation)
 
-        colnames <- pub_table %>% filter(is.na(doi))
+        colnames <- pub_table %>% dplyr::filter(is.na(doi))
 
         new_row <- dplyr::bind_rows(colnames, new_data)
 
           if(dry_run == F & nrow(new_row) > 0){
-            .store_publication(schema, new_row)
+            .store_rows(schema, new_row)
             glue::glue('{doi} added!')
           }else if(nrow(new_row) == 0){
             'error in generating new row, aborting'
@@ -129,7 +133,7 @@ add_publication_from_unpaywall <- function(publication_table_id,
 #' @param schema A synapse table Schema object.
 #' @param new_row A data frame of one or more rows that match the provided schema.
 #' @export
-.store_publication <- function(schema, new_row){
+.store_rows <- function(schema, new_row){
 
   table <- .syn$store(synapseclient$Table(schema, new_row))
 

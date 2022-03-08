@@ -17,6 +17,8 @@ assign_study_data_types(
 \arguments{
 \item{study_table_id}{The synapse id of the portal study table. Must have write access.}
 
+\item{fileview_id}{The Synapse ID of the portal fileview.}
+
 \item{group_colname}{The column name to group by and join on (such as the default = 'studyId')}
 
 \item{source_colname}{The column name to summarize and add to the study_table_id table. The column must exist in both schemas, and must be a STRINGLIST-type column in the "study_table_id" table.}
@@ -26,8 +28,6 @@ assign_study_data_types(
 \item{valid_values}{A vector of valid values for the source_colname. e.g. the output of running \code{get_valid_values_from_json_schema()}}
 
 \item{dry_run}{Default = TRUE. Skips upload to table and instead prints study tibble.}
-
-\item{fileview}{The Synapse ID of the portal fileview.}
 }
 \value{
 If dry_run == T, returns study tibble and skips upload.
@@ -36,4 +36,15 @@ If dry_run == T, returns study tibble and skips upload.
 Summarize fileview annotations into a string-list column on another table.
 
 For example, use this function to summarize all of the "dataType" annotations for a each study into a STRINGLIST annotation on the Study table of a portal. Overwrites whatever is currently in the target column.
+}
+\examples{
+\dontrun{
+assign_study_data_types(study_table_id = 'syn16787123', 
+                       fileview_id = 'syn16858331', 
+                       group_colname = 'studyId', 
+                       source_colname = "dataType", 
+                       sep = ",", 
+                       valid_values = get_valid_values_from_json_schema(), 
+                       dry_run = T)
+}                        
 }
