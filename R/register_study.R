@@ -37,20 +37,20 @@ register_study <- function(name,
                        studyId = project_id,
                        summary = abstract,                   
                        initiative = initiative,                
-                       studyLeads = as.character(jsonlite::toJSON(lead)), # STRLIST                
-                       institutions = as.character(jsonlite::toJSON(institution)),  # STRLIST  
-                       manifestation = as.character(jsonlite::toJSON(manifestation)),  # STRLIST  
-                       diseaseFocus = as.character(jsonlite::toJSON(focus)),  # STRLIST  
+                       studyLeads = strlist_JSON(lead), # STRLIST                
+                       institutions = strlist_JSON(institution, sep = "; ?"),  # STRLIST  
+                       manifestation = strlist_JSON(manifestation),  # STRLIST  
+                       diseaseFocus = strlist_JSON(focus),  # STRLIST  
                        studyStatus = study_status,
                        dataStatus = data_status,
-                       fundingAgency = as.character(jsonlite::toJSON(funder)),  # STRLIST  
+                       fundingAgency = strlist_JSON(funder),  # STRLIST  
                        accessRequirements = terms_access,
                        acknowledgementStatements = terms_acknowledgement,
                        dataType = "", # STRLIST  
                        relatedStudies = "", # STRLIST  
                        studyFileviewId = fileview_id,
                        id = project_id,
-                       grantDOI = as.character(jsonlite::toJSON(grant_doi)), # STRLIST                   
+                       grantDOI = strlist_JSON(grant_doi), # STRLIST                   
                        Resource_id = "") # STRLIST  
   .syn$store(synapseclient$Table(schema, new_row))
   
@@ -72,5 +72,18 @@ register_study_files <- function(project_id,
   # Works, but maybe there's a better implementation with python?
   reticulate::py_set_attr(portal_fileview, "scopeIds", c(portal_fileview$properties$scopeIds, new_scope_id))
   .syn$store(portal_fileview)
+}
+
+#' Convert delimited record to JSON representation needed by a stringlist col schema
+#' 
+#' Internal helper that reuses and extends the utility of `.delim_string_to_vector`.
+#' 
+#' @inheritParams .delim_string_to_vector
+#' @param record Character vector of length one representing a single record.
+#' @keywords internal
+strlist_JSON <- function(record, sep = ",", trim_ws = T) {
+  .delim_string_to_vector(string = record, sep, trim_ws = T) %>%
+    jsonlite::toJSON() %>%
+    as.character()
 }
 
