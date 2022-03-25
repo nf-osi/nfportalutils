@@ -1,41 +1,82 @@
 #' Convert a delimited string to a stringlist annotation
+#' 
+#' Note that this schema change operation consults the current metadata model 
+#' to help set schema parameter `max string length` 
+#' (and possibly `max list length` in the future if that can be encoded in the model).  
+#' This also serves as a built-in check that will throw an error 
+#' if the data model doesn't recognize the key being changed.
+#' However, to use this as a more general `max string length` util _without_ 
+#' involving a metadata model, set `schema` to NULL and
+#' `max string length` will be set based on the current values.
+#' 
 #' @description Converts a delimited string to a stringlist annotation and adjust the associated schema in the portal fileview.
-#' @param fileview_id The synapse id of a fileview. Must have the desired annotations in the schema, and must have the files to annotate included in the scope. Must have write access to the files you want to re-annotate.
+#' @param fileview_id The synapse id of a fileview. 
+#' Must have the desired annotations in the schema, 
+#' and must have the files to annotate included in the scope. 
+#' Must have write access to the files you want to re-annotate.
 #' @param annotation_key A character string of the annotation you'd like to switch from a delimited string to a stringlist.
 #' @param sep Default = ",". The delimiter in the character string.
 #' @param trim_ws Default = TRUE. Remove white space at the beginning and end of list items (e.g. "NF1, NF2" and "NF1,NF2" will yield the same STRING_LIST result).
+#' @param schema If not NULL, path to a readable .jsonld schema to use for setting new col schema. See details.  
 #' @param dry_run Default = TRUE. Skips upload to table and instead prints study tibble.
-#' @return If dry_run == T, returns study tibble and skips upload.
+#' @return If dry_run == T, returns list of updates and skips upload.
 #' @export
-#'
-convert_to_stringlist <- function(fileview_id, annotation_key, sep = ",", trim_ws = TRUE, dry_run = TRUE){
-
+convert_to_stringlist <- function(fileview_id, 
+                                  annotation_key,
+                                  sep = ",", 
+                                  trim_ws = TRUE, 
+                                  schema = NULL,
+                                  dry_run = TRUE) {
+  
   .check_login()
-
-  fv <- .syn$tableQuery(glue::glue('select id,{annotation_key} from {fileview_id} where type = \'file\''))$filepath %>%
-    readr::read_csv(na=character()) ##asDataFrame() & reticulate return rowIdAndRowVersion as concatenated rownames, read_csv reads them in as column
-
-  fv_filt <- dplyr::filter(fv, !!rlang::sym(annotation_key) != "") %>%
-    dplyr::filter(grepl(sep,!!rlang::sym(annotation_key)))
-
-  ls_annotations <- lapply(fv_filt$id, function(x){
-    fv_filt[fv_filt$id==x,annotation_key] %>% purrr::pluck(annotation_key) %>% .delim_string_to_vector(., trim_ws = T, sep = sep)
+  
+  fv <- table_query(fileview_id, 
+                    columns = c("id", annotation_key), 
+                    includeRowIdAndRowVersion = TRUE)
+  
+  # Check whether there are stringlist values currently being represented as 
+  # delimited strings
+  fv_filt <- dplyr::filter(fv, .data[[annotation_key]] != "") %>%
+    dplyr::filter(grepl(sep, .data[[annotation_key]]))
+  updates <- list() 
+  
+  # Process values if there are any that need to be converted
+  if(nrow(fv_filt)) {
+    ls_annotations <- lapply(fv_filt[[annotation_key]], function(x) {
+      .delim_string_to_vector(x, trim_ws = T, sep = sep)
     })
-
-  names(ls_annotations) <- fv_filt$id
-
-  max_str_len <- lapply(ls_annotations, stringr::str_length) %>% unlist %>% max
-
-  if(dry_run == F){
-    lapply(names(ls_annotations), function(x){
-      .modify_annotation(synapse_id = x, key = annotation_key, value = ls_annotations[[x]])
-    })
-
-    .replace_string_column_with_stringlist_column(table_id = fileview_id, column_name = annotation_key, max_str_len = max_str_len)
-  }else{
-    message(glue::glue("{length(ls_annotations)} files will be updated when dry_run = F."))
-    return(ls_annotations)
+    
+    names(ls_annotations) <- fv_filt$id
+    updates <- ls_annotations
   }
+  
+  # Apply or only preview updates
+  if(!dry_run) {
+    # Set new annotations on entities
+    if(length(updates)) { 
+      lapply(names(updates), function(x) {
+        .modify_annotation(synapse_id = x, key = annotation_key, value = updates[[x]])
+      })
+    }
+    
+    # Set new col schema based on whether a data model is involved
+    if(!is.null(schema)) {
+      max_str_len <- schema_max_str_len(annotation_key, schema = schema)
+      if(is.na(max_str_len)) error("This key is not defined in schema.")
+      # Also warn if current values exceed what data model says? 
+    } else {
+      max_str_len <- max(nchar(unlist(updates)))
+    }
+    .replace_string_column_with_stringlist_column(table_id = fileview_id,
+                                                  column_name = annotation_key,
+                                                  max_str_len = max_str_len)
+    message(glue::glue("converted {annotation_key} in {fileview_id}"))
+  
+  } else {
+    message(glue::glue("{length(updates)} files will be updated when dry_run = F."))
+    return(updates)
+  }
+  
 }
 
 #' Convert a delimited string to vector, utility function.
@@ -44,7 +85,6 @@ convert_to_stringlist <- function(fileview_id, annotation_key, sep = ",", trim_w
 #' @param sep Default = ",". The delimiter in the character string.
 #' @param trim_ws Default = TRUE. Remove white space at the beginning and end of list items (e.g. "NF1, NF2" and "NF1,NF2" will yield the same STRING_LIST result).
 #' @export
-#'
 .delim_string_to_vector <- function(string, sep, trim_ws = T){
   string <- as.character(string)
   if(trim_ws == T){
