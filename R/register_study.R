@@ -33,6 +33,10 @@ register_study <- function(name,
                            study_table_id = "syn16787123") {
   
   schema <- .syn$get(study_table_id)
+  # Basic validation for project_id and fileview_id where expect format "syn12345678" (allow 9 digits eventually?)
+  if(!grepl("^syn[0-9]{8}", project_id)) stop("Possible typo/missing something in project Synapse id?")
+  if(!grepl("^syn[0-9]{8}", fileview_id)) stop("Possible typo/missing something in fileview Synapse id?")
+  
   new_row <- data.frame(studyName = name,
                        studyId = project_id,
                        summary = abstract,                   
@@ -56,6 +60,7 @@ register_study <- function(name,
   
 }
 
+
 #' Add new project scope to "Portal - Files" fileview
 #' 
 #' Add a new project to the scope of the "Portal - Files" fileview so that 
@@ -69,7 +74,7 @@ register_study_files <- function(project_id,
   
   new_scope_id <- sub("syn", "", project_id)
   portal_fileview <- .syn$get(portal_fileview)
-  # Works, but maybe there's a better implementation with python?
+  # Works, but maybe there's a better implementation?
   reticulate::py_set_attr(portal_fileview, "scopeIds", c(portal_fileview$properties$scopeIds, new_scope_id))
   .syn$store(portal_fileview)
 }
