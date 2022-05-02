@@ -41,6 +41,8 @@ test_that("can register a study with non-list attributes (simplest expected meta
   )
 })
 
+# Note that this test is actually incomplete;
+# we need to pull the row and check that it *does* contain fields as a list
 test_that("can register a study with list attributes", {
   skip_if_no_synapseclient()
   skip_if_no_pandas()
