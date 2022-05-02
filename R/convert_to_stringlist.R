@@ -31,8 +31,7 @@ convert_to_stringlist <- function(fileview_id,
   .check_login()
   
   fv <- table_query(fileview_id, 
-                    columns = c("id", annotation_key), 
-                    includeRowIdAndRowVersion = TRUE)
+                    columns = c("id", annotation_key))
   
   # Check whether there are stringlist values currently being represented as 
   # delimited strings

@@ -9,17 +9,23 @@ convert_to_stringlist(
   annotation_key,
   sep = ",",
   trim_ws = TRUE,
+  schema = NULL,
   dry_run = TRUE
 )
 }
 \arguments{
-\item{fileview_id}{The synapse id of a fileview. Must have the desired annotations in the schema, and must have the files to annotate included in the scope. Must have write access to the files you want to re-annotate.}
+\item{fileview_id}{The synapse id of a fileview.
+Must have the desired annotations in the schema,
+and must have the files to annotate included in the scope.
+Must have write access to the files you want to re-annotate.}
 
 \item{annotation_key}{A character string of the annotation you'd like to switch from a delimited string to a stringlist.}
 
 \item{sep}{Default = ",". The delimiter in the character string.}
 
 \item{trim_ws}{Default = TRUE. Remove white space at the beginning and end of list items (e.g. "NF1, NF2" and "NF1,NF2" will yield the same STRING_LIST result).}
+
+\item{schema}{If not NULL, path to a readable .jsonld schema to use for setting new Stringlist schema. See details.}
 
 \item{dry_run}{Default = TRUE. Skips upload to table and instead prints study tibble.}
 }
@@ -28,4 +34,14 @@ If dry_run == T, returns study tibble and skips upload.
 }
 \description{
 Converts a delimited string to a stringlist annotation and adjust the associated schema in the portal fileview.
+}
+\details{
+Note that this schema change operation consults the current metadata model
+to help set schema parameter \verb{max string length}
+(and possibly \verb{max list length} in the future if that can be encoded in the model).
+This also serves as a built-in check that will throw an error
+if the data model doesn't recognize the key being changed.
+However, to use this as a more general purpose util \emph{without} any
+checking against a metadata model, set \code{schema} to NULL and
+\verb{max string length} will be set based on the current values.
 }
