@@ -20,6 +20,7 @@
 #' @param funder The funder org, currently one of c("CTF", "GFF", "NTAP"). The relevant funder team will be made admin.
 #' @param initiative Title of funding initiative, e.g. "Young Investigator Award".
 #' @param webview Whether to open web browser to view newly created project. Defaults to FALSE.
+#' @param ... Additional arguments. Not used.
 #' @return The project object.
 #' @export
 new_project <- function(name,
@@ -30,7 +31,8 @@ new_project <- function(name,
                         institution,
                         funder = c("CTF", "GFF", "NTAP"),
                         initiative,
-                        webview = FALSE) {
+                        webview = FALSE,
+                        ...) {
 
   .check_login()
   
