@@ -13,7 +13,8 @@ new_project(
   institution,
   funder = c("CTF", "GFF", "NTAP"),
   initiative,
-  webview = FALSE
+  webview = FALSE,
+  ...
 )
 }
 \arguments{
@@ -35,6 +36,8 @@ Currently, only takes one admin user, and the rest can be added via the UI.}
 \item{initiative}{Title of funding initiative, e.g. "Young Investigator Award".}
 
 \item{webview}{Whether to open web browser to view newly created project. Defaults to FALSE.}
+
+\item{...}{Additional arguments. Not used.}
 }
 \value{
 The project object.
