@@ -1,24 +1,27 @@
 #' Convert a delimited string to a stringlist annotation
 #' 
-#' Note that this schema change operation consults the current metadata model 
-#' to help set schema parameter `max string length` 
-#' (and possibly `max list length` in the future if that can be encoded in the model).  
-#' This also serves as a built-in check that will throw an error 
-#' if the data model doesn't recognize the key being changed.
-#' However, to use this as a more general `max string length` util _without_ 
-#' involving a metadata model, set `schema` to NULL and
-#' `max string length` will be set based on the current values.
+#' This is a schema change operation that updates 1) column type to list
+#' and 2) sets a new `max string length` parameter of a Synapse Table 
+#' (usually shrinking the max value). 
+#' It can optionally consult the metadata model about a good `max string length`.
+#' (and might handle `max list length` in the future if that could be encoded in the model as well).  
+#' When a model is consulted, as a built-in check an error will be thrown 
+#' if the data model doesn't recognize the key being changed,
+#' i.e. when one wants to be strict about a key in the Table not documented by the model.
+#' When there is no model to involve (`schema` = NULL), the `max string length` 
+#' will simply be set based on the current values after processing the delimited list 
+#' (the original code).
 #' 
-#' @description Converts a delimited string to a stringlist annotation and adjust the associated schema in the portal fileview.
 #' @param fileview_id The synapse id of a fileview. 
 #' Must have the desired annotations in the schema, 
 #' and must have the files to annotate included in the scope. 
 #' Must have write access to the files you want to re-annotate.
-#' @param annotation_key A character string of the annotation you'd like to switch from a delimited string to a stringlist.
-#' @param sep Default = ",". The delimiter in the character string.
-#' @param trim_ws Default = TRUE. Remove white space at the beginning and end of list items (e.g. "NF1, NF2" and "NF1,NF2" will yield the same STRING_LIST result).
-#' @param schema If not NULL, path to a readable .jsonld schema to use for setting new col schema. See details.  
-#' @param dry_run Default = TRUE. Skips upload to table and instead prints study tibble.
+#' @param annotation_key A character string of the annotation to switch from a delimited string to a stringlist.
+#' @param sep The delimiter in the character string. Default = ",". 
+#' @param trim_ws Remove white space at the beginning and end of list items (e.g. "NF1, NF2" and "NF1,NF2" will yield the same STRING_LIST result).
+#' Default = TRUE. 
+#' @param schema Optional, path to a readable .jsonld schema to use for setting new col schema. See details.  
+#' @param dry_run Skip upload to table and instead prints study tibble. Default = TRUE.
 #' @return If dry_run == T, returns list of updates and skips upload.
 #' @export
 convert_to_stringlist <- function(fileview_id, 
