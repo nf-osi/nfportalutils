@@ -3,9 +3,9 @@
 #' This is a schema change operation that updates 1) column type to list
 #' and 2) sets a new `max string length` parameter of a Synapse Table 
 #' (usually shrinking the max value). 
-#' It can optionally consult the metadata model about a good `max string length`.
+#' It can optionally consult a metadata model about a good `max string length`.
 #' (and might handle `max list length` in the future if that could be encoded in the model as well).  
-#' When a model is consulted, as a built-in check an error will be thrown 
+#' When a model *is* consulted, as a built-in check an error will be thrown 
 #' if the data model doesn't recognize the key being changed,
 #' i.e. when one wants to be strict about a key in the Table not documented by the model.
 #' When there is no model to involve (`schema` = NULL), the `max string length` 
