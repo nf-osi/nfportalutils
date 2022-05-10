@@ -107,9 +107,11 @@ add_publication_from_unpaywall <- function(publication_table_id,
         if(is.null(pmid) | length(pmid)==0){
           pmid <- NA
         }
+        
+        doi_url <- glue::glue("www.doi.org/{doi}")
 
         #return metadata
-        new_data <- tibble::tibble("title"=title, "journal"=journal, "author" = author_list, "year"=year, "pmid" = pmid, "doi"=doi,
+        new_data <- tibble::tibble("title"=title, "journal"=journal, "author" = author_list, "year"=year, "pmid" = pmid, "doi"=doi_url,
                                  "studyName"= study_name, "studyId"=study_id,"fundingAgency"= funding_agency,"diseaseFocus"= disease_focus,
                                  "manifestation"=manifestation)
 
