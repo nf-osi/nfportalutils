@@ -55,6 +55,8 @@ add_publication_from_pubmed <- function(publication_table_id, pmid, study_name, 
 
         ##doi
         doi <- pmids_df$doi %>% unique
+        
+        doi_url <- glue::glue("www.doi.org/{doi}")
 
         if(doi %in% pub_table$doi){
           print("publication already exists in destination table!")
@@ -75,7 +77,7 @@ add_publication_from_pubmed <- function(publication_table_id, pmid, study_name, 
 
           schema <- .syn$get(entity = publication_table_id)
 
-          new_data <- tibble::tibble("title"=title, "journal"=journal, "author" = author_list, "year"=year, "pmid" = pmid, "doi"=doi,
+          new_data <- tibble::tibble("title"=title, "journal"=journal, "author" = author_list, "year"=year, "pmid" = pmid, "doi"=doi_url,
                                  "studyName"= study_name, "studyId"=study_id,"fundingAgency"= funding_agency,"diseaseFocus"= disease_focus,
                                  "manifestation"=manifestation)
 
