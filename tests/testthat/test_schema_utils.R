@@ -1,0 +1,49 @@
+test_that("Recursive lookup works with `get_dependency_from_json_schema`", {
+  # Note: should make test schema bc test will need to be updated if template changes
+  # Define what columns are present in schematic-generated GenomicsAssayTemplate (ignoring "eTag")
+  k <- c("Component",
+         "Filename",
+         "resourceType",
+         "progressReportNumber",
+         "dataType",
+         "assay",
+         "platform",
+         "individualID",
+         "parentSpecimenID",
+         "runType",
+         "libraryPrep",
+         "comments",
+         "age",
+         "ageUnit",
+         "aliquotID",
+         "cellType",
+         "dataSubtype",
+         "diagnosis",
+         "dissociationMethod",
+         "fileFormat",
+         "isCellLine",
+         "isPrimaryCell",
+         "isStranded",
+         "libraryPreparationMethod",
+         "modelSystemName",
+         "nf1Genotype",
+         "nf2Genotype",
+         "nucleicAcidSource",
+         "organ",
+         "readDepth",
+         "readLength",
+         "readPair",
+         "readPairOrientation",
+         "readStrandOrigin",
+         "sex",
+         "species",
+         "specimenID",
+         "specimenPreparationMethod",
+         "tissue",
+         "tumorType",
+         "entityId")
+  
+  k_test <- get_dependency_from_json_schema(id = "bts:GenomicsAssayTemplate") 
+  testthat::expect_equal(sort(k), sort(k_test))
+  
+})
