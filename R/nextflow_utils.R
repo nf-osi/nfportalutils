@@ -42,12 +42,16 @@ mapSampleInput <- function(samplesheet) {
 #' This creates a local view with default props that works well enough for certain jobs.
 #' 
 #' @param scope Vector of one or more syn container ids.
-#' @export
+#' @param idcol Name of an idcol; useful to keep track of which rows came from which scope. 
+#' Can be NULL if not needed.
+#' @param idmap Since id col will default to the syn id, 
+#' providing a map will allow tracking by container name instead. 
+#' @export 
 localView <- function(scope, idcol = "parent", idmap = NULL) {
   result <- list()
   for(i in scope) {
     children <- .syn$getChildren(parent = i)
-    meta <- iterate(children)
+    meta <- reticulate::iterate(children)
     result[[i]] <- data.table::rbindlist(meta)
   }
   if(!is.null(idmap)) names(result) <- idmap[names(result)]
