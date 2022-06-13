@@ -6,7 +6,7 @@
 #' 
 #' @param samplesheet A local file or syn id of samplesheet.
 #' @export
-mapSampleInput <- function(samplesheet) {
+map_sample_input <- function(samplesheet) {
   
   if(file.exists(samplesheet)) {
     path <- samplesheet
@@ -47,7 +47,7 @@ mapSampleInput <- function(samplesheet) {
 #' @param idmap Since id col will default to the syn id, 
 #' providing a map will allow tracking by container name instead. 
 #' @export 
-localView <- function(scope, idcol = "parent", idmap = NULL) {
+local_view <- function(scope, idcol = "parent", idmap = NULL) {
   result <- list()
   for(i in scope) {
     children <- .syn$getChildren(parent = i)
@@ -55,8 +55,8 @@ localView <- function(scope, idcol = "parent", idmap = NULL) {
     result[[i]] <- data.table::rbindlist(meta)
   }
   if(!is.null(idmap)) names(result) <- idmap[names(result)]
-  localview <- data.table::rbindlist(result, idcol = idcol)
-  return(localview)
+  local_view <- data.table::rbindlist(result, idcol = idcol)
+  return(local_view)
 }
 
 #' Map out processed RNA-seq files in nextflow output repo 
@@ -71,13 +71,13 @@ localView <- function(scope, idcol = "parent", idmap = NULL) {
 #' @param folder Syn id of folder with files of interest. 
 #' @param file_ext Regex of relevant file extensions; defaults to processed RNA-seq formats.
 #' @export
-mapProcessedRNASeq <- function(folder = "syn30840584", 
+map_processed_rna_seq <- function(folder = "syn30840584", 
                                  file_ext = ".bam$|.bai$|.sf$") {
                                    
-  outputs <- localView(folder)
+  outputs <- local_view(folder)
   processed <- outputs[grepl(file_ext, name), .(name, id, parent)]
   folders <- outputs[type == "org.sagebionetworks.repo.model.Folder", .(name, id)]
-  nested_outputs <- localView(folders$id, idmap = setNames(folders$name, folders$id))
+  nested_outputs <- local_view(folders$id, idmap = setNames(folders$name, folders$id))
   nested_processed <- nested_outputs[grepl(file_ext, name), .(name, id, parent)]
   all <- rbind(processed, nested_processed)
   all[, file_ext := tools::file_ext(name)]
@@ -95,19 +95,19 @@ mapProcessedRNASeq <- function(folder = "syn30840584",
 #' 
 #' Composes together some utils to do provenance annotation in one step 
 #'
-#' @inheritParams mapSampleInput
+#' @inheritParams map_sample_inputut
 #' @param workflow Workflow name (activity name).
 #' @param workflow_link Workflow link.
 #' @export
-addProvRNASeq <- function(samplesheet, 
+add_prov_rna_seq <- function(samplesheet, 
                           workflow = "STAR and Salmon",
                           workflow_link = "https://nf-co.re/rnaseq/3.4/output#star-and-salmon") {
   
-  sample_inputs <- mapSampleInput(samplesheet)
+  sample_inputs <- map_sample_inputut(samplesheet)
   # Translate sample names to syn file ids
   
   
-  addActivityBatch(names(sample_inputs), 
+  add_activity_batch(names(sample_inputs), 
                    workflow, 
                    workflow_link,
                    sample_inputs
@@ -118,5 +118,5 @@ addProvRNASeq <- function(samplesheet,
 #' 
 #' @param uri
 #' @keywords internal
-bareSynId <- function(uri) regmatches(uri, regexpr("syn[0-9]{8}+", uri))
+bare_syn_id <- function(uri) regmatches(uri, regexpr("syn[0-9]{8}+", uri))
 
