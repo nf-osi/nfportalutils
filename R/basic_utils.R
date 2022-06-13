@@ -23,3 +23,31 @@ local_view <- function(scope, idcol = "parent", idmap = NULL) {
   local_view <- data.table::rbindlist(result, idcol = idcol)
   return(local_view)
 }
+
+#' Create copy
+#' 
+#' Create a copy of syn entity; mostly used to create a copy on which to test out changes.
+#' See https://python-docs.synapse.org/build/html/synapseutils.html?highlight=copy#synapseutils.copy_functions.copy
+#' @param entity Entity to copy.
+#' @param destination_id Id of destination project/container that entity will be copied to.
+#' @param skip_copy_wiki_page Whether to skip copying wiki; defaults FALSE.
+#' @param skip_copy_annotations Whether to skip copying annotations; defaults FALSE.
+#' @export
+copy <- function(entity, 
+                 destination_id, 
+                 skip_copy_wiki_page = FALSE, 
+                 skip_copy_annotations = FALSE) {
+  
+  .check_login()
+  # load synapseutils as needed -- so far this is the only util that uses it
+  # TO DO: move to this to global package load?
+  if(!reticulate::py_module_available("synapseutils")) stop("synapseutils module not available")
+  synapseutils <- reticulate::import("synapseutils")
+  
+  synapseutils$copy(.syn, 
+                    entity = entity, 
+                    destinationId = destination_id, 
+                    skipCopyWikiPage = skip_copy_wiki_page, 
+                    skipCopyAnnotations = skip_copy_annotations)
+  
+}
