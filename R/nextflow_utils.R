@@ -20,8 +20,8 @@ map_sample_input <- function(samplesheet) {
   
   ss <- data.table::fread(path)
   # Get synId from URI
-  ss[, input_syn_1 := bareSynId(fastq_1)]
-  ss[, input_syn_2 := bareSynId(fastq_2)] 
+  ss[, input_syn_1 := bare_syn_id(fastq_1)]
+  ss[, input_syn_2 := bare_syn_id(fastq_2)] 
   
   # Parse sample from "sample"
   ss[, sample_parsed := gsub("_T[0-9]$", "", sample)]
@@ -95,7 +95,7 @@ map_processed_rna_seq <- function(folder = "syn30840584",
 #' 
 #' Composes together some utils to do provenance annotation in one step 
 #'
-#' @inheritParams map_sample_inputut
+#' @inheritParams map_sample_input
 #' @param workflow Workflow name (activity name).
 #' @param workflow_link Workflow link.
 #' @export
@@ -103,7 +103,7 @@ add_prov_rna_seq <- function(samplesheet,
                           workflow = "STAR and Salmon",
                           workflow_link = "https://nf-co.re/rnaseq/3.4/output#star-and-salmon") {
   
-  sample_inputs <- map_sample_inputut(samplesheet)
+  sample_inputs <- map_sample_input(samplesheet)
   # Translate sample names to syn file ids
   
   
