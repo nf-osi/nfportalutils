@@ -7,38 +7,44 @@
 #' @param act_name Name of activity.
 #' @param act_executed Reference to the the activity executed (URL preferred).
 #' @param used_inputs Vector of inputs for this act, e.g. syn ids, links to other data sources, etc.
+#' @export
 add_activity <- function(entity, 
-                        act_name, 
-                        act_executed,
-                        used_inputs) {
+                         act_name,
+                         act_executed,
+                         used_inputs) {
  
     act <- synapseclient$Activity(name = act_name,
                                   executed = act_executed,
                                   used = used_inputs)
-    .syn$setProvenance(entity, activity = act)
+    p <- .syn$setProvenance(entity, activity = act)
+    p
 }
 
 #' Add activity to multiple entities
 #' 
-#' Batch provenance for entities.
-#' Usually for applying the same activity, but can also be used as a util
-#' with any combination of entity, activity, and input mappings
-#' for parallelized provenance annotation.
+#' Wrapper provenance function that does a little more work to 
+#' expand many-to-many mappings to create records of entity, activity, and input.
 #' 
 #' @param entities Vector or list of entities. 
-#' @param act_name Vector or list of activity name; if single, applies same activity annotation.
-#' @param act_executed Vector or list of reference activity executed; if single, applies same activity annotation.
+#' @param act_name Vector or list of activity name.
+#' @param act_executed Vector or list of reference activity executed.
 #' @param used_inputs Vector or list of inputs for each entity.
+#' @import data.table
+#' @export
 add_activity_batch <- function(entities, 
-                             act_name, 
-                             act_executed,
-                             used_inputs
+                               act_name,
+                               act_executed,
+                               used_inputs
                              ) {
   
-  Map(
-    add_activity(entity, act_name, act_executed, used_inputs),
-    entities, act_name, act_executed, used_inputs
-  )
+  stopifnot(lengths(list(entities, act_name, act_executed, used_inputs)) > 0)
+  if(is.list(entities)) {
+    if(length(used_inputs) > 1) used_inputs <- rep(used_inputs, lengths(entities))
+    if(length(act_name) > 1) act_name <- rep(act_name, lengths(entities))
+    if(length(act_executed) > 1) act_exectuted <- rep(act_exectuted, lengths(entities))
+    entities <- unlist(entities)
+  }
+  Map(add_activity, entities, act_name, act_executed, used_inputs)
 }
 
 
