@@ -36,6 +36,9 @@ Imports:
 URL: https://github.com/nf-osi/nfportalutils
 BugReports: https://github.com/nf-osi/nfportalutils/issues
 Suggests: 
+    rmarkdown,
+    knitr,
     testthat (>= 2.0.0),
     withr
 Config/testthat/edition: 2
+VignetteBuilder: knitr
