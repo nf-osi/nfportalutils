@@ -24,7 +24,7 @@ local_view <- function(scope, idcol = "parent", idmap = NULL) {
   return(local_view)
 }
 
-#' Create copy
+#' Create copy of entity
 #' 
 #' Create a copy of syn entity; mostly used to create a copy on which to test out changes.
 #' See https://python-docs.synapse.org/build/html/synapseutils.html?highlight=copy#synapseutils.copy_functions.copy
@@ -51,3 +51,48 @@ copy <- function(entity,
                     skipCopyAnnotations = skip_copy_annotations)
   
 }
+
+
+#' Copy annotation(s)
+#' 
+#' Copy annotations (all or selectively) from a source entity to one or more target entities.
+#' If annotations already exist on target entities, the copy will replace the current values. 
+#' 
+#' @param entity_from Syn id from which to copy. 
+#' @param entity_to One or more syn ids to copy annotations to. 
+#' @param select Vector of properties to selectively copy if present on the entity. 
+#' If not specified, will copy over everything, which may not be desired.
+#' @param apply Whether to set copy on `entity_to` or return a table representation. 
+#' @export
+copy_annotation <- function(entity_from,
+                            entity_to,
+                            select = NULL,
+                            apply = FALSE) {
+  
+  .check_login()
+  
+  annotations <- .syn$get_annotations(entity_from)
+  if(is.null(select)) {
+    copy <- annotations
+  } else {
+    copy <- reticulate::dict()
+    for(k in names(annotations)) {
+      if(k %in% select) copy[k] <- annotations[k]
+    }
+  }
+  
+  if(apply) {
+    for(e in entity_to) {
+      .syn$setAnnotations(e, annotations = copy)
+    }
+  } else {
+    # reticulate::py_to_r(copy) does not work reliably, so convert to R obj manually
+    x <- lapply(names(copy), function(x) list(copy[x]))
+    names(x) <- names(copy)  
+    x <- Map(rep, x, length(entity_to))
+    dt <- data.table::as.data.table(x)
+    dt[, entityId := entity_to]
+    return(dt)
+  }
+}
+
