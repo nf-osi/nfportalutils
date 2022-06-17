@@ -34,7 +34,7 @@ map_sample_input_ss <- function(samplesheet,
 #' With the known Nextflow workflow, outputs are organized by sample-id folders,
 #' e.g. result/salmon/<sample>/<file>, so this looks for processed files within one level of nesting.
 #' 
-#' See the related \code{\link{map_sample_input}} for mapping sample to inputs instead of outputs.
+#' See the related \code{\link{map_sample_input_ss}} for mapping sample to inputs instead of outputs.
 #' 
 #' @param syn_out Syn id of syn output destination (folder) with files of interest. 
 #' @import data.table
@@ -66,7 +66,8 @@ map_sample_output_rna_seq <- function(syn_out) {
 #' Mapping sample inputs use the samplesheet, but mapping outputs vary slightly.
 #' 
 #' @inheritParams map_sample_input_ss
-#' @inheritParams map_sample_out_rna_seq
+#' @inheritParams map_sample_output_rna_seq
+#' @param workflow Workflow. 
 #' @return A table with `sample` `level` `output_id` `output_name` `input_id`.
 #' @export
 map_sample_io <- function(workflow = c("nf-rna-seq", "nf-exome-seq"),
@@ -96,3 +97,47 @@ map_sample_io <- function(workflow = c("nf-rna-seq", "nf-exome-seq"),
 #' @keywords internal
 bare_syn_id <- function(uri) regmatches(uri, regexpr("syn[0-9]{8}", uri))
 
+#' Make annotations from workflow tool stats
+#' 
+#' Extracts a subset of [samtools stats](http://www.htslib.org/doc/samtools-stats.html),
+#' and [picard stats](https://broadinstitute.github.io/picard/picard-metric-definitions.html) 
+#' from workflow metafiles to surface as annotations. 
+#' Files are expected depending on sequencing type; 
+#' picard stats of interest are only for WGS/WES/targeted sequencing. 
+#' Regarding the selection of stats, see the Genomic Data Commons (GDC) model for
+#' [Aligned Reads](https://docs.gdc.cancer.gov/Data_Dictionary/viewer/#?view=table-definition-view&id=aligned_reads)  
+#' 
+#' @param sam_stats_file Path to file/syn id of file with samtools stats produced by the workflow. 
+#' @param picard_stats_file Path to file/syn id of file with picard stats produced by the workflow. 
+#' @export
+tool_stats_to_annotations <- function(sam_stats_file = NULL, 
+                                      picard_stats_file = NULL) {
+  if(is.null(sam_stats_file)) {
+    message("Samtools stats not available, skipping these annotations...")
+    sam_stats <- NULL
+  } else {
+    sam_stats <- dt_read(sam_stats_file)
+    sam_stats <- sam_stats[, .(sample = Sample,
+                               averageInsertSize = insert_size_average,
+                               averageReadLength = average_length,
+                               averageBaseQuality = average_quality,
+                               pairsOnDifferentChromosomes = pairs_on_different_chromosomes,
+                               readsDuplicatedPercent = reads_duplicated_percent,
+                               readsMappedPercent = reads_mapped_percent,
+                               totalReads = raw_total_sequences)]
+  }
+  
+  if(is.null(picard_stats_file)) {
+    message("Picard stats not available, skipping these annotations...")
+    picard_stats <- NULL
+  } else {
+    # TO DO
+    pic_stats <- dt_read(picard_stats_file)
+    pic_stats <- pic_stats[, .(sample = Sample,
+                               meanCoverage = MEAN_COVERAGE,
+                               proportionCoverage10x = PCT_10X,
+                               proportionCoverage30x = PCT_30X)]
+  }
+  result <- list(sam_stats, picard_stats)
+  return(result)
+}
