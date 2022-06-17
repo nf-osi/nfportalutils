@@ -110,3 +110,10 @@ dt_read <- function(file) {
   return(dt)
 }
 
+#' Extract synapse id from URI or other string
+#' 
+#' @param uri URI or string containing embedded Synapse id.
+#' @keywords internal
+bare_syn_id <- function(uri) regmatches(uri, regexpr("syn[0-9]{8}", uri))
+
+

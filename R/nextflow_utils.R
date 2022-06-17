@@ -91,11 +91,6 @@ map_sample_io <- function(workflow = c("nf-rna-seq", "nf-exome-seq"),
   return(sample_io)
 }
 
-#' Extract synapse id from URI or other string
-#' 
-#' @param uri URI or string containing embedded Synapse id.
-#' @keywords internal
-bare_syn_id <- function(uri) regmatches(uri, regexpr("syn[0-9]{8}", uri))
 
 #' Make annotations from workflow tool stats
 #' 
