@@ -2,7 +2,7 @@
 % Please edit documentation in R/basic_utils.R
 \name{copy}
 \alias{copy}
-\title{Create copy}
+\title{Create copy of entity}
 \usage{
 copy(
   entity,

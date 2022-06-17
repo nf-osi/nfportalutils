@@ -2,7 +2,7 @@
 % Please edit documentation in R/nextflow_utils.R
 \name{map_sample_output_rna_seq}
 \alias{map_sample_output_rna_seq}
-\title{Map sample to processed RNA-seq files in nextflow output repo}
+\title{Map sample to output RNA-seq files}
 \usage{
 map_sample_output_rna_seq(syn_out)
 }
@@ -19,5 +19,5 @@ With the known Nextflow workflow, outputs are organized by sample-id folders,
 e.g. result/salmon/<sample>/<file>, so this looks for processed files within one level of nesting.
 }
 \details{
-See the related \code{\link{map_sample_input}} for mapping sample to inputs instead of outputs.
+See the related \code{\link{map_sample_input_ss}} for mapping sample to inputs instead of outputs.
 }
