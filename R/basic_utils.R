@@ -53,7 +53,7 @@ copy <- function(entity,
 }
 
 
-#' Copy annotation(s)
+#' Copy annotations
 #' 
 #' Copy annotations (all or selectively) from a source entity to one or more target entities.
 #' If annotations already exist on target entities, the copy will replace the current values. 
@@ -61,38 +61,52 @@ copy <- function(entity,
 #' @param entity_from Syn id from which to copy. 
 #' @param entity_to One or more syn ids to copy annotations to. 
 #' @param select Vector of properties to selectively copy if present on the entity. 
-#' If not specified, will copy over everything, which may not be desired.
-#' @param apply Whether to set copy on `entity_to` or return a table representation. 
+#' If not specified, will copy over everything, which may not be desirable.
+#' @param update Whether to immediately update or return annotation objects only. 
 #' @export
-copy_annotation <- function(entity_from,
+copy_annotations <- function(entity_from,
                             entity_to,
                             select = NULL,
-                            apply = FALSE) {
+                            update = FALSE) {
   
   .check_login()
   
   annotations <- .syn$get_annotations(entity_from)
   if(is.null(select)) {
-    copy <- annotations
+    cp <- annotations
   } else {
-    copy <- reticulate::dict()
+    cp <- reticulate::dict()
     for(k in names(annotations)) {
-      if(k %in% select) copy[k] <- annotations[k]
+      if(k %in% select) cp[k] <- annotations[k]
     }
   }
   
-  if(apply) {
+  if(update) {
     for(e in entity_to) {
-      .syn$setAnnotations(e, annotations = copy)
+      .syn$setAnnotations(e, annotations = cp)
     }
   } else {
-    # reticulate::py_to_r(copy) does not work reliably, so convert to R obj manually
-    x <- lapply(names(copy), function(x) list(copy[x]))
-    names(x) <- names(copy)  
-    x <- Map(rep, x, length(entity_to))
-    dt <- data.table::as.data.table(x)
-    dt[, entityId := entity_to]
-    return(dt)
+    return(cp)
   }
+}
+
+#' Download and read file to `data.table`
+#'
+#' Convenience function for reading a delimited local file or one on Synapse.
+#' 
+#' @keywords internal
+#' @import data.table
+dt_read <- function(file) {
+  if(file.exists(file)) {
+    path <- file
+  } else if(grepl("^syn", file)) {
+    message("Getting file from Synapse...")
+    .check_login()
+    path <- .syn$get(file)$path
+  } else {
+    stop("File must be local file or accessible synapse file.")
+  }
+  dt <- data.table::fread(path)
+  return(dt)
 }
 
