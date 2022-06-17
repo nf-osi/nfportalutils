@@ -1,46 +1,30 @@
-#' Parse a nextflow samplesheet to construct input-output map
+#' Parse nextflow samplesheet for sample inputs
 #' 
 #' Samplesheets are used in rnaseq pipelines,
 #' and are defined here: https://nf-co.re/rnaseq/usage#full-samplesheet. 
 #' After the pipeline is run, it should be found in an output folder called `pipeline_info`.
 #' 
-#' Currently this provides refs for provenance annotation by returning
-#' a mapping of sample names to input files (usually one-to-many but can be one-to-one),
-#' which can be passed to downstream helpers either as a table 
-#' (which does not differ much from the samplesheet) or as a list.
+#' This is a simple helper to get a mapping of sample names to input files 
+#' (usually one-to-many but can be one-to-one) to pass to downstream as a table.
 #' 
 #' @param samplesheet A local file or syn id of samplesheet.
 #' @param parse_fun Function implementing how to parse samples in samplesheet.
 #' @import data.table
 #' @export
-map_sample_input <- function(samplesheet, 
+map_sample_input_ss <- function(samplesheet, 
                              parse_fun = function(x) gsub("_T[0-9]$", "", x)) {
   
-  if(file.exists(samplesheet)) {
-    path <- samplesheet
-  } else if(grepl("^syn", samplesheet)) {
-    message("Getting samplesheet from Synapse...")
-    .check_login()
-    path <- .syn$get(samplesheet)$path
-  } else {
-    stop("Samplesheet must be local file or accessible synapse file.")
-  }
-  
-  ss <- data.table::fread(path)
-  # Get synId from URI
-  ss[, input_syn_1 := bare_syn_id(fastq_1)]
+  ss <- dt_read(samplesheet)
+  ss[, input_syn_1 := bare_syn_id(fastq_1)] # Get synId from URI
   ss[, input_syn_2 := bare_syn_id(fastq_2)] 
+  ss[, sample := parse_fun(sample)] # Parse sample from "sample" col
   
-  # Parse sample from "sample" col
-  ss[, sample := parse_fun(sample)]
-  
-  # Create ref map with file inputs for each sample specimen
+  # File inputs for each sample specimen
   sample_inputs <- ss[, .(input_id = list(c(input_syn_1, input_syn_2))), by = sample]
-  
   return(sample_inputs)
 }
 
-#' Map sample to processed RNA-seq files in nextflow output repo 
+#' Map sample to output RNA-seq files
 #' 
 #' In specified location where workflow has deposited the outputs (i.e. "result" directory),
 #' map out the relevant processed files based on file extensions and tie these files to source samples. 
@@ -55,7 +39,7 @@ map_sample_input <- function(samplesheet,
 #' @param syn_out Syn id of syn output destination (folder) with files of interest. 
 #' @import data.table
 #' @export
-map_sample_output_rna_seq <- function(syn_out) {  # test syn_out = "syn30840584"
+map_sample_output_rna_seq <- function(syn_out) {
   
   outputs <- local_view(syn_out)
   
@@ -76,41 +60,34 @@ map_sample_output_rna_seq <- function(syn_out) {  # test syn_out = "syn30840584"
   return(sample_outputs)
 }
 
-
-#' Add provenance for nextflow RNA-seq results
+#' Map sample input-output
 #' 
-#' Composes together some utils to do provenance annotation in one step.
-#'     
-#' @inheritParams map_sample_input
-#' @inheritParams map_sample_output_rna_seq
-#' @param workflow Workflow name (activity name).
-#' @param workflow_link Workflow link.
-#' @param dry_run Whether to set provenance or only return data. 
-#' @import data.table
+#' Wrapper to map sample inputs and outputs depending on workflow type.
+#' Mapping sample inputs use the samplesheet, but mapping outputs vary slightly.
+#' 
+#' @inheritParams map_sample_input_ss
+#' @inheritParams map_sample_out_rna_seq
+#' @return A table with `sample` `level` `output_id` `output_name` `input_id`.
 #' @export
-add_prov_rna_seq <- function(samplesheet,
-                             syn_out,
-                             workflow = "STAR and Salmon",
-                             workflow_link = "https://nf-co.re/rnaseq/3.4/output#star-and-salmon",
-                             dry_run = TRUE) {
+map_sample_io <- function(workflow = c("nf-rna-seq", "nf-exome-seq"),
+                          samplesheet,
+                          syn_out) {
   
-  sample_inputs <- map_sample_input(samplesheet)
-  sample_outputs <- map_sample_output_rna_seq(syn_out)
+  workflow <- match.arg(workflow)
+  sample_inputs <- map_sample_input_ss(samplesheet)
+  
+  if(workflow == "nf-rna-seq") {
+    sample_outputs <- map_sample_output_rna_seq(syn_out)
+  } else if(workflow == "nf-exome-seq") {
+    sample_outputs <- map_sample_output_exome_seq(syn_out)
+  }
   
   # Check that sample ids in sample_outputs are in sample_inputs
   # Presumed OK for sample_inputs to contain samples *not* in outputs 
   # (e.g. maybe no outputs if doesn't pass QC checks) but not OK for vice versa
   stopifnot(all(unique(sample_outputs$sample) %in% unique(sample_inputs$sample)))
-  
-  prov <- merge(sample_outputs, sample_inputs, by = "sample", all.x = TRUE, all.y = FALSE)
-
-  if(dry_run) return(prov)
-  
-  add_activity_batch(prov$output_id, 
-                     workflow, 
-                     workflow_link,
-                     prov$input_id)
-  
+  sample_io <- merge(sample_outputs, sample_inputs, by = "sample", all.x = TRUE, all.y = FALSE)
+  return(sample_io)
 }
 
 #' Extract synapse id from URI or other string
