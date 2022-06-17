@@ -133,6 +133,7 @@ tool_stats_to_annotations <- function(sam_stats_file = NULL,
                                proportionCoverage10x = PCT_10X,
                                proportionCoverage30x = PCT_30X)]
   }
-  result <- list(sam_stats, picard_stats)
+  result <- Reduce(function(x, y) merge(x, y, by = "sample"), 
+                   Filter(is.data.table, list(sam_stats, picard_stats)))
   return(result)
 }
