@@ -4,10 +4,10 @@
 \alias{tool_stats_to_annotations}
 \title{Make annotations from workflow tool stats}
 \usage{
-tool_stats_to_annotations(sam_stats_file = NULL, picard_stats_file = NULL)
+tool_stats_to_annotations(samtools_stats_file = NULL, picard_stats_file = NULL)
 }
 \arguments{
-\item{sam_stats_file}{Path to file/syn id of file with samtools stats produced by the workflow.}
+\item{samtools_stats_file}{Path to file/syn id of file with samtools stats produced by the workflow.}
 
 \item{picard_stats_file}{Path to file/syn id of file with picard stats produced by the workflow.}
 }
