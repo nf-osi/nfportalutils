@@ -102,16 +102,16 @@ map_sample_io <- function(workflow = c("nf-rna-seq", "nf-exome-seq"),
 #' Regarding the selection of stats, see the Genomic Data Commons (GDC) model for
 #' [Aligned Reads](https://docs.gdc.cancer.gov/Data_Dictionary/viewer/#?view=table-definition-view&id=aligned_reads)  
 #' 
-#' @param sam_stats_file Path to file/syn id of file with samtools stats produced by the workflow. 
-#' @param picard_stats_file Path to file/syn id of file with picard stats produced by the workflow. 
+#' @param samtools_stats_file Path to file/syn id of file with samtools stats produced by the workflow. 
+#' @param picard_stats_file Path to file/syn id of file with picard stats produced by the workflow.
 #' @export
-tool_stats_to_annotations <- function(sam_stats_file = NULL, 
+tool_stats_to_annotations <- function(samtools_stats_file = NULL, 
                                       picard_stats_file = NULL) {
-  if(is.null(sam_stats_file)) {
+  if(is.null(samtools_stats_file)) {
     message("Samtools stats not available, skipping these annotations...")
     sam_stats <- NULL
   } else {
-    sam_stats <- dt_read(sam_stats_file)
+    sam_stats <- dt_read(samtools_stats_file)
     sam_stats <- sam_stats[, .(sample = Sample,
                                averageInsertSize = insert_size_average,
                                averageReadLength = average_length,
@@ -136,4 +136,84 @@ tool_stats_to_annotations <- function(sam_stats_file = NULL,
   result <- Reduce(function(x, y) merge(x, y, by = "sample"), 
                    Filter(is.data.table, list(sam_stats, picard_stats)))
   return(result)
+}
+
+#' Create annotations for processed aligned reads
+#' 
+#' Help put together annotation components for nextflow star-salmon outputs. 
+#' Annotations come from several sources:
+#' 1. Inherit some annotations on the original input files.
+#' Requires a reference mapping of input files to use. 
+#' Most property vals can be inherited by the derived files, e.g. assay type and sample info, 
+#' but props like "comments" and "entityId" should NOT be inherited. 
+#' Ideally, the data model itself should include inheritance rules to apply;
+#' since that isn't possible currently, these exclusions are hard-coded as 
+#' "non-inheritance heuristics" and overall functionality is problematic with other data models 
+#' (which, for example, may have something called "notes" instead of "comments"). 
+#' See \code{\link{inherit_input_annotations}}.
+#' 
+#' 2. Extract metrics from workflow auxiliary files to surface as annotations. 
+#' See helper \code{\link{tool_stats_to_annotations}}.
+#' 
+#' 3. Manually add annotations that can't (yet?) be derived from #1 or #2.  
+#' Has to be done outside of this util.
+#' 
+#' A partial manifest will always be returned; the param `update` specifies
+#' whether annotations should be applied.
+#' 
+#' @inheritParams get_by_prop_from_json_schema
+#' @inheritParams tool_stats_to_annotations
+#' @param template URI of data template in model, prefixed if needed.
+#' @param sample_io Table mapping input to outputs. 
+#' @param update Whether to apply annotations. See details.
+#' @param verbose Give verbose reports for what's happening.
+#' @export
+annotate_aligned_reads <- function(template,
+                                   schema,
+                                   sample_io,
+                                   samtools_stats_file = NULL,
+                                   picard_stats_file = NULL,
+                                   update = FALSE, 
+                                   verbose = TRUE) {
+  
+  props <- get_dependency_from_json_schema(id = template, schema = schema)
+  # Hard-coding props to NEVER inherit in the template
+  select <- props[!props %in% c("comments", "entityId", "fileFormat", "dataType", "dataSubtype")]
+  anno_set_1 <- inherit_input_annotations(sample_io, select = select)
+  if(verbose) message("Inherited some annotations from inputs.")
+  anno_set_2 <- tool_stats_to_annotations(samtools_stats_file, picard_stats_file)
+  if(verbose && length(anno_set_2)) message("Extracted stats from workflow metafiles for some annotations.")
+  if(verbose) message("Merging annotation components...")
+  
+  annotations <- Reduce(function(x, y) merge(x, y, by = "sample", allow.cartesian = TRUE), 
+                        Filter(is.data.table, list(anno_set_1, 
+                                                   anno_set_2, 
+                                                   sample_io[, .(sample, entityId = output_id, Filename = output_name)])))
+  annotations[, dataType := "AlignedReads"]
+  annotations[, dataSubtype := "processed"]
+  return(annotations)
+}
+
+
+#' Inherit annotations
+#' 
+#' Have output/derived entities inherit annotations from input entities.
+#' If there are multiple inputs, inherit properties from the FIRST input.
+#' Other options may be implemented in the future.
+#' 
+#' @inheritParams copy_annotations
+#' @param sample_io A `data.table` that minimally contains `input_id` and `output_id`.
+#' @param update Whether to have annotations applied immediately or return manifest component only.
+#' @import data.table
+inherit_input_annotations <- function(sample_io, select = NULL, update = FALSE) {
+  from_to <- sample_io[, .(from = sapply(input_id, first), to = output_id)]
+  annotations <- list()
+  for(i in 1:nrow(from_to)) {
+    annotations[[i]] <- copy_annotations(from_to[i, from], from_to[i, to], select, update)
+  }
+  if(!update) {
+    names(annotations) <- sample_io$sample
+    annotations <- lapply(annotations, reticulate::py_to_r) %>% rbindlist(fill = T, idcol = "sample")
+  }
+  return(annotations)
 }
