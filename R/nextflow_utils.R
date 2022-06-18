@@ -164,7 +164,7 @@ tool_stats_to_annotations <- function(samtools_stats_file = NULL,
 #' @inheritParams get_by_prop_from_json_schema
 #' @inheritParams tool_stats_to_annotations
 #' @param template URI of data template in model, prefixed if needed.
-#' @param sample_io Table mapping input to outputs. 
+#' @param sample_io Table mapping input to outputs, where outputs are .bam/.bai files only!
 #' @param update Whether to apply annotations. See details.
 #' @param verbose Give verbose reports for what's happening.
 #' @export
@@ -176,21 +176,29 @@ annotate_aligned_reads <- function(template,
                                    update = FALSE, 
                                    verbose = TRUE) {
   
+  # Check that sample_io references appropriate files
+  if(!all(grepl(".bam$|.bai$", sample_io$output_name))) {
+    stop("Found resources that are not (.bam/.bai). Check that you are annotating the right data files.")
+  }
+  # TO DO? link .bai files to .bam files under indexFile prop
+  bam_io <- sample_io[grepl(".bam$", output_name)]
+
   props <- get_dependency_from_json_schema(id = template, schema = schema)
   # Hard-coding props to NEVER inherit in the template
   select <- props[!props %in% c("comments", "entityId", "fileFormat", "dataType", "dataSubtype")]
-  anno_set_1 <- inherit_input_annotations(sample_io, select = select)
+  anno_set_1 <- inherit_input_annotations(bam_io, select = select)
   if(verbose) message("Inherited some annotations from inputs.")
   anno_set_2 <- tool_stats_to_annotations(samtools_stats_file, picard_stats_file)
   if(verbose && length(anno_set_2)) message("Extracted stats from workflow metafiles for some annotations.")
   if(verbose) message("Merging annotation components...")
   
-  annotations <- Reduce(function(x, y) merge(x, y, by = "sample", allow.cartesian = TRUE), 
+  annotations <- Reduce(function(x, y) merge(x, y, by = "sample"), 
                         Filter(is.data.table, list(anno_set_1, 
                                                    anno_set_2, 
-                                                   sample_io[, .(sample, entityId = output_id, Filename = output_name)])))
+                                                   bam_io[, .(sample, entityId = output_id, Filename = output_name)])))
   annotations[, dataType := "AlignedReads"]
   annotations[, dataSubtype := "processed"]
+  annotations[, sample := NULL] # bc internal usage, not for actual annotation
   return(annotations)
 }
 
