@@ -11,16 +11,19 @@
 #' @param parse_fun Function implementing how to parse samples in samplesheet.
 #' @import data.table
 #' @export
-map_sample_input_ss <- function(samplesheet, 
-                             parse_fun = function(x) gsub("_T[0-9]$", "", x)) {
+map_sample_input_ss <- function(samplesheet,
+                                parse_fun = function(x) gsub("_T[0-9]$", "", x)) {
   
   ss <- dt_read(samplesheet)
+  # Annoyingly, headers are not standard and can use fastq1 instead of fastq_1
+  if("fastq1" %in% names(ss)) setnames(ss, c("fastq1", "fastq2"), c("fastq_1", "fastq_2"))
+  
   ss[, input_syn_1 := bare_syn_id(fastq_1)] # Get synId from URI
   ss[, input_syn_2 := bare_syn_id(fastq_2)] 
   ss[, sample := parse_fun(sample)] # Parse sample from "sample" col
   
   # File inputs for each sample specimen
-  sample_inputs <- ss[, .(input_id = list(c(input_syn_1, input_syn_2))), by = sample]
+  sample_inputs <- ss[, .(input_id = list(na.omit(c(input_syn_1, input_syn_2)))), by = sample]
   return(sample_inputs)
 }
 
@@ -40,7 +43,7 @@ map_sample_input_ss <- function(samplesheet,
 #' @param syn_out Syn id of syn output destination (folder) with files of interest. 
 #' @import data.table
 #' @export
-map_sample_output_rna_seq <- function(syn_out) {
+map_sample_output_rnaseq <- function(syn_out) {
   
   outputs <- local_view(syn_out)
   
@@ -95,7 +98,7 @@ map_sample_output_sarek <- function(syn_out) {
   )
   paths <- strsplit(outputs$caller_path, "\\", fixed = TRUE)
   outputs[, sample := sapply(paths, `[[`, 2)]
-  outputs[, sample := strsplit(sample, "_vs_")] # tumor vs normal from same indiv
+  outputs[, sample := strsplit(sample, "_vs_")] 
   outputs[, caller := sapply(paths, `[[`, 3)]
   return(outputs)
 }
@@ -104,25 +107,26 @@ map_sample_output_sarek <- function(syn_out) {
 
 #' Map sample input-output
 #' 
-#' Wrapper to map sample inputs and outputs depending on workflow type.
-#' Mapping sample inputs use the samplesheet, but mapping outputs vary slightly.
+#' Wrapper to map sample inputs and outputs depending on workflow type. 
 #' 
 #' @inheritParams map_sample_input_ss
-#' @inheritParams map_sample_output_rna_seq
+#' @inheritParams map_sample_output_rnaseq
 #' @param workflow Workflow. 
 #' @return A table with `sample` `level` `output_id` `output_name` `input_id`.
 #' @export
-map_sample_io <- function(workflow = c("nf-rna-seq", "nf-exome-seq"),
+map_sample_io <- function(workflow = c("nf-rnaseq", "nf-sarek"),
                           samplesheet,
                           syn_out) {
   
   workflow <- match.arg(workflow)
   sample_inputs <- map_sample_input_ss(samplesheet)
   
-  if(workflow == "nf-rna-seq") {
-    sample_outputs <- map_sample_output_rna_seq(syn_out)
-  } else if(workflow == "nf-exome-seq") {
-    sample_outputs <- map_sample_output_exome_seq(syn_out)
+  if(workflow == "nf-rnaseq") {
+    sample_outputs <- map_sample_output_rnaseq(syn_out)
+  } else if(workflow == "nf-sarek") {
+    sample_outputs <- map_sample_output_sarek(syn_out)
+    # sample can contain 2 samples (tumor vs normal from same indiv) -> take first
+    sample_outputs[, sample := sapply(sample, first)]
   }
   
   # Check that sample ids in sample_outputs are in sample_inputs

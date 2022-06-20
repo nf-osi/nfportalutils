@@ -112,7 +112,13 @@ dt_read <- function(file) {
 #' 
 #' @param uri URI or string containing embedded Synapse id.
 #' @keywords internal
-bare_syn_id <- function(uri) regmatches(uri, regexpr("syn[0-9]{8}", uri))
+bare_syn_id <- function(uri) {
+  not_na <- which(!is.na(uri))
+  x <- uri[not_na]
+  syn <- regmatches(x, regexpr("syn[0-9]{8}", x))
+  uri[not_na] <- syn
+  return(uri)
+}
 
 
 #' Walk through a directory
