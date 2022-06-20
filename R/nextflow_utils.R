@@ -24,15 +24,16 @@ map_sample_input_ss <- function(samplesheet,
   return(sample_inputs)
 }
 
-#' Map sample to output RNA-seq files
+#' Map sample to output from nf-rnaseq
 #' 
+#' See https://nf-co.re/rnaseq. 
 #' In specified location where workflow has deposited the outputs (i.e. "result" directory),
 #' map out the relevant processed files based on file extensions and tie these files to source samples. 
 #' This relies on expected file locations and file naming convention of the specific workflow.
 #' WARNING: Be aware that this may not work using a different version of workflow 
 #' or if files are manually re-organized post-write to Synapse.   
 #' With the known Nextflow workflow, outputs are organized by sample-id folders,
-#' e.g. result/salmon/<sample>/<file>, so this looks for processed files within one level of nesting.
+#' e.g. `results/salmon/<sample>/<file>`, so this looks for processed files within one level of nesting.
 #' 
 #' See the related \code{\link{map_sample_input_ss}} for mapping sample to inputs instead of outputs.
 #' 
@@ -59,6 +60,47 @@ map_sample_output_rna_seq <- function(syn_out) {
   sample_outputs[, .(output_id = list(output_id), output_name = list(output_name)), by = .(sample, level)]
   return(sample_outputs)
 }
+
+#' Map sample to output from nf-sarek
+#' 
+#' See https://nf-co.re/sarek.
+#' Processed outputs are nested by sample and different variant callers 
+#' with structure `VariantCalling/[TUMOR_vs_NORMAL]/[CALLER]`.
+#' This looks through the `*VariantCalls` output directory and attempts to map 
+#' the relevant processed files based on file extensions and tie these files to source samples. 
+#' This relies on expected file locations and file naming convention of the specific workflow.
+#' WARNING: Be aware that this may not work using a different version of workflow 
+#' or if files are manually re-organized post-write to Synapse. 
+#' 
+#' @param syn_out Syn id of syn output destination (folder) with files of interest. 
+#' @import data.table
+#' @return A `data.table` with cols `caller` `caller_path` `caller_syn` `output_name` 
+#' `output_name` `output_id` `sample`
+#' @export
+map_sample_output_sarek <- function(syn_out) {
+  
+  # `walk` is slow, but bc of add'l nesting, ultimately more convenient than `local_view`
+  if(verbose) message("Going through output directories, this may take a few seconds...")
+  ls <- walk(syn_out)
+  # parse relevant levels, which are 3rd element onwards
+  outputs <- rbindlist(
+    lapply(ls[3:length(ls)], function(out) {
+      as.data.table(
+        c(setNames(lapply(out[[1]], function(x) rep(x, length(out[[3]]))), c("caller_path", "caller_syn")), 
+          output_name = list(sapply(out[[3]], `[[`, 1)), 
+          output_id = list(sapply(out[[3]], `[[`, 2))
+        )
+      )
+    })
+  )
+  paths <- strsplit(outputs$caller_path, "\\", fixed = TRUE)
+  outputs[, sample := sapply(paths, `[[`, 2)]
+  outputs[, sample := strsplit(sample, "_vs_")] # tumor vs normal from same indiv
+  outputs[, caller := sapply(paths, `[[`, 3)]
+  return(outputs)
+}
+
+
 
 #' Map sample input-output
 #' 
