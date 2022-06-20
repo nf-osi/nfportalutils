@@ -6,7 +6,7 @@ synapseclient <- NULL
 
   if(syn_inst) {
     synapseclient <<- reticulate::import("synapseclient", delay_load = FALSE)
-    synapseutils <<- reticulate::import("synapseutils")
+    synapseutils <<- reticulate::import("synapseutils", delay_load = FALSE)
   } else {
     warning("Python modules `synapseclient` & `synapseutils` not available. Main package functions will not work.")
   }
