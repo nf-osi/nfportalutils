@@ -32,17 +32,15 @@ local_view <- function(scope, idcol = "parent", idmap = NULL) {
 #' @param destination_id Id of destination project/container that entity will be copied to.
 #' @param skip_copy_wiki_page Whether to skip copying wiki; defaults FALSE.
 #' @param skip_copy_annotations Whether to skip copying annotations; defaults FALSE.
-#' @export
+#' @keywords internal
 copy <- function(entity, 
                  destination_id, 
                  skip_copy_wiki_page = FALSE, 
                  skip_copy_annotations = FALSE) {
   
   .check_login()
-  # load synapseutils as needed -- so far this is the only util that uses it
-  # TO DO: move to this to global package load?
-  if(!reticulate::py_module_available("synapseutils")) stop("synapseutils module not available")
-  synapseutils <- reticulate::import("synapseutils")
+  # load synapseutils as needed
+  
   
   synapseutils$copy(.syn, 
                     entity = entity, 
@@ -116,4 +114,18 @@ dt_read <- function(file) {
 #' @keywords internal
 bare_syn_id <- function(uri) regmatches(uri, regexpr("syn[0-9]{8}", uri))
 
+
+#' Walk through a directory
+#' 
+#' For now, an internal util imported from `synapseutils`.
+#' @param syn_id Synapse id of directory root to traverse.
+#' @param as_list 
+#' @return An R list or Py generator object. 
+#' @keywords internal
+walk <- function(syn_id, as_list = TRUE) {
+  .check_login()
+  x <- synapseutils$walk(.syn, syn_id)
+  if(as_list) reticulate::iterate(x) else x
+  
+}
 
