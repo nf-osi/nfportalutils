@@ -83,7 +83,6 @@ map_sample_output_rnaseq <- function(syn_out) {
 map_sample_output_sarek <- function(syn_out) {
   
   # `walk` is slow, but bc of add'l nesting, ultimately more convenient than `local_view`
-  if(verbose) message("Going through output directories, this may take a few seconds...")
   ls <- walk(syn_out)
   # parse relevant levels, which are 3rd element onwards
   outputs <- rbindlist(
