@@ -246,6 +246,37 @@ annotate_aligned_reads <- function(sample_io,
 }
 
 
+#' Annotate somatic or germline variants output
+#' 
+#' @inheritParams annotate_aligned_reads
+#' @param data_type Type of variants, given that this can be used with either somatic or germline.
+#' @export
+annotate_called_variants <- function(sample_io,
+                                     template = "bts:ProcessedVariantCallsTemplate", 
+                                     schema = "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld",
+                                     data_type = c("SomaticVariants", "GermlineVariants"),
+                                     update = FALSE,
+                                     verbose = TRUE) {
+  
+  # Check that sample_io references appropriate files
+  if(!all(grepl(".vcf$|.vcf.gz$", sample_io$output_name))) {
+    stop("Found resources that are not (.vcf/.vcf.gz). Check that you are annotating the right data files.")
+  }
+  
+  props <- inherit_props(template, schema)
+  annotations <- inherit_input_annotations(sample_io, select = props)
+  
+  annotations <- merge(annotations, 
+                       sample_io[, .(sample, entityId = output_id, Filename = output_name)], 
+                       by = "sample", allow.cartesian = TRUE)
+  data_type <- match.arg(data_type)
+  annotations[, dataType := data_type]
+  annotations[, dataSubtype := "processed"]
+  annotations[, sample := NULL]
+  return(annotations)
+}
+
+
 #' Inherit annotations
 #' 
 #' Have output/derived entities inherit annotations from input entities.
@@ -256,6 +287,7 @@ annotate_aligned_reads <- function(sample_io,
 #' @param sample_io A `data.table` that minimally contains `input_id` and `output_id`.
 #' @param update Whether to have annotations applied immediately or return manifest component only.
 #' @import data.table
+#' @export
 inherit_input_annotations <- function(sample_io, select = NULL, update = FALSE) {
   from_to <- sample_io[, .(from = sapply(input_id, first), to = output_id)]
   annotations <- list()
