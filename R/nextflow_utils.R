@@ -213,11 +213,11 @@ tool_stats_to_annotations <- function(samtools_stats_file = NULL,
 #' @param update Whether to apply annotations. See details.
 #' @param verbose Give verbose reports for what's happening.
 #' @export
-annotate_aligned_reads <- function(template,
-                                   schema,
-                                   sample_io,
+annotate_aligned_reads <- function(sample_io,
                                    samtools_stats_file = NULL,
                                    picard_stats_file = NULL,
+                                   template = "bts:ProcessedAlignedReadsTemplate",
+                                   schema = "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld",
                                    update = FALSE, 
                                    verbose = TRUE) {
   
@@ -227,11 +227,9 @@ annotate_aligned_reads <- function(template,
   }
   # TO DO? link .bai files to .bam files under indexFile prop
   bam_io <- sample_io[grepl(".bam$", output_name)]
-
-  props <- get_dependency_from_json_schema(id = template, schema = schema)
-  # Hard-coding props to NEVER inherit in the template
-  select <- props[!props %in% c("comments", "entityId", "fileFormat", "dataType", "dataSubtype")]
-  anno_set_1 <- inherit_input_annotations(bam_io, select = select)
+  
+  props <- inherit_props(template, schema)
+  anno_set_1 <- inherit_input_annotations(bam_io, select = props)
   if(verbose) message("Inherited some annotations from inputs.")
   anno_set_2 <- tool_stats_to_annotations(samtools_stats_file, picard_stats_file)
   if(verbose && length(anno_set_2)) message("Extracted stats from workflow metafiles for some annotations.")

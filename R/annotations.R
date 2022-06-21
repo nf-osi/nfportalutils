@@ -23,3 +23,18 @@ annotate_with_manifest <- function(manifest, ignore_na = TRUE, ignore_blank = TR
     .syn$setAnnotations(entity = entity, annotations = reticulate::r_to_py(annotations[[entity]]))
   }
 }
+
+
+#' Determine inherited properties
+#' 
+#' Internal function needed until there is better handling of property inheritance.
+#' 
+#' @inheritParams get_by_prop_from_json_schema
+#' @param template URI of data template in model, prefixed if needed.
+#' @keywords internal
+inherit_props <- function(template, schema) {
+  props <- get_dependency_from_json_schema(id = template, schema = schema)
+  # Hard-coding props to NEVER inherit in the template
+  select <- props[!props %in% c("comments", "entityId", "fileFormat", "dataType", "dataSubtype")]
+  return(select)
+}
