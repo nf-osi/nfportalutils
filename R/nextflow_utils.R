@@ -50,17 +50,15 @@ map_sample_output_rnaseq <- function(syn_out) {
   # maps intermediate level of processed (.bam/.bai files)
   processed <- outputs[grepl("*.bam$|*.bai$", name), .(name, id)]
   processed[, sample :=  gsub("[.].*", "", name)]
-  processed[, level := 2L]
   
   # maps next level of processed (.sf files), which are nested
   folders <- outputs[type == "org.sagebionetworks.repo.model.Folder", .(name, id)]
   nested_outputs <- local_view(folders$id, idcol = "sample", idmap = setNames(folders$name, folders$id))
   nested_processed <- nested_outputs[grepl("*.sf$", name), .(name, id, sample)]
-  nested_processed[, level := 3L]
   
   sample_outputs <- rbind(processed, nested_processed)
+  sample_outputs[, workflow := "STAR and Salmon"]
   data.table::setnames(sample_outputs, c("name", "id"), c("output_name", "output_id"))
-  sample_outputs[, .(output_id = list(output_id), output_name = list(output_name)), by = .(sample, level)]
   return(sample_outputs)
 }
 
@@ -98,7 +96,7 @@ map_sample_output_sarek <- function(syn_out) {
   paths <- strsplit(outputs$caller_path, "\\", fixed = TRUE)
   outputs[, sample := sapply(paths, `[[`, 2)]
   outputs[, sample := strsplit(sample, "_vs_")] 
-  outputs[, caller := sapply(paths, `[[`, 3)]
+  outputs[, workflow := sapply(paths, `[[`, 3)]
   return(outputs)
 }
 
@@ -183,7 +181,42 @@ tool_stats_to_annotations <- function(samtools_stats_file = NULL,
   return(result)
 }
 
-#' Create annotations for processed aligned reads
+
+#' Build annotations for derived data
+#' 
+#' Intended to be used in specific context by more specialized utils 
+#' to get annotations on derived (processed) data. 
+#' Can't update assets from this directly because result is considered insufficient. 
+#' 
+#' See \code{\link{inherit_input_annotations}} for 
+#' usage in less restrictive context.
+#' 
+#' @keywords internal
+build_annotation_derivatives <- function(sample_io,
+                                         template,
+                                         schema,
+                                         format,
+                                         verbose = TRUE) {
+  
+  pattern <- paste0("[.]", format, "(.gz)?$")
+  x <- sample_io[grep(pattern, output_name)] 
+  n <- nrow(x)
+  if(!length(n)) stop(glue::glue("Expected {format} files not found. Are you annotating the right files?"))
+  if(verbose) message("Creating annotations for ", n, " files")
+  
+  props <- inherit_props(template, schema)
+  annotations <- inherit_input_annotations(x, select = props)
+  
+  annotations <- merge(annotations, 
+                       x[, .(sample, entityId = output_id, Filename = output_name, workflow)], 
+                       by = "sample", allow.cartesian = TRUE)
+  annotations[, dataSubtype := "processed"]
+  annotations[, fileFormat := format]
+  return(annotations)
+} 
+
+
+#' Annotate processed aligned reads
 #' 
 #' Help put together annotation components for nextflow star-salmon outputs. 
 #' Annotations come from several sources:
@@ -192,10 +225,9 @@ tool_stats_to_annotations <- function(samtools_stats_file = NULL,
 #' Most property vals can be inherited by the derived files, e.g. assay type and sample info, 
 #' but props like "comments" and "entityId" should NOT be inherited. 
 #' Ideally, the data model itself should include inheritance rules to apply;
-#' since that isn't possible currently, these exclusions are hard-coded as 
-#' "non-inheritance heuristics" and overall functionality is problematic with other data models 
+#' since that isn't possible currently, we hard-code exclusions. 
+#' Compatibility is problematic with other data models 
 #' (which, for example, may have something called "notes" instead of "comments"). 
-#' See \code{\link{inherit_input_annotations}}.
 #' 
 #' 2. Extract metrics from workflow auxiliary files to surface as annotations. 
 #' See helper \code{\link{tool_stats_to_annotations}}.
@@ -208,9 +240,10 @@ tool_stats_to_annotations <- function(samtools_stats_file = NULL,
 #' 
 #' @inheritParams get_by_prop_from_json_schema
 #' @inheritParams tool_stats_to_annotations
-#' @param template URI of data template in model, prefixed if needed.
-#' @param sample_io Table mapping input to outputs, where outputs are .bam/.bai files only!
-#' @param update Whether to apply annotations. See details.
+#' @param template (Optional) URI of template in data model to use, prefixed if needed. 
+#' Can specify different model/version, but in some cases may not work well.
+#' @param sample_io Table mapping input to outputs, where outputs are expected to be .bam files only!
+#' @param update Whether to apply annotations.
 #' @param verbose Give verbose reports for what's happening.
 #' @export
 annotate_aligned_reads <- function(sample_io,
@@ -218,61 +251,72 @@ annotate_aligned_reads <- function(sample_io,
                                    picard_stats_file = NULL,
                                    template = "bts:ProcessedAlignedReadsTemplate",
                                    schema = "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld",
-                                   update = FALSE, 
-                                   verbose = TRUE) {
+                                   verbose = TRUE,
+                                   update = FALSE) {
   
-  # Check that sample_io references appropriate files
-  if(!all(grepl(".bam$|.bai$", sample_io$output_name))) {
-    stop("Found resources that are not (.bam/.bai). Check that you are annotating the right data files.")
-  }
-  # TO DO? link .bai files to .bam files under indexFile prop
-  bam_io <- sample_io[grepl(".bam$", output_name)]
-  
-  props <- inherit_props(template, schema)
-  anno_set_1 <- inherit_input_annotations(bam_io, select = props)
-  if(verbose) message("Inherited some annotations from inputs.")
-  anno_set_2 <- tool_stats_to_annotations(samtools_stats_file, picard_stats_file)
-  if(verbose && length(anno_set_2)) message("Extracted stats from workflow metafiles for some annotations.")
-  if(verbose) message("Merging annotation components...")
+  anno_base <- build_annotation_derivatives(sample_io, template, schema, format = "bam", verbose)
+  anno_qc <- tool_stats_to_annotations(samtools_stats_file, picard_stats_file)
+  if(verbose && length(anno_qc)) message("Created annotations from workflow metrics.")
   
   annotations <- Reduce(function(x, y) merge(x, y, by = "sample"), 
-                        Filter(is.data.table, list(anno_set_1, 
-                                                   anno_set_2, 
-                                                   bam_io[, .(sample, entityId = output_id, Filename = output_name)])))
+                        Filter(is.data.table, list(anno_base, 
+                                                   anno_qc)))
   annotations[, dataType := "AlignedReads"]
-  annotations[, dataSubtype := "processed"]
   annotations[, sample := NULL] # bc internal usage, not for actual annotation
+  if(update) {
+    annotate_with_manifest(annotations)
+    if(verbose) message("Applied annotations.")
+  }
   return(annotations)
 }
+
+
+#' Annotate processed expression output
+#' 
+#' @inheritParams annotate_aligned_reads
+#' @param sample_io Table mapping input to outputs, where outputs are expected to be .sf files.
+#' @export
+annotate_expression <- function(sample_io,
+                                template = "bts:ProcessedExpressionTemplate",
+                                schema = "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld",
+                                verbose = TRUE,
+                                update = FALSE) {
+  
+  annotations <- build_annotation_derivatives(sample_io, template, schema, format = "sf", verbose)
+  annotations[, expressionUnit := "TPM"]
+  annotations[, dataType := "geneExpression"]
+  annotations[, sample := NULL]
+  if(update) {
+    annotate_with_manifest(annotations)
+    if(verbose) message("Applied annotations.")
+  }
+  return(annotations)
+  
+}
+
 
 
 #' Annotate somatic or germline variants output
 #' 
 #' @inheritParams annotate_aligned_reads
-#' @param data_type Type of variants, given that this can be used with either somatic or germline.
+#' @param sample_io Table mapping input to outputs, where outputs are expected to be .vcf.gz files.
+#' @param data_type Variant type, given that this can be used with either somatic or germline.
 #' @export
 annotate_called_variants <- function(sample_io,
                                      template = "bts:ProcessedVariantCallsTemplate", 
                                      schema = "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld",
                                      data_type = c("SomaticVariants", "GermlineVariants"),
-                                     update = FALSE,
-                                     verbose = TRUE) {
+                                     verbose = TRUE,
+                                     update = FALSE) {
   
-  # Check that sample_io references appropriate files
-  if(!all(grepl(".vcf$|.vcf.gz$", sample_io$output_name))) {
-    stop("Found resources that are not (.vcf/.vcf.gz). Check that you are annotating the right data files.")
-  }
-  
-  props <- inherit_props(template, schema)
-  annotations <- inherit_input_annotations(sample_io, select = props)
-  
-  annotations <- merge(annotations, 
-                       sample_io[, .(sample, entityId = output_id, Filename = output_name)], 
-                       by = "sample", allow.cartesian = TRUE)
+  annotations <- build_annotation_derivatives(sample_io, template, schema, format = "vcf", verbose)
   data_type <- match.arg(data_type)
   annotations[, dataType := data_type]
-  annotations[, dataSubtype := "processed"]
   annotations[, sample := NULL]
+  if(update) {
+    annotate_with_manifest(annotations)
+    if(verbose) message("Applied annotations.")
+  }
   return(annotations)
 }
 
@@ -300,3 +344,5 @@ inherit_input_annotations <- function(sample_io, select = NULL, update = FALSE) 
   }
   return(annotations)
 }
+
+
