@@ -4,7 +4,7 @@
 \alias{map_sample_io}
 \title{Map sample input-output}
 \usage{
-map_sample_io(workflow = c("nf-rna-seq", "nf-exome-seq"), samplesheet, syn_out)
+map_sample_io(workflow = c("nf-rnaseq", "nf-sarek"), samplesheet, syn_out)
 }
 \arguments{
 \item{workflow}{Workflow.}
@@ -18,5 +18,4 @@ A table with \code{sample} \code{level} \code{output_id} \code{output_name} \cod
 }
 \description{
 Wrapper to map sample inputs and outputs depending on workflow type.
-Mapping sample inputs use the samplesheet, but mapping outputs vary slightly.
 }

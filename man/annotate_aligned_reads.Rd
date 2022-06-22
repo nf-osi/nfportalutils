@@ -2,32 +2,34 @@
 % Please edit documentation in R/nextflow_utils.R
 \name{annotate_aligned_reads}
 \alias{annotate_aligned_reads}
-\title{Create annotations for processed aligned reads}
+\title{Annotate processed aligned reads}
 \usage{
 annotate_aligned_reads(
-  template,
-  schema,
   sample_io,
   samtools_stats_file = NULL,
   picard_stats_file = NULL,
-  update = FALSE,
-  verbose = TRUE
+  template = "bts:ProcessedAlignedReadsTemplate",
+ 
+    schema = "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld",
+  verbose = TRUE,
+  update = FALSE
 )
 }
 \arguments{
-\item{template}{URI of data template in model, prefixed if needed.}
-
-\item{schema}{Path (URL or local) to file from which schema will be read, or schema as list object.}
-
-\item{sample_io}{Table mapping input to outputs, where outputs are .bam/.bai files only!}
+\item{sample_io}{Table mapping input to outputs, where outputs are expected to be .bam files only!}
 
 \item{samtools_stats_file}{Path to file/syn id of file with samtools stats produced by the workflow.}
 
 \item{picard_stats_file}{Path to file/syn id of file with picard stats produced by the workflow.}
 
-\item{update}{Whether to apply annotations. See details.}
+\item{template}{(Optional) URI of template in data model to use, prefixed if needed.
+Can specify different model/version, but in some cases may not work well.}
+
+\item{schema}{Path (URL or local) to file from which schema will be read, or schema as list object.}
 
 \item{verbose}{Give verbose reports for what's happening.}
+
+\item{update}{Whether to apply annotations.}
 }
 \description{
 Help put together annotation components for nextflow star-salmon outputs.
@@ -38,10 +40,9 @@ Requires a reference mapping of input files to use.
 Most property vals can be inherited by the derived files, e.g. assay type and sample info,
 but props like "comments" and "entityId" should NOT be inherited.
 Ideally, the data model itself should include inheritance rules to apply;
-since that isn't possible currently, these exclusions are hard-coded as
-"non-inheritance heuristics" and overall functionality is problematic with other data models
+since that isn't possible currently, we hard-code exclusions.
+Compatibility is problematic with other data models
 (which, for example, may have something called "notes" instead of "comments").
-See \code{\link{inherit_input_annotations}}.
 }
 }
 \details{

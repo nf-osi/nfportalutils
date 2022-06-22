@@ -24,3 +24,4 @@ copy(
 Create a copy of syn entity; mostly used to create a copy on which to test out changes.
 See https://python-docs.synapse.org/build/html/synapseutils.html?highlight=copy#synapseutils.copy_functions.copy
 }
+\keyword{internal}
