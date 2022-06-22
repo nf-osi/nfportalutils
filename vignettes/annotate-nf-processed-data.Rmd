@@ -1,0 +1,266 @@
+---
+title: "Annotating nextflow processed data"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{annotating-nextflow-processed-data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+
+## Intro
+
+This vignette documents in-practice usage of the annotation utils for nf-processed data files;
+it will probably updated as practices or underlying functions (which are still experimental) change. 
+
+Since examples reference real data, most of the interactive portions need at least read access.
+The portions that require modify access are mostly illustrative; `eval=F` by default, though these *can* be re-run with the effect of having the same annotations applied (unless annotations were updated on the inputs). 
+
+
+## Set up
+
+First load the `nfportalutils` package and log in. 
+The recommended default usage of `syn_login` is to use it without directly passing in credentials. 
+Instead, have available the `SYNAPSE_AUTH_TOKEN` environment variable with your token stored therein. 
+
+```r
+library(nfportalutils)
+#> Warning in read_python_versions_from_registry("HCU", key = "PythonCore"): Unexpected format for PythonCore version: 3.10
+library(data.table)
+#> data.table 1.14.2 using 4 threads (see ?getDTthreads).  Latest news: r-datatable.com
+syn_login()
+```
+
+## nf-rnaseq 
+
+### Creating helper resource files
+
+To add annotations and provenance, we need a reference mapping of inputs and outputs involved in the workflow.
+The below puts together a table representing this mapping by parsing the samplesheet in combination with the output directory. 
+For the nextflow rna-seq workflow, the samplesheet is an output file in "pipeline_info" and the relevant output directory should be named something like "star_salmon". 
+
+```r
+sample_io <- map_sample_io(workflow = "nf-rnaseq",
+                           samplesheet = "syn30841441", # synapse file
+                           syn_out = "syn30840584")
+#> Getting file from Synapse...
+head(sample_io)
+#>                          sample                                         output_name   output_id        workflow
+#> 1: 2-001_Plexiform_Neurofibroma     2-001_Plexiform_Neurofibroma.markdup.sorted.bam syn30845023 STAR and Salmon
+#> 2: 2-001_Plexiform_Neurofibroma 2-001_Plexiform_Neurofibroma.markdup.sorted.bam.bai syn30841448 STAR and Salmon
+#> 3: 2-001_Plexiform_Neurofibroma                                      quant.genes.sf syn30841442 STAR and Salmon
+#> 4: 2-001_Plexiform_Neurofibroma                                            quant.sf syn30841460 STAR and Salmon
+#> 5:              2-002_Cell_Line                  2-002_Cell_Line.markdup.sorted.bam syn30842515 STAR and Salmon
+#> 6:              2-002_Cell_Line              2-002_Cell_Line.markdup.sorted.bam.bai syn30841458 STAR and Salmon
+#>                                                                       input_id
+#> 1: syn15262441,syn15266271,syn15270018,syn15590067,syn15590155,syn15590278,...
+#> 2: syn15262441,syn15266271,syn15270018,syn15590067,syn15590155,syn15590278,...
+#> 3: syn15262441,syn15266271,syn15270018,syn15590067,syn15590155,syn15590278,...
+#> 4: syn15262441,syn15266271,syn15270018,syn15590067,syn15590155,syn15590278,...
+#> 5: syn15262803,syn15266604,syn15590010,syn15590073,syn15590164,syn15590284,...
+#> 6: syn15262803,syn15266604,syn15590010,syn15590073,syn15590164,syn15590284,...
+```
+
+Most everything should be self-explanatory except perhaps for `level`. 
+This is just an internal label that characterizes `.sf` outputs as a higher level of "processed" than `.bam/.bai` files.
+
+### Add provenance
+
+Add provenance for the files involved using `add_activity_batch`. 
+
+
+Note: Why is workflow name already available but not workflow link?
+The workflow link is as specific to the outputs as possible and includes version numbers. 
+One can have the same workflow name but slightly different workflow links, to make sure that the correct version is looked up each time (this might change in the future).
+
+
+```r
+
+wf_link <- "https://nf-co.re/rnaseq/3.7/output#star-and-salmon"
+prov <- add_activity_batch(sample_io$output_id, 
+                   sample_io$workflow, 
+                   wf_link,
+                   sample_io$input_id)
+```
+
+
+### Add annotations
+
+Annotations expected for aligned reads output are different from quantified expression output. 
+This is handled by a couple of specialized functions.
+
+#### Aligned reads data files
+
+First, check the annotations template for `.bam` files, a.k.a. "AlignedReads" in NF and Genomic Data Commons (GDC) data model terms.  
+
+```r
+
+template <- "bts:ProcessedAlignedReadsTemplate"
+schema <- "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld"
+props <- get_dependency_from_json_schema(id = template)
+props
+#>  [1] "assay"                     "platform"                  "readDepth"                 "totalReads"               
+#>  [5] "individualID"              "parentSpecimenID"          "dataType"                  "Filename"                 
+#>  [9] "resourceType"              "progressReportNumber"      "comments"                  "workflow"                 
+#> [13] "genomicReference"          "averageInsertSize"         "averageReadLength"         "averageBaseQuality"       
+#> [17] "pairsOnDifferentChr"       "readsDuplicatedPercent"    "readsMappedPercent"        "meanCoverage"             
+#> [21] "proportionCoverage10x"     "proportionCoverage30x"     "Component"                 "fileFormat"               
+#> [25] "entityId"                  "dataSubtype"               "diagnosis"                 "sex"                      
+#> [29] "species"                   "nf2Genotype"               "nf1Genotype"               "age"                      
+#> [33] "ageUnit"                   "tumorType"                 "organ"                     "tissue"                   
+#> [37] "isCellLine"                "isPrimaryCell"             "cellType"                  "specimenID"               
+#> [41] "aliquotID"                 "modelSystemName"           "specimenPreparationMethod" "workflowLink"
+```
+
+This looks like a large number of different annotations to put together (though most are optional). 
+Fortunately, the utility `annotate_aligned_reads` will try to do much of the work. 
+It will look for the .bam files and generate annotations for those .bam files.
+The template and schema mentioned above are the defaults so don't have to be specified explicitly. 
+It's recommended to read the docs (`?annotate_aligned_reads`) for details on how annotations are compiled, 
+as usage of `annotate_aligned_reads` does still require knowing what should be filled in manually.
+
+Note: One might wonder why workflow info is added as both provenance and annotations. 
+Isn't that redundant? The answer is that the portal uses only annotations and not provenance. 
+
+
+
+```r
+
+l2_manifest <- annotate_aligned_reads(sample_io,
+                                      samtools_stats_file = "syn30841284",
+                                      update = FALSE)
+#> Creating annotations for 43 files
+#> Getting file from Synapse...
+#> Picard stats not available, skipping these annotations...
+#> Created annotations from workflow metrics.
+
+l2_manifest[, genomicReference := "GRCh38"]
+l2_manifest[, workflowLink := "https://nf-co.re/rnaseq/3.7/output#star-and-salmon"]
+
+head(l2_manifest)
+#>    age  assay individualID isCellLine isPrimaryCell nf1Genotype nf2Genotype  platform readDepth     resourceType    sex
+#> 1:  29 rnaSeq     JH-2-001         No          TRUE         -/-         +/+ HiSeq2500       25M experimentalData female
+#> 2:  NA rnaSeq     JH-2-002        Yes         FALSE         -/-         +/+ HiSeq2500       25M experimentalData   Male
+#> 3:  NA rnaSeq     JH-2-002         No          TRUE         -/-         +/+ HiSeq2500       25M experimentalData   Male
+#> 4:  13 rnaSeq     JH-2-002         No           Yes         -/-         +/+ HiSeq2500       50M experimentalData   Male
+#> 5:  NA rnaSeq     JH-2-002         No          TRUE         -/-         +/+ HiSeq2500       25M experimentalData   Male
+#> 6:  NA rnaSeq     JH-2-003         No          TRUE         -/-         +/+ HiSeq2500       25M experimentalData   Male
+#>         species                                    specimenID        tissue                               tumorType
+#> 1:        Human                  2-001 Plexiform Neurofibroma primary tumor                  Plexiform Neurofibroma
+#> 2: Homo sapiens                               2-002 Cell Line primary tumor Malignant Peripheral Nerve Sheath Tumor
+#> 3: Homo sapiens 2-002 Malignant Peripheral Nerve Sheath Tumor primary tumor Malignant Peripheral Nerve Sheath Tumor
+#> 4: Homo sapiens                  2-002 Plexiform Neurofibroma primary tumor                  Plexiform Neurofibroma
+#> 5: Homo sapiens                               2-002 xenograft primary tumor Malignant Peripheral Nerve Sheath Tumor
+#> 6: Homo sapiens                  2-003 Plexiform Neurofibroma primary tumor                  Plexiform Neurofibroma
+#>                   diagnosis ageUnit aliquotID cellType             Component modelSystemName organ parentSpecimenID
+#> 1:                     <NA>    <NA>        NA     <NA>                  <NA>            <NA>  <NA>             <NA>
+#> 2: Neurofibromatosis type 1    <NA>        NA     <NA>                  <NA>            <NA>  <NA>             <NA>
+#> 3: Neurofibromatosis type 1    <NA>        NA     <NA>                  <NA>            <NA>  <NA>             <NA>
+#> 4: Neurofibromatosis type 1   years         1          GenomicsAssayTemplate                       JH-2-002-b_PN_PT
+#> 5: Neurofibromatosis type 1    <NA>        NA     <NA>                  <NA>            <NA>  <NA>             <NA>
+#> 6: Neurofibromatosis type 1    <NA>        NA     <NA>                  <NA>            <NA>  <NA>             <NA>
+#>    progressReportNumber specimenPreparationMethod    entityId
+#> 1:                 <NA>                      <NA> syn30845023
+#> 2:                 <NA>                      <NA> syn30842515
+#> 3:                 <NA>                      <NA> syn30842692
+#> 4:                                   Flash frozen syn30845537
+#> 5:                 <NA>                      <NA> syn30845388
+#> 6:                 <NA>                      <NA> syn30845585
+#>                                                            Filename        workflow dataSubtype fileFormat
+#> 1:                  2-001_Plexiform_Neurofibroma.markdup.sorted.bam STAR and Salmon   processed        bam
+#> 2:                               2-002_Cell_Line.markdup.sorted.bam STAR and Salmon   processed        bam
+#> 3: 2-002_Malignant_Peripheral_Nerve_Sheath_Tumor.markdup.sorted.bam STAR and Salmon   processed        bam
+#> 4:                  2-002_Plexiform_Neurofibroma.markdup.sorted.bam STAR and Salmon   processed        bam
+#> 5:                               2-002_xenograft.markdup.sorted.bam STAR and Salmon   processed        bam
+#> 6:                  2-003_Plexiform_Neurofibroma.markdup.sorted.bam STAR and Salmon   processed        bam
+#>    averageInsertSize averageReadLength averageBaseQuality pairsOnDifferentChr readsDuplicatedPercent readsMappedPercent
+#> 1:            1673.1                99               36.8                   0               38.63360                100
+#> 2:            1761.7                99               36.7                   0               46.77263                100
+#> 3:            1414.9                99               36.8                   0               41.53737                100
+#> 4:            1562.5                99               36.9                   0               31.03380                100
+#> 5:            1280.7                99               36.9                   0               38.27957                100
+#> 6:            1454.7                98               36.9                   0               34.04250                100
+#>    totalReads     dataType genomicReference                                       workflowLink
+#> 1:  119508980 AlignedReads           GRCh38 https://nf-co.re/rnaseq/3.7/output#star-and-salmon
+#> 2:   89939517 AlignedReads           GRCh38 https://nf-co.re/rnaseq/3.7/output#star-and-salmon
+#> 3:  111325344 AlignedReads           GRCh38 https://nf-co.re/rnaseq/3.7/output#star-and-salmon
+#> 4:  139077117 AlignedReads           GRCh38 https://nf-co.re/rnaseq/3.7/output#star-and-salmon
+#> 5:  138605878 AlignedReads           GRCh38 https://nf-co.re/rnaseq/3.7/output#star-and-salmon
+#> 6:  148922098 AlignedReads           GRCh38 https://nf-co.re/rnaseq/3.7/output#star-and-salmon
+```
+
+
+This looks good, so we can go ahead and apply the annotations:
+
+```r
+
+annotate_with_manifest(l2_manifest)
+```
+
+TO DO: Instead of submitting annotations as above, if we prefer to submit via schematic/DCA, we can make the output a schematic-style manifest.
+
+#### Expression data files
+
+Another convenience function is provided to help annotate gene expression data files. 
+
+
+
+```r
+
+l3_manifest <- annotate_expression(sample_io, update = FALSE)
+l3_manifest[, workflowLink := "https://nf-co.re/rnaseq/3.7/output#star-and-salmon"]
+annotate_with_manifest(l3_manifest)
+```
+
+
+## nf-sarek
+
+As the second part of this vignette shows, the process is pretty much the same as for [nf-rnaseq](#nf-rnaseq),
+though mapping inputs-outputs is considerably slower because of additional directories.
+
+### Creating helper resource files
+
+```r
+
+sample_io <- map_sample_io(workflow = "nf-sarek",
+                           samplesheet = "PilotBatch-WES-samplesheet.txt", # local file
+                           syn_out = "syn27650634")
+# Modify workflow assignment a bit
+sample_io[workflow =="Strelka", workflow := "Strelka2"]
+```
+### Add provenance
+
+
+```r
+
+wf_link <- c(FreeBayes = "https://nf-co.re/sarek/2.7.1/output#freebayes",
+             Mutect2 = "https://nf-co.re/sarek/2.7.1/output#gatk-mutect2",
+             Strelka2 = "https://nf-co.re/sarek/2.7.1/output#strelka2")
+add_activity_batch(sample_io$output_id, 
+                   sample_io$workflow, 
+                   wf_link[sample_io$workflow], 
+                   sample_io$input_id)
+   
+```
+
+### Add annotations
+
+Adding annotations can be done with `annotate_called_variants`, which can be used for both somatic (assumed default) and germline. 
+ 
+
+```r
+
+annotations <- annotate_called_variants(sample_io)
+annotations[, workflowLink := wf_link[workflow]]
+```
+
+
+
+```r
+
+annotate_with_manifest(annotations)
+```
+
+
+

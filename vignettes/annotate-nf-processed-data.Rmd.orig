@@ -1,0 +1,179 @@
+---
+title: "Annotating nextflow processed data"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{annotating-nextflow-processed-data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Intro
+
+This vignette documents in-practice usage of the annotation utils for nf-processed data files;
+it will probably updated as practices or underlying functions (which are still experimental) change. 
+
+Since examples reference real data, most of the interactive portions need at least read access.
+The portions that require modify access are mostly illustrative; `eval=F` by default, though these *can* be re-run with the effect of having the same annotations applied (unless annotations were updated on the inputs). 
+
+
+## Set up
+
+First load the `nfportalutils` package and log in. 
+The recommended default usage of `syn_login` is to use it without directly passing in credentials. 
+Instead, have available the `SYNAPSE_AUTH_TOKEN` environment variable with your token stored therein. 
+```{r setup}
+library(nfportalutils)
+library(data.table)
+syn_login()
+```
+
+## nf-rnaseq 
+
+### Creating helper resource files
+
+To add annotations and provenance, we need a reference mapping of inputs and outputs involved in the workflow.
+The below puts together a table representing this mapping by parsing the samplesheet in combination with the output directory. 
+For the nextflow rna-seq workflow, the samplesheet is an output file in "pipeline_info" and the relevant output directory should be named something like "star_salmon". 
+```{r rnaseq-resources}
+sample_io <- map_sample_io(workflow = "nf-rnaseq",
+                           samplesheet = "syn30841441", # synapse file
+                           syn_out = "syn30840584")
+head(sample_io)
+```
+
+Most everything should be self-explanatory except perhaps for `level`. 
+This is just an internal label that characterizes `.sf` outputs as a higher level of "processed" than `.bam/.bai` files.
+
+### Add provenance
+
+Add provenance for the files involved using `add_activity_batch`. 
+
+
+Note: Why is workflow name already available but not workflow link?
+The workflow link is as specific to the outputs as possible and includes version numbers. 
+One can have the same workflow name but slightly different workflow links, to make sure that the correct version is looked up each time (this might change in the future).
+
+```{r rnaseq-add-provenance, eval=FALSE}
+
+wf_link <- "https://nf-co.re/rnaseq/3.7/output#star-and-salmon"
+prov <- add_activity_batch(sample_io$output_id, 
+                   sample_io$workflow, 
+                   wf_link,
+                   sample_io$input_id)
+```
+
+
+### Add annotations
+
+Annotations expected for aligned reads output are different from quantified expression output. 
+This is handled by a couple of specialized functions.
+
+#### Aligned reads data files
+
+First, check the annotations template for `.bam` files, a.k.a. "AlignedReads" in NF and Genomic Data Commons (GDC) data model terms.  
+```{r rnaseq-see-annotations-bam}
+
+template <- "bts:ProcessedAlignedReadsTemplate"
+schema <- "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld"
+props <- get_dependency_from_json_schema(id = template)
+props
+```
+
+This looks like a large number of different annotations to put together (though most are optional). 
+Fortunately, the utility `annotate_aligned_reads` will try to do much of the work. 
+It will look for the .bam files and generate annotations for those .bam files.
+The template and schema mentioned above are the defaults so don't have to be specified explicitly. 
+It's recommended to read the docs (`?annotate_aligned_reads`) for details on how annotations are compiled, 
+as usage of `annotate_aligned_reads` does still require knowing what should be filled in manually.
+
+Note: One might wonder why workflow info is added as both provenance and annotations. 
+Isn't that redundant? The answer is that the portal uses only annotations and not provenance. 
+
+
+```{r rnaseq-make-annotations-bam}
+
+l2_manifest <- annotate_aligned_reads(sample_io,
+                                      samtools_stats_file = "syn30841284",
+                                      update = FALSE)
+
+l2_manifest[, genomicReference := "GRCh38"]
+l2_manifest[, workflowLink := "https://nf-co.re/rnaseq/3.7/output#star-and-salmon"]
+
+head(l2_manifest)
+```
+
+
+This looks good, so we can go ahead and apply the annotations:
+```{r rnaseq-apply-annotations-l2, eval=FALSE}
+
+annotate_with_manifest(l2_manifest)
+```
+
+TO DO: Instead of submitting annotations as above, if we prefer to submit via schematic/DCA, we can make the output a schematic-style manifest.
+
+#### Expression data files
+
+Another convenience function is provided to help annotate gene expression data files. 
+
+
+```{r rnaseq-add-annotations-l3, eval=FALSE}
+
+l3_manifest <- annotate_expression(sample_io, update = FALSE)
+l3_manifest[, workflowLink := "https://nf-co.re/rnaseq/3.7/output#star-and-salmon"]
+annotate_with_manifest(l3_manifest)
+```
+
+
+## nf-sarek
+
+As the second part of this vignette shows, the process is pretty much the same as for [nf-rnaseq](#nf-rnaseq),
+though mapping inputs-outputs is considerably slower because of additional directories.
+
+### Creating helper resource files
+```{r sarek-resources, eval=FALSE}
+
+sample_io <- map_sample_io(workflow = "nf-sarek",
+                           samplesheet = "PilotBatch-WES-samplesheet.txt", # local file
+                           syn_out = "syn27650634")
+# Modify workflow assignment a bit
+sample_io[workflow =="Strelka", workflow := "Strelka2"]
+```
+### Add provenance
+
+```{r sarek-add-provenance, eval=FALSE}
+
+wf_link <- c(FreeBayes = "https://nf-co.re/sarek/2.7.1/output#freebayes",
+             Mutect2 = "https://nf-co.re/sarek/2.7.1/output#gatk-mutect2",
+             Strelka2 = "https://nf-co.re/sarek/2.7.1/output#strelka2")
+add_activity_batch(sample_io$output_id, 
+                   sample_io$workflow, 
+                   wf_link[sample_io$workflow], 
+                   sample_io$input_id)
+   
+```
+
+### Add annotations
+
+Adding annotations can be done with `annotate_called_variants`, which can be used for both somatic (assumed default) and germline. 
+ 
+```{r sarek-make-annotations, eval=FALSE}
+
+annotations <- annotate_called_variants(sample_io)
+annotations[, workflowLink := wf_link[workflow]]
+```
+
+
+```{r sarek-apply-annotations, eval=FALSE}
+
+annotate_with_manifest(annotations)
+```
+
+
+
