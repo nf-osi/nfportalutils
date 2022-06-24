@@ -1,100 +1,91 @@
-#' Add a publication to the publication table.
-#' @description Add a publication to the publication table. Requires that the publication be listed in PubMed. For parameter-provided metadata (e.g. "studyName"), function must a JSON-formatted character vector if the destination Synapse column is of "STRING_LIST" format. Currently, this function does not evaluate the schema, so this must be checked manually.
+#' Add a publication to the publication table
+#' 
+#' Requires that the publication be in PubMed to derive metadata such as authors, title, etc.
+#' Fields `disease_focus` and `manifestation` can be supplemented manually by the curator. 
+#' The `study_id` is used to join with study table to create view with consistent `studyName` and `fundingAgency`. 
+#' 
 #' @param publication_table_id The synapse id of the portal publication table. Must have write access.
 #' @param pmid The PubMed ID (*not* PMCID) of the publication to be added.
-#' @param study_name The name(s) of the study that are associated with the publication.
-#' @param study_id The synapse id(s) of the study that are associated with the publication.
-#' @param funding_agency The funding agency(s) that are associated with the publication.
+#' @param study_id The synapse id(s) of the study that are associated with the publication. 
 #' @param disease_focus The disease focus(s) that are associated with the publication.
 #' @param manifestation The manifestation(s) that are associated with the publication.
 #' @param dry_run Default = TRUE. Skips upload to table and instead prints formatted publication metadata.
 #' @return If dry_run == T, returns publication metadata to be added.
 #' @examples 
 #' \dontrun{
-#' add_publication_from_pubmed(publication_table_id = 'syn16857542',
-#'                pmid = '33574490',
-#'                study_name = c(toJSON("Synodos NF2")),
-#'                study_id = c(toJSON("syn2343195")),
-#'                funding_agency = c(toJSON("CTF")),
-#'                disease_focus = "Neurofibromatosis 2",
-#'                manifestation = c(toJSON("Meningioma")),
+#' add_publication_from_pubmed(
+#'                pmid = "33574490",
+#'                study_id = "syn2343195",
+#'                disease_focus = c("Neurofibromatosis"),
+#'                manifestation = c("Meningioma"),
+#'                publication_table_id = "syn16857542",
+#'                study_table_id = "",
 #'                dry_run = T)
 #'}
 #' @export
-#'
-add_publication_from_pubmed <- function(publication_table_id, pmid, study_name, study_id, funding_agency, disease_focus, manifestation, dry_run = T){
-   .check_login()
-  #TODO: Check schema up-front and convert metadata to json in correct format
+add_publication_from_pubmed <- function(pmid, 
+                                        study_id, 
+                                        disease_focus, 
+                                        manifestation, 
+                                        publication_table_id,
+                                        study_table_id,
+                                        dry_run = T) {
+  .check_login()
 
-  pub_table <- .syn$tableQuery(glue::glue('select * from {publication_table_id}'))$filepath %>%
-    readr::read_csv(na=character()) ##asDataFrame() & reticulate return rowIdAndRowVersion as concatenated rownames, read_csv reads them in as columns
+  # Query only for data needed, i.e. PMID to check non-dup; don't need all data to add new row
+  pmids <- table_query(publication_table_id, "pmid") %>% unlist(use.names = F)
+  
+  if(pmid %in% pmids) {
+      message(glue::glue("PMID:{pmid} already exists in destination table!")) 
+  } else {
+    record <- from_pubmed(pmid) 
+    if(is.na(record)) return()
+    
+    new_row <- table_join(record, study_table_id, studyId)  
+    new_row <- as_table_schema(new_row, table = publication_table_id)
+    if(!dry_run) {
+      stored <- .syn$store(new_row)
+      message(glue::glue('PMID:{pmid} added!'))
+    } else{
+      new_row
+    }
+  }
+}
 
-    if(pmid %in% pub_table$pmid){
-      print("publication already exists in destination table!")
-    }else{
 
-      pmids <- easyPubMed::get_pubmed_ids(pmid) ##query pubmid for pmid
-      if(pmids$Count == 0){ ##if no records found, return vector of NAs
-        print('nothing found for doi')
-      }else{ ##otherwise look for all data
-        pmids <- easyPubMed::fetch_pubmed_data(pmids, format = "xml", retmax = 1)
+#' Get publication metadata from PubMed
+#' 
+#' Get PMID meta as table with `title`, `journal`, `author`, `year`, `pmid`, `doi` and, 
+#' optionally, `keywords`. If PMID is not found, returns `NA`.
+#' 
+#' @param pmid PubMed id number.
+#' @param with_keywords Whether to include keywords.
+#' @export
+from_pubmed <- function(pmid, with_keywords = TRUE) {
+  
+  res <- easyPubMed::get_pubmed_ids(pmid) 
+  if(res$Count == 0) { 
+    message("Nothing found for PMID")
+    return(NA) # Return NA early if no records found 
+  }
+  res <- easyPubMed::fetch_pubmed_data(pmids, format = "xml", retmax = 1)
+  
+  p <- xml2::as_list(xml2::read_xml(res[[1]]))
+  
+  authors <- mapply(function(author) paste(author$ForeName, author$LastName), 
+                    p$PubmedArticleSet$PubmedArticle$MedlineCitation$Article$AuthorList) 
+  journal <- tools::toTitleCase(p$PubmedArticleSet$PubmedArticle$MedlineCitation$Article$Journal$Tile[[1]])
+  title <- p$PubmedArticleSet$PubmedArticle$MedlineCitation$Article$ArticleTitle[[1]]
+  doi <- paste0("https://www.doi.org", p$PubmedArticleSet$PubmedArticle$MedlineCitation$Article$ELocationID[[1]])
+  year <- p$PubmedArticleSet$PubmedArticle$MedlineCitation$Article$Journal$JournalIssue$PubDate$Year[[1]]
 
-        pmids_df <- pmids %>%
-          easyPubMed::article_to_df()
+  record <- data.frame(title = title, journal = journal, author = I(list(authors)),
+                       year = year, pmid = pmid, doi = doi)
+  
+  if(with_keywords) {
+    record$keywords <- list(unique(unlist(p$PubmedArticleSet$PubmedArticle$MedlineCitation$MeshHeadingList, 
+                  p$PubmedArticleSet$PubmedArticle$MedlineCitation$KeywordList)))
+  }
+  return(record)
+}
 
-        author_list <- pmids_df %>% tidyr::unite(name, firstname, lastname, sep = " ") %>%
-          purrr::pluck('name') %>% jsonlite::toJSON() %>% c()
-        #wrapping json in c() is necessary to coerce to data frame near end of function
-
-        ##extract other metadata
-        ##journal names are not stored on pubmed in title case, so let's do that
-        journal <- pmids_df$journal %>% unique %>% tools::toTitleCase(.)
-
-        ##title case not typically used for scientific publications
-        title <- pmids_df$title %>% unique
-
-        ##doi
-        doi <- pmids_df$doi %>% unique
-        
-        doi_url <- glue::glue("www.doi.org/{doi}")
-
-        if(doi %in% pub_table$doi){
-          print("publication already exists in destination table!")
-        }else{
-
-        ## default function doesn't get accurate publication date, but rather the listing date. use different function to get publication year:
-        year <- easyPubMed::custom_grep(pmids, tag = "PubDate")[1] %>%
-          stringr::str_extract(., "<Year>\\d+") %>%
-          stringr::str_extract('\\d+') %>%
-          as.double()
-
-        pmid <- pmids_df$pmid %>% unique %>% as.double()
-
-        if(length(journal)>1 | length(title)>1 | length(year)>1 | length(author_list)>1 | length(pmid)>1){
-          print("one to many mappings detected - manually curate")
-        }else{
-          #return metadata
-
-          schema <- .syn$get(entity = publication_table_id)
-
-          new_data <- tibble::tibble("title"=title, "journal"=journal, "author" = author_list, "year"=year, "pmid" = pmid, "doi"=doi_url,
-                                 "studyName"= study_name, "studyId"=study_id,"fundingAgency"= funding_agency,"diseaseFocus"= disease_focus,
-                                 "manifestation"=manifestation)
-
-          schema <- .syn$get(entity = publication_table_id)
-
-          colnames <- pub_table[0,]
-
-          new_row <- dplyr::bind_rows(colnames, new_data)
-
-          if(dry_run == F){
-            .store_rows(schema, new_row)
-            glue::glue('{pmid} added!')
-          }else{
-            print(new_row)
-          }
-
-        }
-        }
-      }
-  }}
