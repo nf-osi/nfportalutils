@@ -20,7 +20,7 @@
 #'                disease_focus = c("Neurofibromatosis"),
 #'                manifestation = c("Meningioma"),
 #'                publication_table_id = "syn16857542",
-#'                study_table_id = "")
+#'                study_table_id = "syn16787123")
 #'}
 #' @export
 add_publication_from_pubmed <- .add_publication_from_pubmed()
@@ -46,12 +46,14 @@ add_publication_from_pubmed <- .add_publication_from_pubmed()
     if(pmid %in% pmids) {
       message(glue::glue("PMID:{pmid} already exists in destination table!")) 
     } else {
-      record <- from_pubmed(pmid, nf_keywords = TRUE) 
-      if(is.na(record)) return()
+      record <- from_pubmed(pmid) 
+      if(!length(record)) return()
       
       study_id_set <- glue::glue_collapse(glue::single_quote(study_id), sep = ", ")
       study <- .syn$tableQuery(glue::glue("SELECT studyId, studyName, fundingAgency FROM {study_table_id} WHERE studyId IN ({study_id_query})"))$asDataFrame()
-      record <- cbind(record, studyId = I(list(study$studyId)), studyName = I(list(study$studyName)), fundingAgency = I(list(study$fundingAgency)))
+      record <- cbind(record, 
+                      diseaseFocus = I(list(disease_focus)), manifestation = I(list(manifestation)),
+                      studyId = I(list(study$studyId)), studyName = I(list(study$studyName)), fundingAgency = I(list(study$fundingAgency)))
       
       # If batch mode, rbind and defer table schemafication until all records processed
       if(batch) {
@@ -81,7 +83,7 @@ from_pubmed <- function(pmid) {
   res <- easyPubMed::get_pubmed_ids(pmid) 
   if(res$Count == 0) { 
     message(glue::glue("Nothing found for PMID:{pmid}"))
-    return(NA) # Return NA early if no records found 
+    return() # Return NULL early if no records found 
   }
   p <- easyPubMed::fetch_pubmed_data(res, format = "xml", retmax = 1) %>% 
     `[[`(1) %>% xml2::read_xml() %>% xml2::as_list()
