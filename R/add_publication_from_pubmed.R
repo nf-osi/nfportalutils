@@ -88,7 +88,7 @@ from_pubmed <- function(pmid) {
   
   authors <- mapply(function(author) paste(author$ForeName, author$LastName), 
                     p$PubmedArticleSet$PubmedArticle$MedlineCitation$Article$AuthorList) 
-  journal <- tools::toTitleCase(p$PubmedArticleSet$PubmedArticle$MedlineCitation$Article$Journal$Tile[[1]])
+  journal <- tools::toTitleCase(p$PubmedArticleSet$PubmedArticle$MedlineCitation$Article$Journal$Title[[1]])
   title <- p$PubmedArticleSet$PubmedArticle$MedlineCitation$Article$ArticleTitle[[1]]
   doi <- paste0("https://www.doi.org", p$PubmedArticleSet$PubmedArticle$MedlineCitation$Article$ELocationID[[1]])
   year <- p$PubmedArticleSet$PubmedArticle$MedlineCitation$Article$Journal$JournalIssue$PubDate$Year[[1]]
@@ -99,5 +99,4 @@ from_pubmed <- function(pmid) {
                        year = year, pmid = pmid, doi = doi)
   return(record)
 }
-
 
