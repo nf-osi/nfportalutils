@@ -72,7 +72,7 @@ add_publication_from_pubmed <- .add_publication_from_pubmed()
 
 #' Get publication metadata from PubMed
 #' 
-#' If PMID found, return meta as table w/ `title` `journal` `author` `year` `pmid` `doi` `keywords`, else `NA`.
+#' If PMID found, return meta as table w/ `title` `journal` `author` `year` `pmid` `doi`, else `NA`.
 #' 
 #' @param pmid PubMed id.
 #' @export
@@ -92,11 +92,11 @@ from_pubmed <- function(pmid) {
   title <- p$PubmedArticleSet$PubmedArticle$MedlineCitation$Article$ArticleTitle[[1]]
   doi <- paste0("https://www.doi.org", p$PubmedArticleSet$PubmedArticle$MedlineCitation$Article$ELocationID[[1]])
   year <- p$PubmedArticleSet$PubmedArticle$MedlineCitation$Article$Journal$JournalIssue$PubDate$Year[[1]]
-  keywords <- unique(unlist(p$PubmedArticleSet$PubmedArticle$MedlineCitation$MeshHeadingList, 
-                                 p$PubmedArticleSet$PubmedArticle$MedlineCitation$KeywordList))
+  # keywords <- unique(unlist(p$PubmedArticleSet$PubmedArticle$MedlineCitation$MeshHeadingList, 
+  #                                p$PubmedArticleSet$PubmedArticle$MedlineCitation$KeywordList))
   
   record <- data.frame(title = title, journal = journal, author = I(list(authors)),
-                       year = year, pmid = pmid, doi = doi, keywords = I(list(keywords)))
+                       year = year, pmid = pmid, doi = doi)
   return(record)
 }
 
