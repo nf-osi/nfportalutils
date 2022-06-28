@@ -93,7 +93,7 @@ map_sample_output_sarek <- function(syn_out) {
       )
     })
   )
-  paths <- strsplit(outputs$caller_path, "\\", fixed = TRUE)
+  paths <- strsplit(outputs$caller_path, "/", fixed = TRUE)
   outputs[, sample := sapply(paths, `[[`, 2)]
   outputs[, sample := strsplit(sample, "_vs_")] 
   outputs[, workflow := sapply(paths, `[[`, 3)]
