@@ -1,3 +1,51 @@
+#' Higher-level fun to generate `add_publication_from_pubmed` util for one-off usage (default) or optimized for batch processing.
+#' @param batch If a non-zero batch size, turns on batch mode; defaults to no-batch.
+#' @param cache Whether to cache some results, which is default if `batch`.
+#' @keywords internal
+.add_publication_from_pubmed <- function(batch = 0L, cache = batch) { # implement logging for batch?
+  pmids <- new_data <- NULL
+  counter <- 0L
+  function(pmid, study_id, disease_focus, manifestation, 
+           publication_table_id, study_table_id, dry_run = T) {
+    
+    .check_login()
+    
+    counter <<- counter + 1L
+    # cat("current record:", counter) # make verbose?
+    # Query only for data needed, i.e. PMID to check non-dup; result can be cached
+    if(is.null(pmids)) {
+      pmids <- table_query(publication_table_id, "pmid") %>% unlist(use.names = F)
+      if(cache) pmids <<- pmids
+    }
+    
+    if(pmid %in% pmids) {
+      message(glue::glue("PMID:{pmid} already exists in destination table!")) # Possible that PMID needs to link to other study IDs
+    } else {
+      record <- from_pubmed(pmid) 
+      if(!length(record)) return()
+      
+      study_id_set <- glue::glue_collapse(glue::single_quote(study_id), sep = ", ")
+      study <- .syn$tableQuery(glue::glue("SELECT studyId, studyName, fundingAgency FROM {study_table_id} WHERE studyId IN ({study_id_set})"))$asDataFrame()
+      record <- cbind(record, diseaseFocus = I(list(disease_focus)), manifestation = I(list(manifestation)),
+                      studyId = I(list(study$studyId)), studyName = I(list(study$studyName)), fundingAgency = I(list(study$fundingAgency)))
+      
+      # If batch mode, rbind and defer table schemafication until all records processed
+      if(batch) {
+        new_data <<- rbind(new_data, record)
+        if(counter == batch) new_data <- as_table_schema(new_data, publication_table_id) else return()
+      } else {
+        new_data <- as_table_schema(record, publication_table_id)
+      }
+      if(!dry_run) {
+        new_data <- .syn$store(new_data)
+        message(glue::glue('PMID:{new_data$pmid} added!'))
+      } else {
+        new_data
+      }
+    }
+  }
+}
+
 #' Add a publication to the publication table
 #' 
 #' Requires that the publication be in PubMed to auto-derive metadata such as authors, title, etc.
@@ -25,61 +73,10 @@
 #' @export
 add_publication_from_pubmed <- .add_publication_from_pubmed()
 
-#' Higher-level fun to generate `add_publication_from_pubmed` util for one-off usage (default) or optimized for batch processing.
-#' @param batch If a non-zero batch size, turns on batch mode; defaults to no-batch.
-#' @param cache Whether to cache some results, which is default if `batch`.
-#' @keywords internal
-.add_publication_from_pubmed <- function(batch = 0L, cache = batch) { # implement logging for batch?
-  pmids <- NULL
-  processed <- 0L
-  new_data <- NULL
-  function(pmid, study_id, disease_focus, manifestation, 
-           publication_table_id, study_table_id, dry_run = T) {
-    
-    .check_login()
-    
-    processed <<- processed + 1L
-    # cat("current record:", processed) # make verbose?
-    # Query only for data needed, i.e. PMID to check non-dup; result can be cached
-    if(is.null(pmids)) {
-      pmids <- table_query(publication_table_id, "pmid") %>% unlist(use.names = F)
-      if(cache) pmids <<- pmids
-    }
-    
-    if(pmid %in% pmids) {
-      message(glue::glue("PMID:{pmid} already exists in destination table!")) # Possible that PMID needs to link to other study IDs
-    } else {
-      record <- from_pubmed(pmid) 
-      if(!length(record)) return()
-      
-      study_id_set <- glue::glue_collapse(glue::single_quote(study_id), sep = ", ")
-      study <- .syn$tableQuery(glue::glue("SELECT studyId, studyName, fundingAgency FROM {study_table_id} WHERE studyId IN ({study_id_set})"))$asDataFrame()
-      record <- cbind(record, 
-                      diseaseFocus = I(list(disease_focus)), manifestation = I(list(manifestation)),
-                      studyId = I(list(study$studyId)), studyName = I(list(study$studyName)), fundingAgency = I(list(study$fundingAgency)))
-      
-      # If batch mode, rbind and defer table schemafication until all records processed
-      if(batch) {
-        new_data <<- rbind(new_data, record)
-        if(processed == batch) new_data <- as_table_schema(new_data, publication_table_id) else return()
-      } else {
-        new_data <- as_table_schema(record, publication_table_id)
-      }
-      if(!dry_run) {
-        new_data <- .syn$store(new_data)
-        message(glue::glue('PMID:{new_data$pmid} added!'))
-      } else {
-        new_data
-      }
-    }
-  }
-}
-
 #' Get publication metadata from PubMed
 #' 
-#' If PMID found, return meta as table w/ `title` `journal` `author` `year` `pmid` `doi`, else `NA`.
-#' 
 #' @param pmid PubMed id.
+#' @return If PMID found, return meta as table w/ `title` `journal` `author` `year` `pmid` `doi`.
 #' @export
 from_pubmed <- function(pmid) {
   
@@ -97,12 +94,10 @@ from_pubmed <- function(pmid) {
   title <- glue::glue_collapse(unlist(p$PubmedArticleSet$PubmedArticle$MedlineCitation$Article$ArticleTitle))
   doi <- paste0("https://www.doi.org/", p$PubmedArticleSet$PubmedArticle$MedlineCitation$Article$ELocationID[[1]])
   year <- p$PubmedArticleSet$PubmedArticle$MedlineCitation$Article$Journal$JournalIssue$PubDate$Year[[1]] 
-  if(is.null(year)) { # about 3% PubDate$Year not available so resort to ArticleDate with note (though often doesn't matter)
+  if(is.null(year)) { # when not available resort to ArticleDate with note (often doesn't matter)
    year <- p$PubmedArticleSet$PubmedArticle$MedlineCitation$Article$ArticleDate$Year[[1]]
    message(glue::glue("Note: Using article year for PMID:{pmid} because of missing journal meta. Review and modify if needed."))
   }
-  # keywords <- unique(unlist(p$PubmedArticleSet$PubmedArticle$MedlineCitation$MeshHeadingList, 
-  #                                p$PubmedArticleSet$PubmedArticle$MedlineCitation$KeywordList))
   
   record <- data.frame(title = title, journal = journal, author = I(list(authors)),
                        year = year, pmid = pmid, doi = doi)
@@ -112,10 +107,10 @@ from_pubmed <- function(pmid) {
 
 #' Add a batch of publications from spreadsheet
 #' 
-#' Wrapper to add publications from many records compiled in a spreadsheet (.csv/.tsv); need columns 
-#' `pmid`, `studyId`, `diseaseFocus` and `manifestation`. `pmid` is one per row and unique, rest can be `list_sep` vals.
-#' 
-#' @param file File containing entries in YAML format.
+#' @inheritParams add_publication_from_pubmed
+#' @param file Spreadsheet (.csv/.tsv) with pubs to add should have `pmid`, `studyId`, `diseaseFocus`, `manifestation`. 
+#' `pmid` is one per row and unique, rest can be `list_sep` vals.
+#' @param list_sep Delimiter character used to separate list columns.
 #' @import data.table
 #' @export
 add_publications_from_file <- function(file, 
