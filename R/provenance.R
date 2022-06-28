@@ -41,7 +41,7 @@ add_activity_batch <- function(entities,
   if(is.list(entities)) {
     if(length(used_inputs) > 1) used_inputs <- rep(used_inputs, lengths(entities))
     if(length(act_name) > 1) act_name <- rep(act_name, lengths(entities))
-    if(length(act_executed) > 1) act_exectuted <- rep(act_exectuted, lengths(entities))
+    if(length(act_executed) > 1) act_executed <- rep(act_executed, lengths(entities))
     entities <- unlist(entities)
   }
   Map(add_activity, entities, act_name, act_executed, used_inputs)
