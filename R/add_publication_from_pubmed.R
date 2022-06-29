@@ -37,8 +37,8 @@
         new_data <- as_table_schema(record, publication_table_id)
       }
       if(!dry_run) {
-        new_data_stored <- .syn$store(new_data)
-        message(glue::glue('PMID:{new_data$pmid} added!'))
+        new_data <- .syn$store(new_data)
+        message(glue::glue('PMID:{new_data$asDataFrame()$pmid} added!'))
       } else {
         new_data
       }
