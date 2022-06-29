@@ -31,7 +31,9 @@ Imports:
     lubridate,
     rlang,
     tidyr,
-    googlesheets4
+    googlesheets4,
+    data.table, 
+    xml2
 URL: https://github.com/nf-osi/nfportalutils
 BugReports: https://github.com/nf-osi/nfportalutils/issues
 Suggests: 

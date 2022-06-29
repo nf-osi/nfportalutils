@@ -2,33 +2,30 @@
 % Please edit documentation in R/add_publication_from_pubmed.R
 \name{add_publication_from_pubmed}
 \alias{add_publication_from_pubmed}
-\title{Add a publication to the publication table.}
+\title{Add a publication to the publication table}
 \usage{
 add_publication_from_pubmed(
-  publication_table_id,
   pmid,
-  study_name,
   study_id,
-  funding_agency,
   disease_focus,
   manifestation,
+  publication_table_id,
+  study_table_id,
   dry_run = T
 )
 }
 \arguments{
-\item{publication_table_id}{The synapse id of the portal publication table. Must have write access.}
+\item{pmid}{PubMed ID (\emph{not} PMCID) of the publication to be added.}
 
-\item{pmid}{The PubMed ID (\emph{not} PMCID) of the publication to be added.}
-
-\item{study_name}{The name(s) of the study that are associated with the publication.}
-
-\item{study_id}{The synapse id(s) of the study that are associated with the publication.}
-
-\item{funding_agency}{The funding agency(s) that are associated with the publication.}
+\item{study_id}{Synapse id(s) of the study that are associated with the publication.}
 
 \item{disease_focus}{The disease focus(s) that are associated with the publication.}
 
 \item{manifestation}{The manifestation(s) that are associated with the publication.}
+
+\item{publication_table_id}{Synapse id of the portal publication table. Must have write access.}
+
+\item{study_table_id}{Synapse id of the portal study table. Need read access.}
 
 \item{dry_run}{Default = TRUE. Skips upload to table and instead prints formatted publication metadata.}
 }
@@ -36,17 +33,18 @@ add_publication_from_pubmed(
 If dry_run == T, returns publication metadata to be added.
 }
 \description{
-Add a publication to the publication table. Requires that the publication be listed in PubMed. For parameter-provided metadata (e.g. "studyName"), function must a JSON-formatted character vector if the destination Synapse column is of "STRING_LIST" format. Currently, this function does not evaluate the schema, so this must be checked manually.
+Requires that the publication be in PubMed to auto-derive metadata such as authors, title, etc.
+In contrast, \code{disease_focus} and \code{manifestation} need to be supplemented by the curator.
+The \code{study_id} is used to get consistent \code{studyName} and \code{fundingAgency} from study table without manual input.
 }
 \examples{
 \dontrun{
-add_publication_from_pubmed(publication_table_id = 'syn16857542',
-               pmid = '33574490',
-               study_name = c(toJSON("Synodos NF2")),
-               study_id = c(toJSON("syn2343195")),
-               funding_agency = c(toJSON("CTF")),
-               disease_focus = "Neurofibromatosis 2",
-               manifestation = c(toJSON("Meningioma")),
-               dry_run = T)
+add_publication_from_pubmed(
+               pmid = "33574490",
+               study_id = "syn2343195",
+               disease_focus = c("Neurofibromatosis"),
+               manifestation = c("Meningioma"),
+               publication_table_id = "syn16857542",
+               study_table_id = "syn16787123")
 }
 }
