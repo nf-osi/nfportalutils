@@ -25,21 +25,6 @@ annotate_with_manifest <- function(manifest, ignore_na = TRUE, ignore_blank = TR
 }
 
 
-#' Determine inherited properties
-#' 
-#' Internal function needed until there is better handling of property inheritance.
-#' 
-#' @inheritParams get_by_prop_from_json_schema
-#' @param template URI of data template in model, prefixed if needed.
-#' @keywords internal
-inherit_props <- function(template, schema) {
-  props <- get_dependency_from_json_schema(id = template, schema = schema)
-  # Hard-coding props to NEVER inherit in the template
-  select <- props[!props %in% c("comments", "entityId", "fileFormat", "dataType", "dataSubtype")]
-  return(select)
-}
-
-
 #' Copy annotations
 #' 
 #' Copy annotations (all or selectively) from a source entity to one or more target entities.
