@@ -1,11 +1,8 @@
 #' Parse nextflow samplesheet for sample inputs
 #' 
-#' Samplesheets are used in rnaseq pipelines,
-#' and are defined here: https://nf-co.re/rnaseq/usage#full-samplesheet. 
+#' Samplesheets are used in rnaseq pipelines, defined here: https://nf-co.re/rnaseq/usage#full-samplesheet. 
 #' After the pipeline is run, it should be found in an output folder called `pipeline_info`.
-#' 
-#' This is a simple helper to get a mapping of sample names to input files 
-#' (usually one-to-many but can be one-to-one) to pass to downstream as a table.
+#' This is a simple helper to get a mapping of sample ids to input files (either one-to-many or one-to-one) as a table.
 #' 
 #' @param samplesheet A local file or syn id of samplesheet.
 #' @param parse_fun Function implementing how to parse samples in samplesheet.
@@ -27,20 +24,17 @@ map_sample_input_ss <- function(samplesheet,
   return(sample_inputs)
 }
 
+
 #' Map sample to output from nf-rnaseq
 #' 
-#' See https://nf-co.re/rnaseq. 
-#' In specified location where workflow has deposited the outputs (i.e. "result" directory),
-#' map out the relevant processed files based on file extensions and tie these files to source samples. 
-#' This relies on expected file locations and file naming convention of the specific workflow.
-#' WARNING: Be aware that this may not work using a different version of workflow 
-#' or if files are manually re-organized post-write to Synapse.   
-#' With the known Nextflow workflow, outputs are organized by sample-id folders,
-#' e.g. `results/salmon/<sample>/<file>`, so this looks for processed files within one level of nesting.
+#' See https://nf-co.re/rnaseq. Given location where workflow has deposited the outputs,
+#' map relevant processed files based on extensions and link these files to source samples. 
+#' So for `results/star_salmon/<sample>/<file>`, the URI to pass in is the `star_salmon` folder.
+#' Warning: Reliance on certain file structure and naming convention can make this somewhat brittle! 
 #' 
 #' See the related \code{\link{map_sample_input_ss}} for mapping sample to inputs instead of outputs.
 #' 
-#' @param syn_out Syn id of syn output destination (folder) with files of interest. 
+#' @param syn_out Syn id of syn output destination with files of interest. 
 #' @import data.table
 #' @export
 map_sample_output_rnaseq <- function(syn_out) {
@@ -62,25 +56,21 @@ map_sample_output_rnaseq <- function(syn_out) {
   return(sample_outputs)
 }
 
+
 #' Map sample to output from nf-sarek
 #' 
-#' See https://nf-co.re/sarek.
-#' Processed outputs are nested by sample and different variant callers 
-#' with structure `VariantCalling/[TUMOR_vs_NORMAL]/[CALLER]`.
-#' This looks through the `*VariantCalls` output directory and attempts to map 
-#' the relevant processed files based on file extensions and tie these files to source samples. 
-#' This relies on expected file locations and file naming convention of the specific workflow.
-#' WARNING: Be aware that this may not work using a different version of workflow 
-#' or if files are manually re-organized post-write to Synapse. 
+#' See https://nf-co.re/sarek. Processed outputs are nested by sample and variant callers, i.e. 
+#' `*VariantCalling/<TUMOR_vs_NORMAL>/<CALLER>`. This walks through the output destination (URI of `*VariantCalling`)
+#' with similar intention to \code{\link{map_sample_output_rnaseq}}, but for Sarek outputs.
 #' 
-#' @param syn_out Syn id of syn output destination (folder) with files of interest. 
+#' @param syn_out Syn id of syn output destination with files of interest. 
 #' @import data.table
 #' @return A `data.table` with cols `caller` `caller_path` `caller_syn` `output_name` 
 #' `output_name` `output_id` `sample`
 #' @export
 map_sample_output_sarek <- function(syn_out) {
   
-  # `walk` is slow, but bc of add'l nesting, ultimately more convenient than `local_view`
+  # `walk` can be very slow
   ls <- walk(syn_out)
   # parse relevant levels, which are 3rd element onwards
   outputs <- rbindlist(
@@ -99,7 +89,6 @@ map_sample_output_sarek <- function(syn_out) {
   outputs[, workflow := sapply(paths, `[[`, 3)]
   return(outputs)
 }
-
 
 
 #' Map sample input-output
@@ -128,7 +117,7 @@ map_sample_io <- function(workflow = c("nf-rnaseq", "nf-sarek"),
   
   # Check that sample ids in sample_outputs are in sample_inputs
   # Presumed OK for sample_inputs to contain samples *not* in outputs 
-  # (e.g. maybe no outputs if doesn't pass QC checks) but not OK for vice versa
+  # (maybe no outputs if doesn't pass QC checks) but not OK vice versa
   stopifnot(all(unique(sample_outputs$sample) %in% unique(sample_inputs$sample)))
   sample_io <- merge(sample_outputs, sample_inputs, by = "sample", all.x = TRUE, all.y = FALSE)
   return(sample_io)
@@ -140,8 +129,7 @@ map_sample_io <- function(workflow = c("nf-rnaseq", "nf-sarek"),
 #' Extracts a subset of [samtools stats](http://www.htslib.org/doc/samtools-stats.html),
 #' and [picard stats](https://broadinstitute.github.io/picard/picard-metric-definitions.html) 
 #' from workflow metafiles to surface as annotations. 
-#' Files are expected depending on sequencing type; 
-#' picard stats of interest are only for WGS/WES/targeted sequencing. 
+#' Note that picard stats of interest are only for WGS/WES/targeted sequencing. 
 #' Regarding the selection of stats, see the Genomic Data Commons (GDC) model for
 #' [Aligned Reads](https://docs.gdc.cancer.gov/Data_Dictionary/viewer/#?view=table-definition-view&id=aligned_reads)  
 #' 
@@ -184,12 +172,9 @@ tool_stats_to_annotations <- function(samtools_stats_file = NULL,
 
 #' Build annotations for derived data
 #' 
-#' Intended to be used in specific context by more specialized utils 
-#' to get annotations on derived (processed) data. 
-#' Can't update assets from this directly because result is considered insufficient. 
-#' 
-#' See \code{\link{inherit_input_annotations}} for 
-#' usage in less restrictive context.
+#' Functionally, it's just usage of  \code{\link{inherit_input_annotations}} with additional fuss and 
+#' the idea that anything that passes through this automatically has its `dataSubtype` set to "processed" and 
+#' `fileFormat` to the actual new file format.
 #' 
 #' @keywords internal
 build_annotation_derivatives <- function(sample_io,
@@ -218,25 +203,17 @@ build_annotation_derivatives <- function(sample_io,
 
 #' Annotate processed aligned reads
 #' 
-#' Help put together annotation components for nextflow star-salmon outputs. 
-#' Annotations come from several sources:
-#' 1. Inherit some annotations on the original input files.
-#' Requires a reference mapping of input files to use. 
-#' Most property vals can be inherited by the derived files, e.g. assay type and sample info, 
-#' but props like "comments" and "entityId" should NOT be inherited. 
-#' Ideally, the data model itself should include inheritance rules to apply;
-#' since that isn't possible currently, we hard-code exclusions. 
-#' Compatibility is problematic with other data models 
-#' (which, for example, may have something called "notes" instead of "comments"). 
+#' Put together annotation components for nextflow star-salmon outputs. Annotations come from several sources:
+#' 1. Inherit some annotations on the original input files. Requires a reference mapping of input files to use. 
+#' Most prop vals can be inherited by the derived files, e.g. assay type, but not for "comments" or "entityId". 
+#' Ideally, the data model itself should include inheritance rules; since that isn't possible currently, 
+#' we hard-code lots of stuff, so this is hard to generalize for other data models. 
 #' 
-#' 2. Extract metrics from workflow auxiliary files to surface as annotations. 
-#' See helper \code{\link{tool_stats_to_annotations}}.
+#' 2. Extract metrics from auxiliary files to surface as annotations. See  \code{\link{tool_stats_to_annotations}}.
 #' 
-#' 3. Manually add annotations that can't (yet?) be derived from #1 or #2.  
-#' Has to be done outside of this util.
+#' 3. Manually add annotations that can't (yet?) be derived from #1 or #2. Has to be done outside of this util.
 #' 
-#' A partial manifest will always be returned; the param `update` specifies
-#' whether annotations should be applied.
+#' Always returns a "partial" manifest; the param `update` specifies whether annotations should be applied.
 #' 
 #' @inheritParams get_by_prop_from_json_schema
 #' @inheritParams tool_stats_to_annotations
@@ -295,7 +272,6 @@ annotate_expression <- function(sample_io,
 }
 
 
-
 #' Annotate somatic or germline variants output
 #' 
 #' @inheritParams annotate_aligned_reads
@@ -323,9 +299,8 @@ annotate_called_variants <- function(sample_io,
 
 #' Inherit annotations
 #' 
-#' Have output/derived entities inherit annotations from input entities.
-#' If there are multiple inputs, inherit properties from the FIRST input.
-#' Other options may be implemented in the future.
+#' Have output/derived entities inherit annotations from input entities. 
+#' If multiple inputs, inherit properties from the FIRST input. Other options may be implemented later.
 #' 
 #' @inheritParams copy_annotations
 #' @param sample_io A `data.table` that minimally contains `input_id` and `output_id`.
