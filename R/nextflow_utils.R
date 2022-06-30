@@ -72,9 +72,9 @@ map_sample_output_sarek <- function(syn_out) {
   
   # `walk` can be very slow
   ls <- walk(syn_out)
-  # parse relevant levels, which are 3rd element onwards
+  
   outputs <- rbindlist(
-    lapply(ls[3:length(ls)], function(out) {
+    lapply(ls[3:length(ls)], function(out) { 
       as.data.table(
         c(setNames(lapply(out[[1]], function(x) rep(x, length(out[[3]]))), c("caller_path", "caller_syn")), 
           output_name = list(sapply(out[[3]], `[[`, 1)), 
@@ -85,7 +85,7 @@ map_sample_output_sarek <- function(syn_out) {
   )
   paths <- strsplit(outputs$caller_path, "/", fixed = TRUE)
   outputs[, sample := sapply(paths, `[[`, 2)]
-  outputs[, sample := strsplit(sample, "_vs_")] 
+  outputs[, sample := strsplit(sample, "_vs_")]
   outputs[, workflow := sapply(paths, `[[`, 3)]
   return(outputs)
 }
@@ -170,18 +170,19 @@ tool_stats_to_annotations <- function(samtools_stats_file = NULL,
 }
 
 
-#' Build annotations for derived data
+#' Derive annotations for processed output data
 #' 
-#' Functionally, it's just usage of  \code{\link{inherit_input_annotations}} with additional fuss and 
-#' the idea that anything that passes through this automatically has its `dataSubtype` set to "processed" and 
-#' `fileFormat` to the actual new file format.
+#' Build annotations through inheritance from inputs. If multiple inputs, inherit props from the FIRST input. 
+#' Files that pass through this naturally have `dataSubtype` set to "processed" and `fileFormat` set 
+#' to the actual new file format. In the future, `template` itself may define `format` so we don't need to specify explicitly.
 #' 
+#' @param format File format of the processed data.
 #' @keywords internal
-build_annotation_derivatives <- function(sample_io,
-                                         template,
-                                         schema,
-                                         format,
-                                         verbose = TRUE) {
+derive_annotations <- function(sample_io,
+                               template,
+                               schema,
+                               format,
+                               verbose = TRUE) {
   
   pattern <- paste0("[.]", format, "(.gz)?$")
   x <- sample_io[grep(pattern, output_name)] 
@@ -189,8 +190,13 @@ build_annotation_derivatives <- function(sample_io,
   if(!length(n)) stop(glue::glue("Expected {format} files not found. Are you annotating the right files?"))
   if(verbose) message("Creating annotations for ", n, " files")
   
-  props <- inherit_props(template, schema)
-  annotations <- inherit_input_annotations(x, select = props)
+  props <- get_dependency_from_json_schema(id = template, schema = schema)
+  props <- props[!props %in% c("comments", "entityId", "fileFormat", "dataType", "dataSubtype")]
+  
+  from <- sapply(sample_io$input_id, `[`, 1)
+  to <- sample_io$output_id
+  annotations <- Map(function(f, t) copy_annotations(f, t, select = props), from, to) %>%
+    reticulate::py_to_r() %>% rbindlist(fill = T, idcol = "sample")
   
   annotations <- merge(annotations, 
                        x[, .(sample, entityId = output_id, Filename = output_name, workflow)], 
@@ -231,7 +237,7 @@ annotate_aligned_reads <- function(sample_io,
                                    verbose = TRUE,
                                    update = FALSE) {
   
-  anno_base <- build_annotation_derivatives(sample_io, template, schema, format = "bam", verbose)
+  anno_base <- derive_annotations(sample_io, template, schema, format = "bam", verbose)
   anno_qc <- tool_stats_to_annotations(samtools_stats_file, picard_stats_file)
   if(verbose && length(anno_qc)) message("Created annotations from workflow metrics.")
   
@@ -259,7 +265,7 @@ annotate_expression <- function(sample_io,
                                 verbose = TRUE,
                                 update = FALSE) {
   
-  annotations <- build_annotation_derivatives(sample_io, template, schema, format = "sf", verbose)
+  annotations <- derive_annotations(sample_io, template, schema, format = "sf", verbose)
   annotations[, expressionUnit := "TPM"]
   annotations[, dataType := "geneExpression"]
   annotations[, sample := NULL]
@@ -285,7 +291,7 @@ annotate_called_variants <- function(sample_io,
                                      verbose = TRUE,
                                      update = FALSE) {
   
-  annotations <- build_annotation_derivatives(sample_io, template, schema, format = "vcf", verbose)
+  annotations <- derive_annotations(sample_io, template, schema, format = "vcf", verbose)
   data_type <- match.arg(data_type)
   annotations[, dataType := data_type]
   annotations[, sample := NULL]
@@ -296,28 +302,5 @@ annotate_called_variants <- function(sample_io,
   return(annotations)
 }
 
-
-#' Inherit annotations
-#' 
-#' Have output/derived entities inherit annotations from input entities. 
-#' If multiple inputs, inherit properties from the FIRST input. Other options may be implemented later.
-#' 
-#' @inheritParams copy_annotations
-#' @param sample_io A `data.table` that minimally contains `input_id` and `output_id`.
-#' @param update Whether to have annotations applied immediately or return manifest component only.
-#' @import data.table
-#' @export
-inherit_input_annotations <- function(sample_io, select = NULL, update = FALSE) {
-  from_to <- sample_io[, .(from = sapply(input_id, first), to = output_id)]
-  annotations <- list()
-  for(i in 1:nrow(from_to)) {
-    annotations[[i]] <- copy_annotations(from_to[i, from], from_to[i, to], select, update)
-  }
-  if(!update) {
-    names(annotations) <- sample_io$sample
-    annotations <- lapply(annotations, reticulate::py_to_r) %>% rbindlist(fill = T, idcol = "sample")
-  }
-  return(annotations)
-}
 
 
