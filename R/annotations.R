@@ -3,10 +3,8 @@
 #' The [Synapse docs](https://help.synapse.org/docs/Managing-Custom-Metadata-at-Scale.2004254976.html) 
 #' suggest doing batch annotations through a fileview. However, it is often simpler to 
 #' modify or set new annotations directly given a table of just the entities (rows) and props (cols) we want. 
-#' This is similar to how schematic works, except without any validation 
-#' (so it works best for power-users who know the data model very well).
-#' Some desired defaults are taken into account,
-#' such as not submitting key-values with `NA` and empty strings. 
+#' This is like how schematic works, except without any validation (so works best for power-users who know the data model well).
+#' Some desired defaults are taken into account, such as not submitting key-values with `NA` and empty strings. 
 #' 
 #' @param manifest A table manifest. Needs to contain `entityId`.
 #' @param ignore_na Whether to ignore annotations that are `NA`; default TRUE.
@@ -39,4 +37,42 @@ inherit_props <- function(template, schema) {
   # Hard-coding props to NEVER inherit in the template
   select <- props[!props %in% c("comments", "entityId", "fileFormat", "dataType", "dataSubtype")]
   return(select)
+}
+
+
+#' Copy annotations
+#' 
+#' Copy annotations (all or selectively) from a source entity to one or more target entities.
+#' If annotations already exist on target entities, the copy will replace the current values. 
+#' 
+#' @param entity_from Syn id from which to copy. 
+#' @param entity_to One or more syn ids to copy annotations to. 
+#' @param select Vector of properties to selectively copy if present on the entity. 
+#' If not specified, will copy over everything, which may not be desirable.
+#' @param update Whether to immediately update or return annotation objects only. 
+#' @export
+copy_annotations <- function(entity_from,
+                             entity_to,
+                             select = NULL,
+                             update = FALSE) {
+  
+  .check_login()
+  
+  annotations <- .syn$get_annotations(entity_from)
+  if(is.null(select)) {
+    cp <- annotations
+  } else {
+    cp <- reticulate::dict()
+    for(k in names(annotations)) {
+      if(k %in% select) cp[k] <- annotations[k]
+    }
+  }
+  
+  if(update) {
+    for(e in entity_to) {
+      .syn$setAnnotations(e, annotations = cp)
+    }
+  } else {
+    return(cp)
+  }
 }

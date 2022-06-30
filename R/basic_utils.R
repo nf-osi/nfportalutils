@@ -25,44 +25,6 @@ copy <- function(entity,
 }
 
 
-#' Copy annotations
-#' 
-#' Copy annotations (all or selectively) from a source entity to one or more target entities.
-#' If annotations already exist on target entities, the copy will replace the current values. 
-#' 
-#' @param entity_from Syn id from which to copy. 
-#' @param entity_to One or more syn ids to copy annotations to. 
-#' @param select Vector of properties to selectively copy if present on the entity. 
-#' If not specified, will copy over everything, which may not be desirable.
-#' @param update Whether to immediately update or return annotation objects only. 
-#' @export
-copy_annotations <- function(entity_from,
-                            entity_to,
-                            select = NULL,
-                            update = FALSE) {
-  
-  .check_login()
-  
-  annotations <- .syn$get_annotations(entity_from)
-  if(is.null(select)) {
-    cp <- annotations
-  } else {
-    cp <- reticulate::dict()
-    for(k in names(annotations)) {
-      if(k %in% select) cp[k] <- annotations[k]
-    }
-  }
-  
-  if(update) {
-    for(e in entity_to) {
-      .syn$setAnnotations(e, annotations = cp)
-    }
-  } else {
-    return(cp)
-  }
-}
-
-
 #' Download and read file to `data.table`
 #'
 #' Convenience function for reading a delimited local file or one on Synapse.
