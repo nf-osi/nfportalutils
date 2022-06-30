@@ -75,6 +75,7 @@ map_sample_output_sarek <- function(syn_out) {
   
   outputs <- rbindlist(
     lapply(ls[3:length(ls)], function(out) { 
+      if(!length(out[[3]])) return()
       as.data.table(
         c(setNames(lapply(out[[1]], function(x) rep(x, length(out[[3]]))), c("caller_path", "caller_syn")), 
           output_name = list(sapply(out[[3]], `[[`, 1)), 
