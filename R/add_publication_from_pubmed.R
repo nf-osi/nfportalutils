@@ -1,100 +1,137 @@
-#' Add a publication to the publication table.
-#' @description Add a publication to the publication table. Requires that the publication be listed in PubMed. For parameter-provided metadata (e.g. "studyName"), function must a JSON-formatted character vector if the destination Synapse column is of "STRING_LIST" format. Currently, this function does not evaluate the schema, so this must be checked manually.
-#' @param publication_table_id The synapse id of the portal publication table. Must have write access.
-#' @param pmid The PubMed ID (*not* PMCID) of the publication to be added.
-#' @param study_name The name(s) of the study that are associated with the publication.
-#' @param study_id The synapse id(s) of the study that are associated with the publication.
-#' @param funding_agency The funding agency(s) that are associated with the publication.
+#' Higher-level fun to generate `add_publication_from_pubmed` util for one-off usage (default) or optimized for batch processing.
+#' @param batch If a non-zero batch size, turns on batch mode; defaults to no-batch.
+#' @param cache Whether to cache some results, which is default if `batch`.
+#' @keywords internal
+.add_publication_from_pubmed <- function(batch = 0L, cache = batch) { # implement logging for batch?
+  pmids <- new_data <- NULL
+  counter <- 0L
+  function(pmid, study_id, disease_focus, manifestation, 
+           publication_table_id, study_table_id, dry_run = T) {
+    
+    .check_login()
+    
+    counter <<- counter + 1L
+    # cat("current record:", counter) # make verbose?
+    # Query only for data needed, i.e. PMID to check non-dup; result can be cached
+    if(is.null(pmids)) {
+      pmids <- table_query(publication_table_id, "pmid") %>% unlist(use.names = F)
+      if(cache) pmids <<- pmids
+    }
+    
+    if(pmid %in% pmids) {
+      message(glue::glue("PMID:{pmid} already exists in destination table!")) # Possible that PMID needs to link to other study IDs
+    } else {
+      record <- from_pubmed(pmid) 
+      if(!length(record)) return()
+      
+      study_id_set <- glue::glue_collapse(glue::single_quote(study_id), sep = ", ")
+      study <- .syn$tableQuery(glue::glue("SELECT studyId, studyName, fundingAgency FROM {study_table_id} WHERE studyId IN ({study_id_set})"))$asDataFrame()
+      record <- cbind(record, diseaseFocus = I(list(disease_focus)), manifestation = I(list(manifestation)),
+                      studyId = I(list(study$studyId)), studyName = I(list(study$studyName)), fundingAgency = I(list(study$fundingAgency)))
+      
+      # If batch mode, rbind and defer table schemafication until all records processed
+      if(batch) {
+        new_data <<- rbind(new_data, record)
+        if(counter == batch) new_data <- as_table_schema(new_data, publication_table_id) else return()
+      } else {
+        new_data <- as_table_schema(record, publication_table_id)
+      }
+      if(!dry_run) {
+        new_data <- .syn$store(new_data)
+        message(glue::glue('PMID:{new_data$asDataFrame()$pmid} added!'))
+      } else {
+        new_data
+      }
+    }
+  }
+}
+
+#' Add a publication to the publication table
+#' 
+#' Requires that the publication be in PubMed to auto-derive metadata such as authors, title, etc.
+#' In contrast, `disease_focus` and `manifestation` need to be supplemented by the curator. 
+#' The `study_id` is used to get consistent `studyName` and `fundingAgency` from study table without manual input. 
+#' 
+#' @param pmid PubMed ID (*not* PMCID) of the publication to be added.
+#' @param study_id Synapse id(s) of the study that are associated with the publication. 
 #' @param disease_focus The disease focus(s) that are associated with the publication.
 #' @param manifestation The manifestation(s) that are associated with the publication.
+#' @param publication_table_id Synapse id of the portal publication table. Must have write access.
+#' @param study_table_id Synapse id of the portal study table. Need read access.
 #' @param dry_run Default = TRUE. Skips upload to table and instead prints formatted publication metadata.
 #' @return If dry_run == T, returns publication metadata to be added.
 #' @examples 
 #' \dontrun{
-#' add_publication_from_pubmed(publication_table_id = 'syn16857542',
-#'                pmid = '33574490',
-#'                study_name = c(toJSON("Synodos NF2")),
-#'                study_id = c(toJSON("syn2343195")),
-#'                funding_agency = c(toJSON("CTF")),
-#'                disease_focus = "Neurofibromatosis 2",
-#'                manifestation = c(toJSON("Meningioma")),
-#'                dry_run = T)
+#' add_publication_from_pubmed(
+#'                pmid = "33574490",
+#'                study_id = "syn2343195",
+#'                disease_focus = c("Neurofibromatosis"),
+#'                manifestation = c("Meningioma"),
+#'                publication_table_id = "syn16857542",
+#'                study_table_id = "syn16787123")
 #'}
 #' @export
-#'
-add_publication_from_pubmed <- function(publication_table_id, pmid, study_name, study_id, funding_agency, disease_focus, manifestation, dry_run = T){
-   .check_login()
-  #TODO: Check schema up-front and convert metadata to json in correct format
+add_publication_from_pubmed <- .add_publication_from_pubmed()
 
-  pub_table <- .syn$tableQuery(glue::glue('select * from {publication_table_id}'))$filepath %>%
-    readr::read_csv(na=character()) ##asDataFrame() & reticulate return rowIdAndRowVersion as concatenated rownames, read_csv reads them in as columns
+#' Get publication metadata from PubMed
+#' 
+#' @param pmid PubMed id.
+#' @return If PMID found, return meta as table w/ `title` `journal` `author` `year` `pmid` `doi`.
+#' @export
+from_pubmed <- function(pmid) {
+  
+  res <- easyPubMed::get_pubmed_ids(pmid) 
+  if(res$Count == 0) { 
+    message(glue::glue("Nothing found for PMID:{pmid}"))
+    return() # Return NULL early if no records found 
+  }
+  p <- easyPubMed::fetch_pubmed_data(res, format = "xml", retmax = 1) %>% 
+    `[[`(1) %>% xml2::read_xml() %>% xml2::as_list()
+  
+  authors <- mapply(function(author) paste(author$ForeName, author$LastName), 
+                    p$PubmedArticleSet$PubmedArticle$MedlineCitation$Article$AuthorList) 
+  journal <- tools::toTitleCase(p$PubmedArticleSet$PubmedArticle$MedlineCitation$Article$Journal$Title[[1]])
+  title <- glue::glue_collapse(unlist(p$PubmedArticleSet$PubmedArticle$MedlineCitation$Article$ArticleTitle))
+  doi <- paste0("https://www.doi.org/", p$PubmedArticleSet$PubmedArticle$MedlineCitation$Article$ELocationID[[1]])
+  year <- p$PubmedArticleSet$PubmedArticle$MedlineCitation$Article$Journal$JournalIssue$PubDate$Year[[1]] 
+  if(is.null(year)) { # when not available resort to ArticleDate with note (often doesn't matter)
+   year <- p$PubmedArticleSet$PubmedArticle$MedlineCitation$Article$ArticleDate$Year[[1]]
+   message(glue::glue("Note: Using article year for PMID:{pmid} because of missing journal meta. Review and modify if needed."))
+  }
+  
+  record <- data.frame(title = title, journal = journal, author = I(list(authors)),
+                       year = year, pmid = pmid, doi = doi)
+  return(record)
+}
 
-    if(pmid %in% pub_table$pmid){
-      print("publication already exists in destination table!")
-    }else{
 
-      pmids <- easyPubMed::get_pubmed_ids(pmid) ##query pubmid for pmid
-      if(pmids$Count == 0){ ##if no records found, return vector of NAs
-        print('nothing found for doi')
-      }else{ ##otherwise look for all data
-        pmids <- easyPubMed::fetch_pubmed_data(pmids, format = "xml", retmax = 1)
-
-        pmids_df <- pmids %>%
-          easyPubMed::article_to_df()
-
-        author_list <- pmids_df %>% tidyr::unite(name, firstname, lastname, sep = " ") %>%
-          purrr::pluck('name') %>% jsonlite::toJSON() %>% c()
-        #wrapping json in c() is necessary to coerce to data frame near end of function
-
-        ##extract other metadata
-        ##journal names are not stored on pubmed in title case, so let's do that
-        journal <- pmids_df$journal %>% unique %>% tools::toTitleCase(.)
-
-        ##title case not typically used for scientific publications
-        title <- pmids_df$title %>% unique
-
-        ##doi
-        doi <- pmids_df$doi %>% unique
-        
-        doi_url <- glue::glue("www.doi.org/{doi}")
-
-        if(doi %in% pub_table$doi){
-          print("publication already exists in destination table!")
-        }else{
-
-        ## default function doesn't get accurate publication date, but rather the listing date. use different function to get publication year:
-        year <- easyPubMed::custom_grep(pmids, tag = "PubDate")[1] %>%
-          stringr::str_extract(., "<Year>\\d+") %>%
-          stringr::str_extract('\\d+') %>%
-          as.double()
-
-        pmid <- pmids_df$pmid %>% unique %>% as.double()
-
-        if(length(journal)>1 | length(title)>1 | length(year)>1 | length(author_list)>1 | length(pmid)>1){
-          print("one to many mappings detected - manually curate")
-        }else{
-          #return metadata
-
-          schema <- .syn$get(entity = publication_table_id)
-
-          new_data <- tibble::tibble("title"=title, "journal"=journal, "author" = author_list, "year"=year, "pmid" = pmid, "doi"=doi_url,
-                                 "studyName"= study_name, "studyId"=study_id,"fundingAgency"= funding_agency,"diseaseFocus"= disease_focus,
-                                 "manifestation"=manifestation)
-
-          schema <- .syn$get(entity = publication_table_id)
-
-          colnames <- pub_table[0,]
-
-          new_row <- dplyr::bind_rows(colnames, new_data)
-
-          if(dry_run == F){
-            .store_rows(schema, new_row)
-            glue::glue('{pmid} added!')
-          }else{
-            print(new_row)
-          }
-
-        }
-        }
-      }
-  }}
+#' Add a batch of publications from spreadsheet
+#' 
+#' @inheritParams add_publication_from_pubmed
+#' @param file Spreadsheet (.csv/.tsv) with pubs to add should have `pmid`, `studyId`, `diseaseFocus`, `manifestation`. 
+#' `pmid` is one per row and unique, rest can be `list_sep` vals.
+#' @param list_sep Delimiter character used to separate list columns.
+#' @import data.table
+#' @export
+add_publications_from_file <- function(file, 
+                                       publication_table_id, study_table_id, 
+                                       list_sep = "|", dry_run = TRUE) {
+  
+  pubs <- fread(file, colClasses = "character")
+  n <- nrow(pubs)
+  for(col in c("studyId", "diseaseFocus", "manifestation")) {
+    pubs[[col]] <- strsplit(pubs[[col]], split = list_sep, fixed = TRUE) 
+  }
+  
+  add_pub <- .add_publication_from_pubmed(batch = n)
+  for(i in 1:n) {
+    new_pubs <- add_pub(pmid = pubs$pmid[i], 
+                        study_id = pubs$studyId[[i]], 
+                        disease_focus = pubs$diseaseFocus[[i]], 
+                        manifestation = pubs$manifestation[[i]], 
+                        publication_table_id = publication_table_id,
+                        study_table_id = study_table_id, 
+                        dry_run = dry_run)
+  }
+  new_pubs
+}
