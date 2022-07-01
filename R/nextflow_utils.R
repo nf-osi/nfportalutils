@@ -191,14 +191,14 @@ derive_annotations <- function(sample_io,
   props <- get_dependency_from_json_schema(id = template, schema = schema)
   props <- props[!props %in% c("comments", "entityId", "fileFormat", "dataType", "dataSubtype")]
   
-  from <- sapply(sample_io$input_id, `[`, 1)
-  to <- sample_io$output_id
-  annotations <- Map(function(f, t) copy_annotations(f, t, select = props), from, to) %>%
-    reticulate::py_to_r() %>% rbindlist(fill = T, idcol = "sample")
+  from <- sapply(x$input_id, `[`, 1)
+  to <- x$output_id
+  annotations <- Map(function(f, t) copy_annotations(f, t, select = props), from, to) %>% setNames(to) %>% 
+   lapply(., reticulate::py_to_r) %>% rbindlist(fill = T, idcol = "entityId")
   
   annotations <- merge(annotations, 
-                       x[, .(sample, entityId = output_id, Filename = output_name, workflow)], 
-                       by = "sample", allow.cartesian = TRUE)
+                       x[, .(entityId = output_id, Filename = output_name, workflow)], 
+                       by = "entityId")
   annotations[, dataSubtype := "processed"]
   annotations[, fileFormat := format]
   return(annotations)
@@ -243,7 +243,6 @@ annotate_aligned_reads <- function(sample_io,
                         Filter(is.data.table, list(anno_base, 
                                                    anno_qc)))
   annotations[, dataType := "AlignedReads"]
-  annotations[, sample := NULL] # bc internal usage, not for actual annotation
   if(update) {
     annotate_with_manifest(annotations)
     if(verbose) message("Applied annotations.")
@@ -266,7 +265,6 @@ annotate_expression <- function(sample_io,
   annotations <- derive_annotations(sample_io, template, schema, format = "sf", verbose)
   annotations[, expressionUnit := "TPM"]
   annotations[, dataType := "geneExpression"]
-  annotations[, sample := NULL]
   if(update) {
     annotate_with_manifest(annotations)
     if(verbose) message("Applied annotations.")
@@ -283,7 +281,7 @@ annotate_expression <- function(sample_io,
 #' @param data_type Variant type, given that this can be used with either somatic or germline.
 #' @export
 annotate_called_variants <- function(sample_io,
-                                     template = "bts:ProcessedVariantCallsTemplate", 
+                                     template = "bts:ProcessedVariantCallsTemplate",
                                      schema = "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld",
                                      data_type = c("SomaticVariants", "GermlineVariants"),
                                      verbose = TRUE,
@@ -292,7 +290,6 @@ annotate_called_variants <- function(sample_io,
   annotations <- derive_annotations(sample_io, template, schema, format = "vcf", verbose)
   data_type <- match.arg(data_type)
   annotations[, dataType := data_type]
-  annotations[, sample := NULL]
   if(update) {
     annotate_with_manifest(annotations)
     if(verbose) message("Applied annotations.")
