@@ -8,3 +8,5 @@ example_script
 ^_pkgdown\.yml$
 ^docs$
 ^pkgdown$
+^doc$
+^Meta$

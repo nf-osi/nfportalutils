@@ -31,6 +31,5 @@ get_dependency_from_json_schema(
 \item{rest}{Vector of remaining ids; used for recursive lookup.}
 }
 \description{
-Shorthand that uses \code{get_by_prop_from_json_schema} under the hood;
-intended usage includes checking properties defined by an annotation template.
+Shorthand for getting props defined in annotation template using \code{get_by_prop_from_json_schema} under the hood.
 }

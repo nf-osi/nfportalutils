@@ -7,19 +7,13 @@
 map_sample_output_sarek(syn_out)
 }
 \arguments{
-\item{syn_out}{Syn id of syn output destination (folder) with files of interest.}
+\item{syn_out}{Syn id of syn output destination with files of interest.}
 }
 \value{
-A \code{data.table} with cols \code{caller} \code{caller_path} \code{caller_syn} \code{output_name}
-\code{output_name} \code{output_id} \code{sample}
+A \code{data.table} with cols \code{caller} \code{caller_path} \code{caller_syn} \code{output_name} \code{output_id} \code{sample} \code{workflow}
 }
 \description{
-See https://nf-co.re/sarek.
-Processed outputs are nested by sample and different variant callers
-with structure \verb{VariantCalling/[TUMOR_vs_NORMAL]/[CALLER]}.
-This looks through the \verb{*VariantCalls} output directory and attempts to map
-the relevant processed files based on file extensions and tie these files to source samples.
-This relies on expected file locations and file naming convention of the specific workflow.
-WARNING: Be aware that this may not work using a different version of workflow
-or if files are manually re-organized post-write to Synapse.
+See https://nf-co.re/sarek. Processed outputs are nested by sample and variant callers, i.e.
+\verb{*VariantCalling/<TUMOR_vs_NORMAL>/<CALLER>}. This walks through the output destination (URI of \verb{*VariantCalling})
+with similar intention to \code{\link{map_sample_output_rnaseq}}, but for Sarek outputs.
 }

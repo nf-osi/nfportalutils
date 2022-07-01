@@ -17,8 +17,6 @@ annotate_with_manifest(manifest, ignore_na = TRUE, ignore_blank = TRUE)
 The \href{https://help.synapse.org/docs/Managing-Custom-Metadata-at-Scale.2004254976.html}{Synapse docs}
 suggest doing batch annotations through a fileview. However, it is often simpler to
 modify or set new annotations directly given a table of just the entities (rows) and props (cols) we want.
-This is similar to how schematic works, except without any validation
-(so it works best for power-users who know the data model very well).
-Some desired defaults are taken into account,
-such as not submitting key-values with \code{NA} and empty strings.
+This is like how schematic works, except without any validation (so works best for power-users who know the data model well).
+Some desired defaults are taken into account, such as not submitting key-values with \code{NA} and empty strings.
 }

@@ -7,17 +7,16 @@
 map_sample_output_rnaseq(syn_out)
 }
 \arguments{
-\item{syn_out}{Syn id of syn output destination (folder) with files of interest.}
+\item{syn_out}{Syn id of syn output destination with files of interest.}
+}
+\value{
+A \code{data.table} with cols \code{output_name} \code{output_id} \code{sample} \code{workflow}
 }
 \description{
-See https://nf-co.re/rnaseq.
-In specified location where workflow has deposited the outputs (i.e. "result" directory),
-map out the relevant processed files based on file extensions and tie these files to source samples.
-This relies on expected file locations and file naming convention of the specific workflow.
-WARNING: Be aware that this may not work using a different version of workflow
-or if files are manually re-organized post-write to Synapse.
-With the known Nextflow workflow, outputs are organized by sample-id folders,
-e.g. \verb{results/salmon/<sample>/<file>}, so this looks for processed files within one level of nesting.
+See https://nf-co.re/rnaseq. Given location where workflow has deposited the outputs,
+map relevant processed files based on extensions and link these files to source samples.
+So for \verb{results/star_salmon/<sample>/<file>}, the URI to pass in is the \code{star_salmon} folder.
+Warning: Reliance on certain file structure and naming convention can make this somewhat brittle!
 }
 \details{
 See the related \code{\link{map_sample_input_ss}} for mapping sample to inputs instead of outputs.

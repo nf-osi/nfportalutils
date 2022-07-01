@@ -11,7 +11,7 @@ map_sample_io(workflow = c("nf-rnaseq", "nf-sarek"), samplesheet, syn_out)
 
 \item{samplesheet}{A local file or syn id of samplesheet.}
 
-\item{syn_out}{Syn id of syn output destination (folder) with files of interest.}
+\item{syn_out}{Syn id of syn output destination with files of interest.}
 }
 \value{
 A table with \code{sample} \code{level} \code{output_id} \code{output_name} \code{input_id}.

@@ -15,11 +15,7 @@ map_sample_input_ss(
 \item{parse_fun}{Function implementing how to parse samples in samplesheet.}
 }
 \description{
-Samplesheets are used in rnaseq pipelines,
-and are defined here: https://nf-co.re/rnaseq/usage#full-samplesheet.
+Samplesheets are used in rnaseq pipelines, defined here: https://nf-co.re/rnaseq/usage#full-samplesheet.
 After the pipeline is run, it should be found in an output folder called \code{pipeline_info}.
-}
-\details{
-This is a simple helper to get a mapping of sample names to input files
-(usually one-to-many but can be one-to-one) to pass to downstream as a table.
+This is a simple helper to get a mapping of sample ids to input files (either one-to-many or one-to-one) as a table.
 }

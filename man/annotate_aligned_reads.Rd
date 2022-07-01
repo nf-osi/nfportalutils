@@ -16,7 +16,7 @@ annotate_aligned_reads(
 )
 }
 \arguments{
-\item{sample_io}{Table mapping input to outputs, where outputs are expected to be .bam files only!}
+\item{sample_io}{Table mapping input to outputs.}
 
 \item{samtools_stats_file}{Path to file/syn id of file with samtools stats produced by the workflow.}
 
@@ -32,27 +32,19 @@ Can specify different model/version, but in some cases may not work well.}
 \item{update}{Whether to apply annotations.}
 }
 \description{
-Help put together annotation components for nextflow star-salmon outputs.
-Annotations come from several sources:
+Put together annotation components for nextflow star-salmon outputs. Annotations come from several sources:
 \enumerate{
-\item Inherit some annotations on the original input files.
-Requires a reference mapping of input files to use.
-Most property vals can be inherited by the derived files, e.g. assay type and sample info,
-but props like "comments" and "entityId" should NOT be inherited.
-Ideally, the data model itself should include inheritance rules to apply;
-since that isn't possible currently, we hard-code exclusions.
-Compatibility is problematic with other data models
-(which, for example, may have something called "notes" instead of "comments").
+\item Inherit some annotations on the original input files. Requires a reference mapping of input files to use.
+Most prop vals can be inherited by the derived files, e.g. assay type, but not for "comments" or "entityId".
+Ideally, the data model itself should include inheritance rules; since that isn't possible currently,
+we hard-code lots of stuff, so this is hard to generalize for other data models.
 }
 }
 \details{
 \enumerate{
-\item Extract metrics from workflow auxiliary files to surface as annotations.
-See helper \code{\link{tool_stats_to_annotations}}.
-\item Manually add annotations that can't (yet?) be derived from #1 or #2.
-Has to be done outside of this util.
+\item Extract metrics from auxiliary files to surface as annotations. See  \code{\link{annotate_with_tool_stats}}.
+\item Manually add annotations that can't (yet?) be derived from #1 or #2. Has to be done outside of this util.
 }
 
-A partial manifest will always be returned; the param \code{update} specifies
-whether annotations should be applied.
+Always returns a "partial" manifest; the param \code{update} specifies whether annotations should be applied.
 }

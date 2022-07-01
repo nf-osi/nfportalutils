@@ -31,12 +31,8 @@ get_by_prop_from_json_schema(
 \item{rest}{Vector of remaining ids; used for recursive lookup.}
 }
 \description{
-Given \verb{@id}, looks up connected nodes by specified property (e.g. 'sms:something').
-Intended to be a generic used to define more specific lookup conveniences.
-Can do recursive lookup (which makes sense for certain properties such as "dependsOn"
-but doesn't make sense for properties such as "rdfs:label");
-this assumes that the graph is actually a tree (acyclic).
-Also the JSON-LD schema is assumed to be schematic-generated,
-and this might not work with JSON-LD generated from other tools such as LinkML
-due to small differences and hard-coded stuff.
+Use with schematic-generated JSON-LD schema: given \verb{@id}, get connected nodes by specified prop (e.g. \code{sms:something}).
+Intended to be a generic used to define more specific lookup utils.
+Can do recursive lookup, though graph should actually a tree/acyclic (!).
+(Useful for props such as \code{dependsOn}, doesn't make sense for props such as \code{rdfs:label}.)
 }
