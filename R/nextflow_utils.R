@@ -124,18 +124,19 @@ map_sample_io <- function(workflow = c("nf-rnaseq", "nf-sarek"),
 
 #' Make annotations from workflow tool stats
 #' 
-#' Extracts a subset of [samtools stats](http://www.htslib.org/doc/samtools-stats.html),
+#' Extracts a subset of [samtools stats](http://www.htslib.org/doc/samtools-stats.html)
 #' and [picard stats](https://broadinstitute.github.io/picard/picard-metric-definitions.html) 
-#' from workflow metafiles to surface as annotations. 
-#' Note that picard stats of interest are only for WGS/WES/targeted sequencing. 
+#' from workflow metafiles to surface as annotations. Note: picard stats only for WGS/WES/targeted sequencing. 
 #' Regarding the selection of stats, see the Genomic Data Commons (GDC) model for
 #' [Aligned Reads](https://docs.gdc.cancer.gov/Data_Dictionary/viewer/#?view=table-definition-view&id=aligned_reads)  
 #' 
 #' @param samtools_stats_file Path to file/syn id of file with samtools stats produced by the workflow. 
 #' @param picard_stats_file Path to file/syn id of file with picard stats produced by the workflow.
+#' @param sample_io Sample input and output mapping, used to assign stats to appropriate outputs (bam)
 #' @export
 annotate_with_tool_stats <- function(samtools_stats_file = NULL, 
-                                      picard_stats_file = NULL) {
+                                     picard_stats_file = NULL,
+                                     sample_io = NULL) {
   if(is.null(samtools_stats_file)) {
     message("Samtools stats not available, skipping these annotations...")
     sam_stats <- NULL
@@ -154,16 +155,19 @@ annotate_with_tool_stats <- function(samtools_stats_file = NULL,
   if(is.null(picard_stats_file)) {
     message("Picard stats not available, skipping these annotations...")
     picard_stats <- NULL
-  } else {
-    # TO DO
-    pic_stats <- dt_read(picard_stats_file)
-    pic_stats <- pic_stats[, .(sample = Sample,
+  } else { # TO DO
+    picard_stats <- dt_read(picard_stats_file)
+    picard_stats <- picard_stats[, .(sample = Sample,
                                meanCoverage = MEAN_COVERAGE,
                                proportionCoverage10x = PCT_10X,
                                proportionCoverage30x = PCT_30X)]
   }
   result <- Reduce(function(x, y) merge(x, y, by = "sample"), 
                    Filter(is.data.table, list(sam_stats, picard_stats)))
+  if(!is.null(result) && !is.null(sample_io)) {
+    result <- merge(result, sample_io[, .(sample, entityId = output_id, output_name)], by = "sample")[grepl(".bam$", output_name)]
+    for(col in c("sample", "output_name")) result[[col]] <- NULL
+  }
   return(result)
 }
 
@@ -223,7 +227,7 @@ derive_annotations <- function(sample_io,
 #' @inheritParams annotate_with_tool_stats
 #' @param template (Optional) URI of template in data model to use, prefixed if needed. 
 #' Can specify different model/version, but in some cases may not work well.
-#' @param sample_io Table mapping input to outputs, where outputs are expected to be .bam files only!
+#' @param sample_io Table mapping input to outputs.
 #' @param update Whether to apply annotations.
 #' @param verbose Give verbose reports for what's happening.
 #' @export
@@ -235,13 +239,14 @@ annotate_aligned_reads <- function(sample_io,
                                    verbose = TRUE,
                                    update = FALSE) {
   
-  anno_base <- derive_annotations(sample_io, template, schema, format = "bam", verbose)
-  anno_qc <- annotate_with_tool_stats(samtools_stats_file, picard_stats_file)
-  if(verbose && length(anno_qc)) message("Created annotations from workflow metrics.")
-  
-  annotations <- Reduce(function(x, y) merge(x, y, by = "sample"), 
-                        Filter(is.data.table, list(anno_base, 
-                                                   anno_qc)))
+  annotations <- derive_annotations(sample_io, template, schema, format = "bam", verbose)
+  qc <- annotate_with_tool_stats(samtools_stats_file, picard_stats_file, sample_io)
+  if(!is.null(qc)) {
+    annotations <- Reduce(function(x, y) merge(x, y, by = "entityId"), 
+                          Filter(is.data.table, list(annotations, qc)))
+    if(verbose) message("Included some annotations from available workflow metrics.")
+  }
+
   annotations[, dataType := "AlignedReads"]
   if(update) {
     annotate_with_manifest(annotations)
