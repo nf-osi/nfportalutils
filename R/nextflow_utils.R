@@ -189,7 +189,7 @@ derive_annotations <- function(sample_io,
   if(verbose) message("Creating annotations for ", n, " files")
   
   props <- get_dependency_from_json_schema(id = template, schema = schema)
-  props <- props[!props %in% c("comments", "entityId", "fileFormat", "dataType", "dataSubtype")]
+  props <- props[!props %in% c("comments", "entityId", "fileFormat", "dataType", "dataSubtype", "progressReportNumber")]
   
   from <- sapply(x$input_id, `[`, 1)
   to <- x$output_id
