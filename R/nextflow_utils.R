@@ -36,23 +36,21 @@ map_sample_input_ss <- function(samplesheet,
 #' 
 #' @param syn_out Syn id of syn output destination with files of interest. 
 #' @import data.table
+#' @return A `data.table` with cols `output_name` `output_id` `sample` `workflow`
 #' @export
 map_sample_output_rnaseq <- function(syn_out) {
   
-  outputs <- local_view(syn_out)
-  
-  # maps intermediate level of processed (.bam/.bai files)
-  processed <- outputs[grepl("*.bam$|*.bai$", name), .(name, id)]
-  processed[, sample :=  gsub("[.].*", "", name)]
-  
-  # maps next level of processed (.sf files), which are nested
-  folders <- outputs[type == "org.sagebionetworks.repo.model.Folder", .(name, id)]
-  nested_outputs <- local_view(folders$id, idcol = "sample", idmap = setNames(folders$name, folders$id))
-  nested_processed <- nested_outputs[grepl("*.sf$", name), .(name, id, sample)]
-  
-  sample_outputs <- rbind(processed, nested_processed)
+  .o <- walk(syn_out)
+  l2 <- setnames(rbindlist(.o[[1]][[3]]), c("output_name", "output_id"))[grepl(".bam|.bai", output_name)]
+  l2[, sample := gsub("[.].*", "", output_name)]
+  l3 <- lapply(.o[2:length(.o)], function(x) {
+    if("quant.sf" %in% unlist(x)) list(sample = x[[1]][[1]],
+                                       output_name = c(x[[3]][[2]][[1]], x[[3]][[3]][[1]]),
+                                       output_id = c(x[[3]][[2]][[2]], x[[3]][[3]][[2]]))
+  }) %>% rbindlist()
+  l3[, sample := gsub("^.*/", "", sample)]
+  sample_outputs <- rbind(l2, l3)
   sample_outputs[, workflow := "STAR and Salmon"]
-  data.table::setnames(sample_outputs, c("name", "id"), c("output_name", "output_id"))
   return(sample_outputs)
 }
 
@@ -65,8 +63,7 @@ map_sample_output_rnaseq <- function(syn_out) {
 #' 
 #' @param syn_out Syn id of syn output destination with files of interest. 
 #' @import data.table
-#' @return A `data.table` with cols `caller` `caller_path` `caller_syn` `output_name` 
-#' `output_name` `output_id` `sample`
+#' @return A `data.table` with cols `caller` `caller_path` `caller_syn` `output_name` `output_id` `sample` `workflow`
 #' @export
 map_sample_output_sarek <- function(syn_out) {
   
@@ -302,6 +299,3 @@ annotate_called_variants <- function(sample_io,
   }
   return(annotations)
 }
-
-
-
