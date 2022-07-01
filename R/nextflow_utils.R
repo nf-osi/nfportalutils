@@ -134,7 +134,7 @@ map_sample_io <- function(workflow = c("nf-rnaseq", "nf-sarek"),
 #' @param samtools_stats_file Path to file/syn id of file with samtools stats produced by the workflow. 
 #' @param picard_stats_file Path to file/syn id of file with picard stats produced by the workflow.
 #' @export
-tool_stats_to_annotations <- function(samtools_stats_file = NULL, 
+annotate_with_tool_stats <- function(samtools_stats_file = NULL, 
                                       picard_stats_file = NULL) {
   if(is.null(samtools_stats_file)) {
     message("Samtools stats not available, skipping these annotations...")
@@ -213,14 +213,14 @@ derive_annotations <- function(sample_io,
 #' Ideally, the data model itself should include inheritance rules; since that isn't possible currently, 
 #' we hard-code lots of stuff, so this is hard to generalize for other data models. 
 #' 
-#' 2. Extract metrics from auxiliary files to surface as annotations. See  \code{\link{tool_stats_to_annotations}}.
+#' 2. Extract metrics from auxiliary files to surface as annotations. See  \code{\link{annotate_with_tool_stats}}.
 #' 
 #' 3. Manually add annotations that can't (yet?) be derived from #1 or #2. Has to be done outside of this util.
 #' 
 #' Always returns a "partial" manifest; the param `update` specifies whether annotations should be applied.
 #' 
 #' @inheritParams get_by_prop_from_json_schema
-#' @inheritParams tool_stats_to_annotations
+#' @inheritParams annotate_with_tool_stats
 #' @param template (Optional) URI of template in data model to use, prefixed if needed. 
 #' Can specify different model/version, but in some cases may not work well.
 #' @param sample_io Table mapping input to outputs, where outputs are expected to be .bam files only!
@@ -236,7 +236,7 @@ annotate_aligned_reads <- function(sample_io,
                                    update = FALSE) {
   
   anno_base <- derive_annotations(sample_io, template, schema, format = "bam", verbose)
-  anno_qc <- tool_stats_to_annotations(samtools_stats_file, picard_stats_file)
+  anno_qc <- annotate_with_tool_stats(samtools_stats_file, picard_stats_file)
   if(verbose && length(anno_qc)) message("Created annotations from workflow metrics.")
   
   annotations <- Reduce(function(x, y) merge(x, y, by = "sample"), 
