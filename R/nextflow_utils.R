@@ -40,6 +40,7 @@ map_sample_input_ss <- function(samplesheet,
 #' @export
 map_sample_output_rnaseq <- function(syn_out) {
   
+  message("Going through the outputs...this may take some seconds.")
   .o <- walk(syn_out)
   l2 <- setnames(rbindlist(.o[[1]][[3]]), c("output_name", "output_id"))[grepl(".bam|.bai", output_name)]
   l2[, sample := gsub("\\.markdup.sorted.*", "", output_name)]
@@ -116,7 +117,9 @@ map_sample_io <- function(workflow = c("nf-rnaseq", "nf-sarek"),
   # Check that sample ids in sample_outputs are in sample_inputs
   # Presumed OK for sample_inputs to contain samples *not* in outputs 
   # (maybe no outputs if doesn't pass QC checks) but not OK vice versa
-  stopifnot(all(unique(sample_outputs$sample) %in% unique(sample_inputs$sample)))
+  if(!all(unique(sample_outputs$sample) %in% unique(sample_inputs$sample))) {
+    stop("Issue found: samples present in outputs are not referenced in inputs.", call. = F)
+  }
   sample_io <- merge(sample_outputs, sample_inputs, by = "sample", all.x = TRUE, all.y = FALSE)
   return(sample_io)
 }
