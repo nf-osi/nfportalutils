@@ -42,7 +42,7 @@ map_sample_output_rnaseq <- function(syn_out) {
   
   .o <- walk(syn_out)
   l2 <- setnames(rbindlist(.o[[1]][[3]]), c("output_name", "output_id"))[grepl(".bam|.bai", output_name)]
-  l2[, sample := gsub("[.].*", "", output_name)]
+  l2[, sample := gsub("\\.markdup.sorted.*", "", output_name)]
   l3 <- lapply(.o[2:length(.o)], function(x) {
     if("quant.sf" %in% unlist(x)) list(sample = x[[1]][[1]],
                                        output_name = c(x[[3]][[2]][[1]], x[[3]][[3]][[1]]),
