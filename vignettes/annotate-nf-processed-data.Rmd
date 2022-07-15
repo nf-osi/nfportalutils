@@ -39,7 +39,7 @@ syn_login()
 ### Creating helper resource files
 
 To add annotations and provenance, we need a reference mapping of inputs and outputs involved in the workflow.
-The below puts together a table representing this mapping by parsing the samplesheet in combination with the output directory. 
+The below puts together a table representing this mapping by parsing the samplesheet in combination with the output directory ("star_salmon"). 
 For the nextflow rna-seq workflow, the samplesheet is an output file in "pipeline_info".
 ```{r rnaseq-resources, eval=FALSE}
 sample_io <- map_sample_io(workflow = "nf-rnaseq",
