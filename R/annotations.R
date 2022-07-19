@@ -16,11 +16,11 @@ annotate_with_manifest <- function(manifest, ignore_na = TRUE, ignore_blank = TR
   if("Filename" %in% names(annotations)) annotations[, Filename := NULL]
   annotations[, entityId := as.character(entityId)]
   annotations <- split(annotations, by = "entityId", keep.by = FALSE)
-  filterNA <- if(ignore_na) function(x) !is.na(x) else TRUE
-  filterBlank <- if(ignore_blank) function(x) x != "" else TRUE
-  annotations <- lapply(annotations, function(x) Filter(function(x) filterNA(x) & filterBlank(x), as.list(x)))
+  filterNA <- if(ignore_na) function(x) !any(is.na(x)) else TRUE # will ignore entirely if list with NA, e.g. c(NA, 1, 2) -- should warn if list
+  filterBlank <- if(ignore_blank) function(x) !any(x == "") else TRUE # same as above
+  annotations <- lapply(annotations, function(x) Filter(function(x) filterNA(x) & filterBlank(x) & length(x), unlist(x, recursive = F)))
   for(entity in names(annotations)) {
-    .syn$setAnnotations(entity = entity, annotations = reticulate::r_to_py(annotations[[entity]]))
+    .syn$setAnnotations(entity = entity, annotations = reticulate::dict(annotations[[entity]]))
   }
 }
 
