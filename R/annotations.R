@@ -13,7 +13,7 @@
 annotate_with_manifest <- function(manifest, ignore_na = TRUE, ignore_blank = TRUE) {
   # Split by `entityId`
   annotations <- as.data.table(manifest)
-  annotations[, Filename := NULL]
+  if("Filename" %in% names(annotations)) annotations[, Filename := NULL]
   annotations[, entityId := as.character(entityId)]
   annotations <- split(annotations, by = "entityId", keep.by = FALSE)
   filterNA <- if(ignore_na) function(x) !is.na(x) else TRUE
