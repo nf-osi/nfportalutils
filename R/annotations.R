@@ -20,7 +20,7 @@ annotate_with_manifest <- function(manifest, ignore_na = TRUE, ignore_blank = TR
   filterBlank <- if(ignore_blank) function(x) !any(x == "") else TRUE # same as above
   annotations <- lapply(annotations, function(x) Filter(function(x) filterNA(x) & filterBlank(x) & length(x), unlist(x, recursive = F)))
   for(entity in names(annotations)) {
-    .syn$setAnnotations(entity = entity, annotations = reticulate::dict(annotations[[entity]]))
+    .syn$setAnnotations(entity = entity, annotations = as.list(annotations[[entity]]))
   }
 }
 
