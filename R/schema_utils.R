@@ -61,4 +61,79 @@ as_table_schema <- function(df,
   table_data
 }
 
+# -- Schematic (JSON-LD) schema ------------------------------------------------#
 
+#' Look up connected nodes by specified property in JSON-LD schema
+#' 
+#' Use with schematic-generated JSON-LD schema: given `@id`, get connected nodes by specified prop (e.g. `sms:something`).
+#' Intended to be a generic used to define more specific lookup utils. 
+#' Can do recursive lookup, though graph should actually a tree/acyclic (!). 
+#' (Useful for props such as `dependsOn`, doesn't make sense for props such as `rdfs:label`.)
+#' 
+#' @param id Id (`@id`) for which to get range values; include prefix if needed. 
+#' @param prop Property; include prefix if needed.
+#' @param schema Path (URL or local) to file from which schema will be read, or schema as list object.
+#' @param return_labels Return labels (default), otherwise ids of connected nodes. 
+#' @param recursive Recursive lookup?
+#' @param result Vector of accumulated results; used for recursive lookup.
+#' @param rest Vector of remaining ids; used for recursive lookup.
+#' @export
+get_by_prop_from_json_schema <- function(id, 
+                                         prop,
+                                         schema = 'https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld',
+                                         return_labels = TRUE,
+                                         recursive = FALSE,
+                                         result = NULL,
+                                         rest = NULL) {
+  if(!is.list(schema)) {
+    schema <- jsonlite::read_json(schema)
+    schema <- schema$`@graph`
+  }
+  
+  matches <- Filter(function(x) x$`@id` == id, schema)
+  if(!length(matches)) stop("Id not found in schema!")
+  ids <- unlist(lapply(matches[[1]][[prop]], function(x) x$`@id`))
+  
+  if(return_labels) {
+    labels <- Filter(function(x) x$`@id` %in% ids, schema) %>%
+      sapply(function(x) x$`sms:displayName`) %>% unlist()
+    result <- c(result, labels) 
+  } else {
+    result <- c(result, ids)
+  }
+  
+  rest <- c(rest, ids)
+  if(recursive && length(rest)) {
+    id <- rest[1]
+    rest <- rest[-1]
+    get_by_prop_from_json_schema(id, 
+                                 prop,
+                                 schema, 
+                                 return_labels, 
+                                 recursive,
+                                 result, 
+                                 rest)
+  } else {
+    # result
+    unique(result) # dup ids exist because of https://github.com/Sage-Bionetworks/schematic/issues/708
+  }
+}
+
+
+#' Get dependencies for node in JSON-LD schema
+#' 
+#' Shorthand for getting props defined in annotation template using `get_by_prop_from_json_schema` under the hood.
+#' 
+#' @inheritParams get_by_prop_from_json_schema
+#' @export
+get_dependency_from_json_schema <- function(id,
+                                            prop = "sms:requiresDependency",
+                                            schema = 'https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld',
+                                            return_labels = TRUE,
+                                            recursive = TRUE,
+                                            result = NULL,
+                                            rest = NULL) {
+  
+  get_by_prop_from_json_schema(id, prop, schema, return_labels, recursive, result, rest)
+  
+}

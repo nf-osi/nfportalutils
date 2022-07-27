@@ -3,3 +3,10 @@
 ^LICENSE\.md$
 ^CODE_OF_CONDUCT\.md$
 ^\.github$
+Dockerfile
+example_script
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
+^doc$
+^Meta$

@@ -12,9 +12,10 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.0
 Imports: 
     dplyr,
+    data.table,
     reticulate,
     textmineR,
     magrittr,
@@ -37,6 +38,9 @@ Imports:
 URL: https://github.com/nf-osi/nfportalutils
 BugReports: https://github.com/nf-osi/nfportalutils/issues
 Suggests: 
+    rmarkdown,
+    knitr,
     testthat (>= 2.0.0),
     withr
 Config/testthat/edition: 2
+VignetteBuilder: knitr

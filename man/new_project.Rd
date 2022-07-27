@@ -13,6 +13,7 @@ new_project(
   institution,
   funder = c("CTF", "GFF", "NTAP"),
   initiative,
+  datasets = NULL,
   webview = FALSE,
   ...
 )
@@ -34,6 +35,8 @@ Currently, only takes one admin user, and the rest can be added via the UI.}
 \item{funder}{The funder org, currently one of c("CTF", "GFF", "NTAP"). The relevant funder team will be made admin.}
 
 \item{initiative}{Title of funding initiative, e.g. "Young Investigator Award".}
+
+\item{datasets}{(Optional) Datasets for which folders will be created under main data folder ("Raw Data").}
 
 \item{webview}{Whether to open web browser to view newly created project. Defaults to FALSE.}
 

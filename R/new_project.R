@@ -19,6 +19,7 @@
 #' @param institution Affiliated institution(s), **semicolon-sep if multiple**, e.g. "Stanford University; University of California, San Francisco".
 #' @param funder The funder org, currently one of c("CTF", "GFF", "NTAP"). The relevant funder team will be made admin.
 #' @param initiative Title of funding initiative, e.g. "Young Investigator Award".
+#' @param datasets (Optional) Datasets for which folders will be created under main data folder ("Raw Data").
 #' @param webview Whether to open web browser to view newly created project. Defaults to FALSE.
 #' @param ... Additional arguments. Not used.
 #' @return The project object.
@@ -31,6 +32,7 @@ new_project <- function(name,
                         institution,
                         funder = c("CTF", "GFF", "NTAP"),
                         initiative,
+                        datasets = NULL,
                         webview = FALSE,
                         ...) {
 
@@ -39,26 +41,15 @@ new_project <- function(name,
   project <- new_project_strict(name)
 
   # WIKI -----------------------------------------------------------------------#
-
-  content <- glue::glue("
-  # {name}
-  ## {funder} - {initiative}
-  ### Principal Investigator: {pi}
-  ### Project Lead / Data Coordinator: {lead}
-  ### Institution: {institution}
-  ### Project Description:
-  {abstract}
-  ")
-
-  wiki <- synapseclient$Wiki(owner = project,
-                       title = name,
-                       markdown = content)
-
-  # Push wiki to Synapse
-  wiki <- .syn$store(wiki)
-
-  # Add a subpage w/ links to the Data Curator App as of Dec 2021
-  wiki <- data_curator_app_subpage(project_id = project, dry_run = FALSE)
+  
+  wiki <- add_default_wiki(project,
+                           name,
+                           pi,
+                           lead,
+                           funder,
+                           initiative,
+                           abstract,
+                           institution)
 
   # PERMISSIONS ----------------------------------------------------------------#
   # Set NF-OSI Sage Team permissions to full admin
@@ -79,17 +70,18 @@ new_project <- function(name,
 
   # ASSETS ---------------------------------------------------------------------#
   # Create default upper-level folders
-  add_default_folders(project)
+  folders <- add_default_folders(project)
+  data_folder <- folders[["Raw Data"]]
 
   # Create data-specific folders in "Raw Data"
-  # make_folder(parent = data_folder$properties$id, folders = c(""))
+  if(length(datasets)) make_folder(parent = data_folder$properties$id, folders = datasets)
 
   # Add Project Files and Metadata fileview, add NF schema; currently doesn't add facets
-  add_default_fileview(project)
+  fv <- add_default_fileview(project)
 
   if(webview) .syn$onweb(project)
-  #TODO: add snippet to add the project to the Portal Files view scope
-  #TODO: add snippet to add the project to the Portal Studies table as a row
+  
+  attr(project, "fileview") <- fv$properties$id
   return(project)
 }
 
@@ -179,6 +171,45 @@ make_folder <- function(parent, folders) {
     refs[[i]] <- folder
   }
   return(refs)
+}
+
+#' Add default wiki
+#'
+#' Add the default wiki at project at creation or
+#' use to retrofit projects where creators have not created a wiki. 
+#' @inheritParams new_project
+#' @param project Synapse id of project.
+add_default_wiki <- function(project,
+                             name,
+                             pi,
+                             lead,
+                             funder,
+                             initiative,
+                             abstract,
+                             institution) {
+  
+  content <- glue::glue("
+  # {name}
+  ## {funder} - {initiative}
+  ### Principal Investigator: {pi}
+  ### Project Lead / Data Coordinator: {lead}
+  ### Institution: {institution}
+  ### Project Description:
+  {abstract}
+  ")
+  
+  wiki <- synapseclient$Wiki(owner = project,
+                             title = name,
+                             markdown = content)
+  
+  # Push wiki to Synapse
+  wiki <- .syn$store(wiki)
+  
+  # Add a subpage w/ links to the Data Curator App as of Dec 2021
+  wiki <- data_curator_app_subpage(project_id = project, dry_run = FALSE)
+  
+  return(wiki)
+  
 }
 
 #' Create default folders
