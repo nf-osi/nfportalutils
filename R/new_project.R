@@ -37,11 +37,11 @@ new_project <- function(name,
                         ...) {
 
   .check_login()
-  
+
   project <- new_project_strict(name)
 
   # WIKI -----------------------------------------------------------------------#
-  
+
   wiki <- add_default_wiki(project,
                            name,
                            pi,
@@ -80,28 +80,29 @@ new_project <- function(name,
   fv <- add_default_fileview(project)
 
   if(webview) .syn$onweb(project)
-  
+
   attr(project, "fileview") <- fv$properties$id
   return(project)
 }
 
 #' Create a strictly new project
-#' 
+#'
 #' Internal handler for creating a project that
 #' first checks whether project already exists and disallows overwriting.
-#' For a less strict version that allows overwriting with a warning, 
+#' For a less strict version that allows overwriting with a warning,
 #' e.g. named `update_project`, implement with
 #' `createOrUpdate = TRUE` and then compare createdOn and modifiedOn to issue a warning
 #' (which would be more informative than current Python client).
 #' @param project_name Name of project to be created.
+#' @export
 new_project_strict <- function(project_name) {
-  id <- try(.syn$findEntityId(project_name)) 
-  if(class(id) == "try-error") { 
+  id <- try(.syn$findEntityId(project_name))
+  if(class(id) == "try-error") {
     # Error with 403 code if exists without writable permissions
     stop("Project not created because of name collision with a non-NF project.", call. = FALSE)
   } else if(class(id) == "character") {
     # Likely already administering project if returns actual synID
-    stop("Project not created because of name collision with a current project. Check project entity?" , call. = FALSE) 
+    stop("Project not created because of name collision with a current project. Check project entity?" , call. = FALSE)
   } else { # NULL
     project <- synapseclient$Project(project_name)
     project <- .syn$store(project, createOrUpdate = FALSE)
@@ -110,9 +111,10 @@ new_project_strict <- function(project_name) {
 }
 
 #' Create default project fileview
-#' 
+#'
 #' @param project A project entity.
-add_default_fileview <- function(project) { 
+#' @export
+add_default_fileview <- function(project) {
   view <- synapseclient$EntityViewSchema(
     name = "Project Files and Metadata",
     columns=list(
@@ -149,6 +151,7 @@ add_default_fileview <- function(project) {
 #' Convenience method to set admin permissions
 #' @param entity The Synapse entity, e.g. project or folder.
 #' @param principal_id User or team id that will have the configured access to the entity.
+#' @export
 make_admin <- function(entity, principal_id) {
   admin <- .syn$setPermissions(entity = entity,
                                principalId = principal_id,
@@ -162,6 +165,7 @@ make_admin <- function(entity, principal_id) {
 #' @param parent The Synapse id or object that should be the parent container, i.e. the project or another folder.
 #' @param folders Character vector giving one or more folder names of folder(s) to create.
 #' @return A list of the created folder object(s).
+#' @export
 make_folder <- function(parent, folders) {
 
   refs <- list()
@@ -176,9 +180,10 @@ make_folder <- function(parent, folders) {
 #' Add default wiki
 #'
 #' Add the default wiki at project at creation or
-#' use to retrofit projects where creators have not created a wiki. 
+#' use to retrofit projects where creators have not created a wiki.
 #' @inheritParams new_project
 #' @param project Synapse id of project.
+#' @export
 add_default_wiki <- function(project,
                              name,
                              pi,
@@ -187,7 +192,7 @@ add_default_wiki <- function(project,
                              initiative,
                              abstract,
                              institution) {
-  
+
   content <- glue::glue("
   # {name}
   ## {funder} - {initiative}
@@ -197,19 +202,19 @@ add_default_wiki <- function(project,
   ### Project Description:
   {abstract}
   ")
-  
+
   wiki <- synapseclient$Wiki(owner = project,
                              title = name,
                              markdown = content)
-  
+
   # Push wiki to Synapse
   wiki <- .syn$store(wiki)
-  
+
   # Add a subpage w/ links to the Data Curator App as of Dec 2021
   wiki <- data_curator_app_subpage(project_id = project, dry_run = FALSE)
-  
+
   return(wiki)
-  
+
 }
 
 #' Create default folders
@@ -217,12 +222,13 @@ add_default_wiki <- function(project,
 #' A convenience wrapper around `make_folder` with NF defaults.
 #' @param project The project Synapse id or object.
 #' @param folders Names of the standard set of folders.
+#' @export
 add_default_folders <- function(project, folders = c("Analysis", "Milestone Reports", "Raw Data")) {
    make_folder(parent = project, folders)
 }
 
 #' Get and parse data from Google Sheets for initializing a new project
-#' 
+#'
 #' Currently, project tracking data is stored in a private GoogleSheet.
 #' For \code{\link{new_project}}, this wraps `googlesheets4` to get the needed data.
 #'
