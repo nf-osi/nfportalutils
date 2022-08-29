@@ -229,6 +229,7 @@ add_default_folders <- function(project, folders = c("Analysis", "Milestone Repo
 
 #' Get and parse data from Google Sheets for initializing a new project
 #'
+#' Notice: This is DEPRECATED and will be removed in the next version. 
 #' Currently, project tracking data is stored in a private GoogleSheet.
 #' For \code{\link{new_project}}, this wraps `googlesheets4` to get the needed data.
 #'

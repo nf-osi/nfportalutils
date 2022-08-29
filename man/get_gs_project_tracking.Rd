@@ -32,6 +32,7 @@ get_project_tracking(
 Defaults are provided.}
 }
 \description{
+Notice: This is DEPRECATED and will be removed in the next version.
 Currently, project tracking data is stored in a private GoogleSheet.
 For \code{\link{new_project}}, this wraps \code{googlesheets4} to get the needed data.
 }
