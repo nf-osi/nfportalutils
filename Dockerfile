@@ -5,7 +5,8 @@ RUN apt-get update && \
     python3.6 \
     python3-pip \
     libcurl4-openssl-dev \
-    libssl-dev
+    libssl-dev \
+    libxml2-dev
 
 COPY . /nfportalutils
 
