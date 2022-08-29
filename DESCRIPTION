@@ -1,6 +1,6 @@
 Package: nfportalutils
 Title: What the Package Does (One Line, Title Case)
-Version: 0.0.0.9000
+Version: 0.0.0.9100
 Authors@R: 
     person(given = "Allaway",
            family = "Robert",
@@ -33,7 +33,6 @@ Imports:
     rlang,
     tidyr,
     googlesheets4,
-    data.table, 
     xml2
 URL: https://github.com/nf-osi/nfportalutils
 BugReports: https://github.com/nf-osi/nfportalutils/issues
