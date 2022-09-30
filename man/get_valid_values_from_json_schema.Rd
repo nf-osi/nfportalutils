@@ -5,8 +5,8 @@
 \title{Retrieve valid subclasses of a value in a JSON-LD schema}
 \usage{
 get_valid_values_from_json_schema(
- 
-    schema_url = "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld",
+  schema_url =
+    "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld",
   parent_name = "DataType",
   parent_context = "bts"
 )

@@ -12,7 +12,7 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.2.0
+RoxygenNote: 7.2.1
 Imports: 
     dplyr,
     data.table,
@@ -33,7 +33,8 @@ Imports:
     rlang,
     tidyr,
     googlesheets4,
-    xml2
+    xml2,
+    FastKNN
 URL: https://github.com/nf-osi/nfportalutils
 BugReports: https://github.com/nf-osi/nfportalutils/issues
 Suggests: 

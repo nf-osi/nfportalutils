@@ -7,8 +7,8 @@
 get_by_prop_from_json_schema(
   id,
   prop,
- 
-    schema = "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld",
+  schema =
+    "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld",
   return_labels = TRUE,
   recursive = FALSE,
   result = NULL,

@@ -14,6 +14,9 @@ If not given, will select all columns.}
 
 \item{includeRowIdAndRowVersion}{Whether to include the row id and etag, defaults to \code{FALSE}. If the use case is to update rows in the table (rather than just to retrieve information for viewing, use \code{TRUE}).}
 }
+\value{
+A tibble.
+}
 \description{
 Retrieve selected data from a Synapse table.
 }

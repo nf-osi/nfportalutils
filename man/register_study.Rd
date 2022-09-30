@@ -17,10 +17,10 @@ register_study(
   initiative,
   study_status = "Active",
   data_status = "None",
- 
-    terms_access = "The data from this study is currently under embargo. Please contact the principal investigator for access to the data.",
- 
-    terms_acknowledgement = "The data from this study are still under embargo, therefore, if you have been granted access by the data contributor, you must work with them to determine how to acknowledge your collaboration in any manuscripts that arise. In addition, please acknowledge the NF Data Portal like so: \\"The results published here are in whole or in part based on data obtained from the NF Data Portal (http://www.nf.synapse.org, RRID:SCR_021683) and made available through the NF Open Science Initiative.\\"",
+  terms_access =
+    "The data from this study is currently under embargo. Please contact the principal investigator for access to the data.",
+  terms_acknowledgement =
+    "The data from this study are still under embargo, therefore, if you have been granted access by the data contributor, you must work with them to determine how to acknowledge your collaboration in any manuscripts that arise. In addition, please acknowledge the NF Data Portal like so: \\"The results published here are in whole or in part based on data obtained from the NF Data Portal (http://www.nf.synapse.org, RRID:SCR_021683) and made available through the NF Open Science Initiative.\\"",
   grant_doi = "",
   study_table_id = "syn16787123"
 )

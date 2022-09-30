@@ -1,5 +1,5 @@
 #' Update the People table from a source Table or View column
-#' @description
+#' 
 #' @param people_table_id The synapse id of the table used for referencing people.
 #' @param people_column Column name within the people table that contains the relevant people values. 
 #' @param source_table_id The synapse id of the source table.
