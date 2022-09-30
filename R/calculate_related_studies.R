@@ -9,15 +9,23 @@
 #' In practice, the number of total summaries divided by 3 is a good starting point (100 studies = 33 clusters).
 #' If given `n_k` is ignored.
 #' @param n_k Generate target number of most closely related studies using k-nearest-neighbors instead;
-#' since the number of desired related studies is specified, this may be preferable over using `n_clust`. 
+#' since the number of desired related studies is specified, this may be preferable over using `n_clust`, 
+#' which gives variable number of related studies because clusters vary in size.
 #' Ignored if `n_clust` is already given.
 #' @param dry_run Default = TRUE. Skips upload to table and instead prints study tibble.
 #' @return If dry_run == T, returns study tibble and skips upload.
 #' @examples
 #' \dontrun{ 
-#'  calculate_related_studies(study_table_id = "syn16787123",
-#'                            n_clust = 36,
+#' result1  <- calculate_related_studies(study_table_id = "syn16787123",
+#'                            n_clust = 40,
 #'                            dry_run = T)
+#' result2  <- calculate_related_studies(study_table_id = "syn16787123",
+#'                            n_k = 4,
+#'                            dry_run = T)
+#' x <- lapply(result1$relatedStudies, jsonlite::fromJSON)
+#' y <- lapply(result2$relatedStudies, jsonlite::fromJSON)
+#' # Compare
+#' mapply(function(x, y) sum(y %in% x), x, y)                               
 #'}
 #' @export
 
