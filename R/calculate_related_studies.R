@@ -93,7 +93,7 @@ calculate_related_studies <- function(study_table_id,
     cdist <- as.matrix(cdist)
     nearest <- lapply(1:nrow(cdist), function(x) row.names(cdist)[FastKNN::k.nearest.neighbors(x, cdist, k = n_k)])
     studies_updated <- studies 
-    studies_updated$relatedStudies <- jsonlite::toJSON(nearest)
+    studies_updated$relatedStudies <- sapply(nearest, jsonlite::toJSON)
     
   } else {
     stop("You must specify a valid value for either n_clust or n_k!")
