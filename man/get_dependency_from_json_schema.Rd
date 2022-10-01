@@ -7,8 +7,8 @@
 get_dependency_from_json_schema(
   id,
   prop = "sms:requiresDependency",
- 
-    schema = "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld",
+  schema =
+    "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld",
   return_labels = TRUE,
   recursive = TRUE,
   result = NULL,

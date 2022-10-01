@@ -6,8 +6,8 @@
 \usage{
 schema_max_str_len(
   key,
- 
-    schema = "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld",
+  schema =
+    "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld",
   parent_context = "bts",
   default = 100
 )

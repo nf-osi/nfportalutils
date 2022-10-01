@@ -5,8 +5,7 @@
 #' @param columns A character vector of selected columns (which often correspond to annotations, but not always).
 #' If not given, will select all columns.
 #' @param includeRowIdAndRowVersion Whether to include the row id and etag, defaults to `FALSE`. If the use case is to update rows in the table (rather than just to retrieve information for viewing, use `TRUE`).
-#' @example studies <- table_query("syn16787123")
-#' @result A tibble.
+#' @return A tibble.
 #' @export
 table_query <- function(table_id, columns = "*", includeRowIdAndRowVersion = F) {
   .check_login()

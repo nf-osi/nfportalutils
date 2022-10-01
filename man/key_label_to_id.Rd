@@ -7,8 +7,8 @@
 key_label_to_id(
   label,
   prefixed = TRUE,
- 
-    schema = "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld"
+  schema =
+    "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld"
 )
 }
 \arguments{

@@ -2,14 +2,26 @@
 % Please edit documentation in R/calculate_related_studies.R
 \name{calculate_related_studies}
 \alias{calculate_related_studies}
-\title{Calculate and add related studies to study table.}
+\title{Calculate and add related studies to study table}
 \usage{
-calculate_related_studies(study_table_id, n_clust, dry_run = TRUE)
+calculate_related_studies(
+  study_table_id,
+  n_clust = NULL,
+  n_k = NULL,
+  dry_run = TRUE
+)
 }
 \arguments{
 \item{study_table_id}{The synapse id of the portal study table. Must have write access.}
 
-\item{n_clust}{The target number of clusters to generate. In practice, I've found that the number of total summaries divided by 3 is a good starting point (100 studies = 33 clusters).}
+\item{n_clust}{Target number of clusters to generate using hierarchical clustering.
+In practice, the number of total summaries divided by 3 is a good starting point (100 studies = 33 clusters).
+If given \code{n_k} is ignored.}
+
+\item{n_k}{Generate target number of most closely related studies using k-nearest-neighbors instead;
+since the number of desired related studies is specified, this may be preferable over using \code{n_clust},
+which gives variable number of related studies because clusters vary in size.
+Ignored if \code{n_clust} is already given.}
 
 \item{dry_run}{Default = TRUE. Skips upload to table and instead prints study tibble.}
 }
@@ -17,12 +29,21 @@ calculate_related_studies(study_table_id, n_clust, dry_run = TRUE)
 If dry_run == T, returns study tibble and skips upload.
 }
 \description{
-Processes study summary text to identify clusters of related studies. Calculates tf-idf values for 1 and 2 length ngrams, and clusters studies using the ward.D clustering method. Updates data in a STRINGLIST column "relatedStudies."
+Processes study summary text to identify clusters of related studies.
+Calculates tf-idf values for 1 and 2 length ngrams, and clusters studies using the ward.D clustering method.
+Updates data in a STRINGLIST column "relatedStudies."
 }
 \examples{
 \dontrun{ 
- calculate_related_studies(study_table_id = "syn16787123",
-                           n_clust = 36,
+result1  <- calculate_related_studies(study_table_id = "syn16787123",
+                           n_clust = 40,
                            dry_run = T)
+result2  <- calculate_related_studies(study_table_id = "syn16787123",
+                           n_k = 4,
+                           dry_run = T)
+x <- lapply(result1$relatedStudies, jsonlite::fromJSON)
+y <- lapply(result2$relatedStudies, jsonlite::fromJSON)
+# Compare
+mapply(function(x, y) sum(y \%in\% x), x, y)                               
 }
 }

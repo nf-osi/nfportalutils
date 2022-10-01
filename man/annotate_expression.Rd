@@ -7,8 +7,8 @@
 annotate_expression(
   sample_io,
   template = "bts:ProcessedExpressionTemplate",
- 
-    schema = "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld",
+  schema =
+    "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld",
   verbose = TRUE,
   update = FALSE
 )

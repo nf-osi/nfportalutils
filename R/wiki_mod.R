@@ -1,6 +1,6 @@
 #' Generate button widget for a Synapse wiki
 #'
-#' @description Generate markup for a button widget for a Synapse project wiki.
+#' Generate markup for a button widget for a Synapse project wiki.
 #' Refer to widget docs at <https://help.synapse.org/docs/Wikis.1975746682.html#Wikis-WikiWidgets>.
 #' Buttons should be created sparingly and strategically.
 #' See \code{\link{remove_button}} in case of future regret.
@@ -21,7 +21,7 @@ button_widget <- function(label,
 
 #' Add markup to a project wiki
 #'
-#' @description Add markup to an **existing** project wiki, e.g. regular markdown, a widget, or other Synapse wiki compatible content.
+#' Add markup to an **existing** project wiki, e.g. regular markdown, a widget, or other Synapse wiki compatible content.
 #' Errors will be encountered if one tries to modify a project wiki that does not exist.
 #' @param content Markdown or other markup compatible with Synapse wikis.
 #' @param project_id ID of the owner Synapse project.
@@ -30,7 +30,6 @@ button_widget <- function(label,
 #' @param where Where to add markup on page, "top" or "bottom" (defaults to "top").
 #' Only used if adding to main page, which may already have content.
 #' @param dry_run Whether to return a wiki object only without actually performing update.
-#' @inheritParams get_project_wiki
 #' @export
 wiki_mod <- function(content, project_id, subpage = NULL,
                      where = c("top", "bottom"), dry_run = TRUE) {

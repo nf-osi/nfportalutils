@@ -7,8 +7,8 @@
 annotate_called_variants(
   sample_io,
   template = "bts:ProcessedVariantCallsTemplate",
- 
-    schema = "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld",
+  schema =
+    "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld",
   data_type = c("SomaticVariants", "GermlineVariants"),
   verbose = TRUE,
   update = FALSE

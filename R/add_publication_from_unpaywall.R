@@ -11,7 +11,6 @@
 #' @param disease_focus The disease focus(s) that are associated with the publication.
 #' @param manifestation The manifestation(s) that are associated with the publication.
 #' @param dry_run Default = TRUE. Skips upload to table and instead prints formatted publication metadata.
-#' @note
 #' @return If dry_run == T, returns publication metadata to be added.
 #' @examples
 #' \dontrun{  
