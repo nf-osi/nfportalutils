@@ -3,19 +3,20 @@
 #' Adapts email template from https://sagebionetworks.jira.com/wiki/spaces/NPD/pages/2461925578/Project+Intake+Email+Templates
 #' and fills in parameters from JSON configs (see configs stored at nf-osi/dcc-site) so that emails can be sent out programmatically.
 #' To preview in RStudio, fill in the params and the email will show up in the Viewer pane.
+#' To send, this requires an smtp creds file stored locally -- see `blastula::create_smtp_creds_file`.
 #' 
 #' @param config JSON config, from which `recipient` and `studyId` will be read.
-#' @param recipient Optional if `config` is provided, otherwise specify recipient name here.
-#' @param studyId Optional if `config` is provided, otherwise the Synapse project id here.
-email_ready_notification <- function(config, recipient = NULL, studyId = NULL) {
+#' @param send Send email. 
+#' @param creds_file SMTP credentials file.
+email_ready_notification <- function(config, send = TRUE, creds_file) {
   
-  if(!missing(config)) {
-    config <- jsonlite::read_json(config)
-    recipient <- config$PI
-    studyId <- config$studyId
-  } 
+  config <- jsonlite::read_json(config)
+  recipient <- config$PI
+  studyId <- config$studyId
+
   stopifnot(!is.null(recipient), !is.null(studyId))
   
+  subject <- "REVIEW REQUESTED: Project ready on Synapse + Study listed on NF Data Portal"
   projectHome <- glue::glue("https://www.synapse.org/#!Synapse:{studyId}")
   studyListing <- glue::glue("https://nf.synapse.org/Explore/Studies/DetailsPage/Details?studyId={studyId}")
   email <- blastula::compose_email(
@@ -37,6 +38,15 @@ email_ready_notification <- function(config, recipient = NULL, studyId = NULL) {
         Thanks again,  
         NF-OSI Team"))
     )
+  
+  if(send) {
+    blastula::smtp_send(
+      email = email,
+      to = recipient_email,
+      from = "nf-osi@sagebionetworks.org",
+      subject = subject,
+      credentials = blastula::creds_file(creds_file)
+  }
   return(email)
   
 }
