@@ -62,6 +62,9 @@ map_sample_output_rnaseq <- function(syn_out) {
 #' `*VariantCalling/<TUMOR_vs_NORMAL>/<CALLER>`. This walks through the output destination (URI of `*VariantCalling`)
 #' with similar intention to \code{\link{map_sample_output_rnaseq}}, but for Sarek outputs.
 #' 
+#' Note: And additional step post-Sarek will create MAFs in the output subdirectory DeepVariant. 
+#' If this is run _after_ the MAF creation step, this will return file indexes with those .maf files.
+#' 
 #' @param syn_out Syn id of syn output destination with files of interest. 
 #' @import data.table
 #' @return A `data.table` with cols `caller` `caller_path` `caller_syn` `output_name` `output_id` `sample` `workflow`
@@ -181,7 +184,7 @@ annotate_with_tool_stats <- function(samtools_stats_file = NULL,
 #' Files that pass through this naturally have `dataSubtype` set to "processed" and `fileFormat` set 
 #' to the actual new file format. In the future, `template` itself may define `format` so we don't need to specify explicitly.
 #' 
-#' @param format File format of the processed data.
+#' @param format File format of the processed data, e.g. "vcf".
 #' @keywords internal
 derive_annotations <- function(sample_io,
                                template,
@@ -200,8 +203,10 @@ derive_annotations <- function(sample_io,
   
   from <- sapply(x$input_id, `[`, 1)
   to <- x$output_id
-  annotations <- Map(function(f, t) copy_annotations(f, t, select = props), from, to) %>% setNames(to) %>% 
-   lapply(., reticulate::py_to_r) %>% rbindlist(fill = T, idcol = "entityId")
+  annotations <- Map(function(f, t) copy_annotations(f, t, select = props), from, to) %>% 
+    setNames(to) %>% 
+    lapply(., reticulate::py_to_r) %>% 
+    rbindlist(fill = T, idcol = "entityId")
   
   annotations <- merge(annotations, 
                        x[, .(entityId = output_id, Filename = output_name, workflow)], 
@@ -284,8 +289,9 @@ annotate_expression <- function(sample_io,
 
 #' Annotate somatic or germline variants output
 #' 
+#' Called variants are first outputted as `vcf` by default. 
 #' @inheritParams annotate_aligned_reads
-#' @param sample_io Table mapping input to outputs, where outputs are expected to be .vcf.gz files.
+#' @param sample_io Table mapping input to outputs, where outputs are expected to be `.vcf.gz` files.
 #' @param data_type Variant type, given that this can be used with either somatic or germline.
 #' @export
 annotate_called_variants <- function(sample_io,
