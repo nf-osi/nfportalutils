@@ -33,6 +33,6 @@ get_by_prop_from_json_schema(
 \description{
 Use with schematic-generated JSON-LD schema: given \verb{@id}, get connected nodes by specified prop (e.g. \code{sms:something}).
 Intended to be a generic used to define more specific lookup utils.
-Can do recursive lookup, though graph should actually a tree/acyclic (!).
+Can do recursive lookup, though graph should be a tree/acyclic (!).
 (Useful for props such as \code{dependsOn}, doesn't make sense for props such as \code{rdfs:label}.)
 }

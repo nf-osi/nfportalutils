@@ -6,6 +6,7 @@
 \usage{
 annotate_called_variants(
   sample_io,
+  format = c("vcf", "maf"),
   template = "bts:ProcessedVariantCallsTemplate",
   schema =
     "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld",
@@ -15,7 +16,9 @@ annotate_called_variants(
 )
 }
 \arguments{
-\item{sample_io}{Table mapping input to outputs, where outputs are expected to be .vcf.gz files.}
+\item{sample_io}{Table mapping input to outputs, where outputs are expected to be \code{.vcf.gz} files.}
+
+\item{format}{Variant format, either "vcf" or "maf". See details for assumptions.}
 
 \item{template}{(Optional) URI of template in data model to use, prefixed if needed.
 Can specify different model/version, but in some cases may not work well.}
@@ -29,5 +32,7 @@ Can specify different model/version, but in some cases may not work well.}
 \item{update}{Whether to apply annotations.}
 }
 \description{
-Annotate somatic or germline variants output
+Variant format defaults to \code{vcf}, with \code{maf}s produced in subsequent annotation workflow as is the SOP for NF.
+Thus, if \code{maf}, this upgrades the dataType and overrides a few attribute values.
+If in the future \code{maf}s require a different template, then this should be factored out into another specialized annotation function.
 }
