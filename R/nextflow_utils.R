@@ -306,11 +306,12 @@ annotate_called_variants <- function(sample_io,
                                      update = FALSE) {
   
   format <- match.arg(format)
+  data_type <- match.arg(data_type)
   annotations <- derive_annotations(sample_io, template, schema, format = format, verbose)
   # Overrides
   if(format == "maf") {
     data_type <- paste0("Annotated", data_type)
-    annotations[, workflow := ""] # TODO
+    annotations[, workflow := "nf-vcf2maf"] 
   }
   annotations[, dataType := data_type]
   if(update) {
