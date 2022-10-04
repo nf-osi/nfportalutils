@@ -11,6 +11,7 @@ name: R-CMD-check
 jobs:
   R-CMD-check:
     runs-on: ${{ matrix.config.os }}
+    if: !github.event.pull_request.draft
 
     name: ${{ matrix.config.os }} (${{ matrix.config.r }})
 
