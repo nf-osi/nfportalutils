@@ -312,6 +312,7 @@ annotate_called_variants <- function(sample_io,
   if(format == "maf") {
     data_type <- paste0("Annotated", data_type)
     annotations[, workflow := "nf-vcf2maf"] 
+    annotations[, workflowLink := "https://github.com/Sage-Bionetworks-Workflows/nf-vcf2maf/tree/1.0.1"]
   }
   annotations[, dataType := data_type]
   if(update) {
