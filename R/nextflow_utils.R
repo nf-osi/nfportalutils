@@ -295,6 +295,7 @@ annotate_expression <- function(sample_io,
 #' 
 #' @inheritParams annotate_aligned_reads
 #' @param sample_io Table mapping input to outputs, where outputs are expected to be `.vcf.gz` files.
+#' @param format Variant format, either "vcf" or "maf". See details for assumptions.
 #' @param data_type Variant type, given that this can be used with either somatic or germline.
 #' @export
 annotate_called_variants <- function(sample_io,
