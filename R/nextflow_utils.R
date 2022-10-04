@@ -321,3 +321,19 @@ annotate_called_variants <- function(sample_io,
   return(annotations)
 }
 
+#' QC derived manifest
+#' 
+#' Check missing annotations, usually because input files are missing values so nothing could be copied.
+#' 
+#' @param manifest The manifest from one of the `annotate_*` functions.
+#' @param sample_io The input/output mapping used. 
+#' @param default Default attribute to use as canary to check quality/view problematic input/outputs.
+#' @param export
+qc_manifest <- function(manifest, sample_io, default = "sex") {
+  stats <- apply(manifest, 2, function(x) sum(is.na(x)))
+  ids <- manifest[is.na(get(default)), entityId]
+  subset <- sample_io[output_id %in% ids, ]
+  print(stats)
+  print(subset)
+}
+
