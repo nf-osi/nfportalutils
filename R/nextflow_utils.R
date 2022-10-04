@@ -289,20 +289,29 @@ annotate_expression <- function(sample_io,
 
 #' Annotate somatic or germline variants output
 #' 
-#' Called variants are first outputted as `vcf` by default. 
+#' Variant format defaults to `vcf`, with `maf`s produced in subsequent annotation workflow as is the SOP for NF.
+#' Thus, if `maf`, this upgrades the dataType and overrides a few attribute values.
+#' If in the future `maf`s require a different template, then this should be factored out into another specialized annotation function.
+#' 
 #' @inheritParams annotate_aligned_reads
 #' @param sample_io Table mapping input to outputs, where outputs are expected to be `.vcf.gz` files.
 #' @param data_type Variant type, given that this can be used with either somatic or germline.
 #' @export
 annotate_called_variants <- function(sample_io,
+                                     format = c("vcf", "maf"),
                                      template = "bts:ProcessedVariantCallsTemplate",
                                      schema = "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld",
                                      data_type = c("SomaticVariants", "GermlineVariants"),
                                      verbose = TRUE,
                                      update = FALSE) {
   
-  annotations <- derive_annotations(sample_io, template, schema, format = "vcf", verbose)
-  data_type <- match.arg(data_type)
+  format <- match.arg(format)
+  annotations <- derive_annotations(sample_io, template, schema, format = format, verbose)
+  # Overrides
+  if(format == "maf") {
+    data_type <- paste0("Annotated", data_type)
+    annotations[, workflow := ""] # TODO
+  }
   annotations[, dataType := data_type]
   if(update) {
     annotate_with_manifest(annotations)
@@ -310,3 +319,4 @@ annotate_called_variants <- function(sample_io,
   }
   return(annotations)
 }
+
