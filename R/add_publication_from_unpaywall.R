@@ -13,7 +13,7 @@
 #' @param dry_run Default = TRUE. Skips upload to table and instead prints formatted publication metadata.
 #' @return If dry_run == T, returns publication metadata to be added.
 #' @examples
-#' \dontrun{  
+#' \dontrun{
 #' add_publication_from_unpaywall(publication_table_id = 'syn16857542',
 #'                email_address = 'foo@bar.com',
 #'                doi = '10.1074/jbc.RA120.014960',
@@ -23,7 +23,7 @@
 #'                disease_focus = "Neurofibromatosis 2",
 #'                manifestation = c(toJSON("Meningioma")),
 #'                dry_run = T)
-#'}                
+#'}
 #' @export
 #'
 add_publication_from_unpaywall <- function(publication_table_id,
@@ -106,8 +106,8 @@ add_publication_from_unpaywall <- function(publication_table_id,
         if(is.null(pmid) | length(pmid)==0){
           pmid <- NA
         }
-        
-        doi_url <- glue::glue("www.doi.org/{doi}")
+
+        doi_url <- glue::glue("https://www.doi.org/{doi}")
 
         #return metadata
         new_data <- tibble::tibble("title"=title, "journal"=journal, "author" = author_list, "year"=year, "pmid" = pmid, "doi"=doi_url,

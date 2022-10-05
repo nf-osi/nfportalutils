@@ -48,7 +48,7 @@ If dry_run == T, returns publication metadata to be added.
 Add a publication to the publication table. Publication must be in unpaywall database to retrieve info. For parameter-provided metadata (e.g. "studyName"), function must a JSON-formatted character vector if the destination Synapse column is of "STRING_LIST" format. Currently, this function does not evaluate the schema, so this must be checked manually.
 }
 \examples{
-\dontrun{  
+\dontrun{
 add_publication_from_unpaywall(publication_table_id = 'syn16857542',
                email_address = 'foo@bar.com',
                doi = '10.1074/jbc.RA120.014960',
@@ -58,5 +58,5 @@ add_publication_from_unpaywall(publication_table_id = 'syn16857542',
                disease_focus = "Neurofibromatosis 2",
                manifestation = c(toJSON("Meningioma")),
                dry_run = T)
-}                
+}
 }
