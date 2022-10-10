@@ -87,3 +87,36 @@ email_dsp_request <- function(config) {
   return(email)
 }
 
+#' As NF study config
+#' 
+#' Helper make from list or JSON file following [this schema](https://github.com/nf-osi/dcc-site/blob/main/lib/study-schema.json)
+#' a minimal S3 object representing just what we need from a NF study config.
+#' 
+#' @param config Either a config object or path to JSON config file.
+nf_study_config <- function(x) {
+  if(!is.list(config) && file.exists(x)) {
+    x <- jsonlite::read_json(x)
+  } else {
+    stop("Expecting a list or path to JSON config file!")
+  }
+  validate_nf_config(x)
+  config <- structure(x, class = "NFStudyConfig")
+  return(config)
+}
+
+#' Validate NF study config object
+#' 
+#' This is a little different/less rigorous than the actual validation during during the intake process.
+#' Anything that passes that JSON schema check should pass this S3 object check;
+#' this is mainly to make sure that we're not working with out-of-sync schema data,
+#' e.g. if configs change `PI` to `principalInvestigator` and downstream functions are still trying to use `PI`...
+#' @param x 
+#' @keywords internal
+validate_nf_study_config <- function(x) {
+  
+  if(!is.character(x$name) && !nchar(x$name)) stop("Expecting character value for `name`")
+  if(!is.character(x$studyId) && !nchar(x$studyId)) stop("Expecting character value for `studyId`")
+  if(!is.character(x$PI) && !nchar(x$PI)) stop("Expecting character value for `PI`")
+  if(!is.character(x$PIEmail) && !nchar(x$PIEmail)) stop("Expecting character value for `PIEmail`")
+  invisible(x)
+}
