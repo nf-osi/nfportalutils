@@ -10,7 +10,7 @@
 #' @param creds_file SMTP credentials file.
 email_ready_notification <- function(config, send = TRUE, creds_file) {
   
-  config <- jsonlite::read_json(config)
+  config <- read_study_config(config)
   recipient <- config$PI
   studyId <- config$studyId
 
@@ -49,5 +49,41 @@ email_ready_notification <- function(config, send = TRUE, creds_file) {
   }
   return(email)
   
+}
+
+
+#' DSP-only request email (web form variant)
+#' 
+#' Originally, a request for Google Forms intake form + Google Docs DSP was sent in one email. 
+#' Because of changes that obviate the need for the PI to fill in project info directly, and which has moved the DSP to a web form,
+#' this request now uses the project config to direct a PI to the right location for filling out their DSP.  
+#' 
+#' @param config JSON config from which recipient name and address will be read.
+email_dsp_request <- function(config) {
+  
+  config <- read_study_config(config)
+  recipient <- config$PI
+  fundingAgency <- config$fundingAgency
+  NFID <- config$NFID
+  project <- config$name
+  
+  # standard construction
+  link <- glue::glue("https://dcc-site-dusky.vercel.app/dsp/{fundingAgency}?onfile={NFID}")
+  
+  email <- blastula::compose_email(
+    body = blastula::md(glue::glue(
+      "Dear {recipient}, 
+      
+      We're reaching out on behalf of Neurofibromatosis Open Science Initiative (NF-OSI) regarding **your new {fundingAgency}-funded project, {project}**. 
+      We're excited to prepare your project on the [Synapse platform](https://www.synapse.org/) so that you can upload and share data for the NF community.
+      In order to customize, track, and inform us of what support might be needed for your project, **please fill out a Data Sharing Plan** through this [web form]({link}). 
+      
+      If you have any questions or issues, please feel free to reach out nf-osi@sagebionetworks.org!
+  
+      Thanks,  
+      NF-OSI Team"))
+  )
+  
+  return(email)
 }
 
