@@ -2,17 +2,19 @@
 % Please edit documentation in R/nextflow_utils.R
 \name{qc_manifest}
 \alias{qc_manifest}
-\title{QC derived manifest}
+\title{QC a derived manifest}
 \usage{
-qc_manifest(manifest, sample_io, default = "sex")
+qc_manifest(manifest, sample_io)
 }
 \arguments{
 \item{manifest}{The manifest from one of the \verb{annotate_*} functions.}
 
-\item{sample_io}{The input/output mapping used.}
-
-\item{default}{Default attribute to use as canary to check quality/view problematic input/outputs.}
+\item{sample_io}{The input/output mapping used; only used if missing annotations detected.}
+}
+\value{
+NULL if no problems, otherwise a table of entity ids affected, the attributes missing, and inputs used.
 }
 \description{
 Check missing annotations, usually because input files are missing values so nothing could be copied.
+It might also be helpful to visualize the manifest via a package like \code{naniar::vis_miss(manifest)}.
 }
