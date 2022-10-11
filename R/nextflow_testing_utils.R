@@ -67,6 +67,7 @@ identify_read_pair <- function(string){
 #' This function allows you to (post-workflow) check that the library type inferred by
 #' Salmon (ISR, ISF, IU) during processing matches the "strandedness" provided for each sample in the workflow sample sheet.
 #'
+#' @param syn_out The Synapse ID of the "star_salmon" output folder
 #' @param samplesheet A local file or syn id of samplesheet.
 #' @param parse_fun Function implementing how to parse samples in samplesheet.
 #' @import data.table
@@ -116,6 +117,7 @@ check_libtype_validity <- function(syn_out,
 #'
 #' @param syn_id A synapse id for cmd_info.json
 #' @returns a string: ISR, ISF, or IU
+#' @import jsonlite
 #'
 extract_libtype <- function(syn_id){
   jsn <- .syn$get(syn_id)$path
@@ -128,6 +130,8 @@ extract_libtype <- function(syn_id){
 #'
 #' @param display_string A character string to format as a test failed message.
 #' @returns A message to the console
+#' @import emoji
+#' @import crayon
 #'
 test_failed <- function(display_string){
   message(glue::glue("{emoji::emoji('broken_heart')} {crayon::bold(crayon::red('Test failed:'))} {crayon::red(display_string)}"))
@@ -138,6 +142,8 @@ test_failed <- function(display_string){
 #'
 #' @param display_string A character string to format as a test passed message.
 #' @returns A message to the console
+#' @import emoji
+#' @import crayon
 #'
 test_passed <- function(display_string){
   message(glue::glue("{emoji::emoji('green_heart')} {crayon::bold(crayon::green('Test passed:'))} {crayon::green(display_string)}"))
