@@ -2,9 +2,7 @@
 % Please edit documentation in R/nextflow_testing_utils.R
 \name{test_failed}
 \alias{test_failed}
-\title{Check output strandedness matches samplesheet strandedness
-TODO
-Format a test fail message.}
+\title{Check output strandedness matches samplesheet strandedness}
 \usage{
 test_failed(display_string)
 }
@@ -16,6 +14,7 @@ A message to the console
 }
 \description{
 Check output strandedness matches samplesheet strandedness
-TODO
+}
+\details{
 Format a test fail message.
 }

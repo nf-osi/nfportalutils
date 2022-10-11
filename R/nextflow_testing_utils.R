@@ -6,11 +6,13 @@
 #' @param samplesheet A local file or syn id of samplesheet.
 #' @param parse_fun Function implementing how to parse samples in samplesheet.
 #' @import data.table
+#' @examples
+#' \dontrun{
+#'  check_readpair_validity('syn39542932')
+#'  check_readpair_validity('syn29530880')
+#' }
 #' @export
-#'
-#' @examples check_readpair_validity('syn39542932')
-#' @examples check_readpair_validity('syn29530880')
-#'
+
 check_readpair_validity <- function(samplesheet,
                                     parse_fun = function(x) gsub("_T[0-9]$", "", x)) {
   samples <- map_sample_input_ss(samplesheet, parse_fun) %>%
@@ -19,7 +21,7 @@ check_readpair_validity <- function(samplesheet,
       string <- .syn$get(entity = i, downloadFile = F)$name
       rp <- identify_read_pair(string)
     })) %>%
-    dplyr::mutate(readpair_matches = dplyr::case_when(
+    dplyr::mutate(readpair_matches = dplyr::case_when( ##if this function runs slow on large datasets this could be a place to optimize
       named_rp == readPair ~ TRUE,
       !is.null(named_rp) & named_rp != readPair ~ FALSE))
 
@@ -62,9 +64,10 @@ identify_read_pair <- function(string){
 
 
 #' Check output strandedness matches samplesheet strandedness
-#' TODO
-
-
+#'
+#'
+#'
+#'
 
 
 #' Format a test fail message.
@@ -73,7 +76,7 @@ identify_read_pair <- function(string){
 #' @returns A message to the console
 #'
 test_failed <- function(display_string){
-  message(glue::glue("{emoji('broken_heart')} {bold(red('Test failed:'))} {red(display_string)}"))
+  message(glue::glue("{emoji::emoji('broken_heart')} {crayon::bold(crayon::red('Test failed:'))} {crayon::red(display_string)}"))
 }
 
 
@@ -83,6 +86,6 @@ test_failed <- function(display_string){
 #' @returns A message to the console
 #'
 test_passed <- function(display_string){
-  message(glue::glue("{emoji('green_heart')} {bold(green('Test passed:'))} {green(display_string)}"))
+  message(glue::glue("{emoji::emoji('green_heart')} {crayon::bold(crayon::green('Test passed:'))} {crayon::green(display_string)}"))
 }
 

@@ -19,7 +19,8 @@ Read pairs are often encoded in the name of the file. Here, we check that if enc
 that the samplesheet read pair (e.g. _1 or _2) matches
 }
 \examples{
-check_readpair_validity('syn39542932')
-check_readpair_validity('syn29530880')
-
+\dontrun{
+ check_readpair_validity('syn39542932')
+ check_readpair_validity('syn29530880')
+}
 }
