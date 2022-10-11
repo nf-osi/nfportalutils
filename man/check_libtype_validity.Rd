@@ -11,6 +11,8 @@ check_libtype_validity(
 )
 }
 \arguments{
+\item{syn_out}{The Synapse ID of the "star_salmon" output folder}
+
 \item{samplesheet}{A local file or syn id of samplesheet.}
 
 \item{parse_fun}{Function implementing how to parse samples in samplesheet.}
