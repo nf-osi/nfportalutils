@@ -15,8 +15,14 @@
 
 check_readpair_validity <- function(samplesheet,
                                     parse_fun = function(x) gsub("_T[0-9]$", "", x)) {
-  samples <- map_sample_input_ss(samplesheet, parse_fun) %>%
-    tidyr::unnest_longer("input_id", indices_to = "readPair") %>%
+
+  samples <- dt_read(samplesheet)
+  samples[, "1" := bare_syn_id(fastq_1)] # Get synId from URI
+  samples[, "2" := bare_syn_id(fastq_2)]
+  samples[, sample := parse_fun(sample)]
+  samples <- samples[, c("sample", "1", "2")]
+
+  samples %>% tidyr::pivot_longer(cols = c("1", "2"), values_to = "input_id", names_to = "readPair") %>%
     dplyr::mutate(named_rp = sapply(input_id, function(i){
       string <- .syn$get(entity = i, downloadFile = F)$name
       rp <- identify_read_pair(string)
@@ -61,13 +67,6 @@ identify_read_pair <- function(string){
 
   read_pair
 }
-
-
-#' Check output strandedness matches samplesheet strandedness
-#'
-#'
-#'
-#'
 
 
 #' Format a test fail message.
