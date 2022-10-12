@@ -67,7 +67,7 @@ identify_read_pair <- function(string){
 #' This function allows you to (post-workflow) check that the library type inferred by
 #' Salmon (ISR, ISF, IU) during processing matches the "strandedness" provided for each sample in the workflow sample sheet.
 #'
-#' @param syn_out The Synapse ID of the "star_salmon" output folder
+#' @param syn_out_obj A syn_out object from get_syn_out.
 #' @param samplesheet A local file or syn id of samplesheet.
 #' @param parse_fun Function implementing how to parse samples in samplesheet.
 #' @import data.table
@@ -77,7 +77,7 @@ identify_read_pair <- function(string){
 #'  check_libtype_validity(syn_out = 'syn30840584', samplesheet = "syn39593587") #should fail
 #' }
 #' @export
-check_libtype_validity <- function(syn_out,
+check_libtype_validity <- function(syn_out_obj,
                                    samplesheet,
                                    parse_fun = function(x) gsub("_T[0-9]$", "", x)){
 
@@ -85,8 +85,7 @@ check_libtype_validity <- function(syn_out,
   samples[, sample := parse_fun(sample)]
   samples <- samples[, c("sample", "strandedness")]
 
-  message("Going through the outputs...this may take some seconds.")
-  .o <- walk(syn_out)
+  .o <- syn_out_object
 
   cmd_info <- lapply(.o[2:length(.o)], function(x) {
     if("cmd_info.json" %in% unlist(x)) list(sample = x[[1]][[1]],
@@ -125,6 +124,120 @@ extract_libtype <- function(syn_id){
   foo$libType
 }
 
+
+check_rnaseq_cols_contain_data <- function(syn_out_obj,
+                                           files_to_check = c("salmon.merged.gene_counts.tsv",
+                                                              "salmon.merged.transcript_counts.tsv")){
+  ## get files from names
+  filepaths <- sapply(files_to_check, get_specific_file_from_directory,
+                  syn_out_obj = syn_out_obj)
+
+  ## read in delim files, not generalized to other file types yet...
+  files <- lapply(filepaths, readr::read_delim, show_col_types = F)
+
+  ## check cols in files contain data
+  res <- lapply(files, check_columns_contain_data)
+
+  ## consolidate results
+  summarized <- sapply(res, function(x){
+    all(x)
+  })
+
+  if(!all(summarized)){
+    test_failed("Empty columns detected, check results for more info.")
+  }else{
+    test_passed("No empty columns detected.")
+  }
+
+  res
+}
+
+
+# check_wes_wgs_cols_contain_data <- function(syn_out_obj,
+#                                            files_to_check = c("")){
+#TODO
+# }
+
+
+check_multiqc_stats <- function(syn_out_obj, multiqc_filename = "multiqc_general_stats.txt"){
+  ## get files from names
+  filepath <- get_specific_file_from_directory(syn_out_obj = syn_out_obj, name = multiqc_filename)
+
+  ## read in delim files, not generalized to other file types yet...
+  files <- lapply(filepaths, readr::read_delim, show_col_types = F)
+
+  ## check cols in files contain data
+  res <- lapply(files, check_columns_contain_data)
+
+  ## consolidate results
+  summarized <- sapply(res, function(x){
+    all(x)
+  })
+
+  if(!all(summarized)){
+    test_failed("Empty columns detected, check results for more info.")
+  }else{
+    test_passed("No empty columns detected.")
+  }
+
+  res
+}
+
+#' Check for empty columns
+#'
+#' Adapted from dccvalidator package.
+#'
+#' @param data A data frame.
+#' @returns data frame w/true false values defining if check passed
+#' @import jsonlite
+#'
+check_columns_contain_data <- function(data, check_cols = NULL, empty_values = c(NA, "")){
+
+  if(is.null(check_cols)){
+    check_cols <- colnames(data)
+  }else{
+    check_cols
+  }
+
+  req_cols_present <- check_cols[check_cols %in% names(data)]
+
+  ## Check if columns present in data from`required_cols` contain missing data
+  results <- purrr::map_lgl(
+    data[, req_cols_present, drop = FALSE],
+    function(x) all(!x %in% empty_values) ##testing for all empty
+  )
+
+  results
+}
+
+
+#' Download a specific file from a syn_out_obj list given the filename.
+#'
+#' @param syn_out_obj The Synapse ID of the "star_salmon" output folder.
+#' @param name The filename you are looking for.
+#' @returns Path to a downloaded file.
+#' @export
+get_specific_file_from_directory <- function(syn_out_obj, name){
+
+  all_items <- unlist(syn_out_obj)
+  idx <- grep(name, all_items)
+  id <- all_items[idx+1]
+
+  .syn$get(id)$path
+}
+
+#' Get syn_out object.
+#'
+#' This object can be used in multiple downstream functions, so it's faster to retrieve once rather than multiple times.
+#'
+#' @param syn_out The Synapse ID of the "star_salmon" output folder
+#' @returns a nested list of directories and files in the output folder
+#' @export
+#'
+get_syn_out <- function(syn_out){
+  message("Going through the outputs...this may take some seconds.")
+  .o <- walk(syn_out)
+}
 
 #' Format a test fail message.
 #'
