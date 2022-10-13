@@ -34,7 +34,9 @@ Imports:
     tidyr,
     googlesheets4,
     xml2,
-    FastKNN
+    FastKNN,
+    crayon,
+    emoji
 URL: https://github.com/nf-osi/nfportalutils
 BugReports: https://github.com/nf-osi/nfportalutils/issues
 Suggests: 
