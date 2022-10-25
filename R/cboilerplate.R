@@ -3,6 +3,8 @@
 # in the repo https://github.com/Sage-Bionetworks/genie-erbb2-cbio/
 # ------------------------------------------------------------------------------ #
 
+# TO DO: Many of functions for making meta files according to the data type could 
+# benefit from implementation using S3 classes.
 
 # -- DATA FILES ---------------------------------------------------------------- #
 # Data files store data... cBioPortal has format specifications specific to the data type. 
@@ -79,7 +81,7 @@ write_cbio_clinical <- function(df,
 # Meta files describe the data files; they have less variable formatting than the data files.
 
 
-#' Make meta file for clinical data file
+#' Generic template for clinical data file
 #' 
 #' Make meta file to describe one of the clinical data files (e.g. SAMPLE, PATIENT).
 #' Adapted from https://github.com/Sage-Bionetworks/genie-erbb2-cbio/blob/develop/create_meta.R#L65
@@ -99,16 +101,49 @@ make_meta_clinical_generic <- function(cancer_study_identifier,
   rows[2] <- c(glue::glue("genetic_alteration_type: {genetic_alteration_type}"))
   rows[3] <- c(glue::glue("datatype: {datatype}"))
   rows[4] <- c(glue::glue("data_filename: {data_filename}"))
-  invisible(rows)
+  return(rows)
 }
+
+#' Generic template for genomic-type data file
+#'
+#' Reused from https://github.com/Sage-Bionetworks/genie-erbb2-cbio/blob/develop/create_meta.R#L65
+#' 
+#' @inheritParams make_meta_clinical_generic
+#' @param stable_id
+#' @param profile_name Name of the genomic profiling. This is set by the more specific `make_meta` utility. 
+#' For example, "Mutations" for `make_*_maf` and "Copy-number alterations" for `make_*_cna`.  
+#' @param profile_description Brief description for the genomic profiling. 
+#' This is set by the more specific `make_meta` utility.
+make_meta_genomic_generic <- function(cancer_study_identifier,
+                                      genetic_alteration_type, 
+                                      datatype, 
+                                      stable_id, 
+                                      profile_name, 
+                                      profile_description, 
+                                      data_filename) {
+  
+  rows <- rep(NA, 8)
+  rows[1] <- glue("cancer_study_identifier: {cancer_study_identifier}")
+  rows[2] <- glue("genetic_alteration_type: {genetic_alteration_type}")
+  rows[3] <- glue("datatype: {datatype}")
+  rows[4] <- glue("stable_id: {stable_id}")
+  rows[5] <- glue("show_profile_in_analysis_tab: true")
+  rows[6] <- glue("profile_name: {profile_name}")
+  rows[7] <- glue("profile_description: {profile_description}")
+  rows[8] <- glue("data_filename: {data_filename}")
+  return(rows)
+}
+
 
 #' Make meta file for maf
 #' 
 #' Reused from https://github.com/Sage-Bionetworks/genie-erbb2-cbio/blob/develop/create_meta.R#L157
 #' 
-#' @param 
-create_meta_maf <- function(cancer_study_identifier, 
-                            data_filename = "data_mutations_extended.txt") {
+#' @inheritParams make_meta_genomic_generic
+#' @param data_filename Name of the data file. Defaults to a standard name.
+#' @export
+make_meta_maf <- function(cancer_study_identifier, 
+                          data_filename = "data_mutations_extended.txt") {
   df_file <- create_meta_genomic_generic(cancer_study_identifier = cancer_study_identifier, 
                                          genetic_alteration_type = "MUTATION_EXTENDED", 
                                          datatype = "MAF", 
