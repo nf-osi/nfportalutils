@@ -1,7 +1,6 @@
 # ------------------------------------------------------------------------------ #
 # Attribution: The following utils to make cBioPortal files are adapted from some code written by @hhunterzinck
 # in the repo https://github.com/Sage-Bionetworks/genie-erbb2-cbio/
-# ------------------------------------------------------------------------------ #
 
 # TO DO: Many of functions for making meta files according to the data type could 
 # benefit from implementation using S3 classes.
@@ -9,7 +8,7 @@
 # -- DATA FILES ---------------------------------------------------------------- #
 # Data files store data... cBioPortal has format specifications specific to the data type. 
 # The only data type that we need to script for is the clinical data type, 
-# while everything else should be outputted from the processing pipeline in relatively standard formats,
+# while everything else should already be outputted from the processing pipeline in relatively standard format,
 # e.g. `maf`s, gene matrix, etc.
 
 #' Make header for cBioPortal clinical data file
@@ -44,7 +43,7 @@ get_cbio_filename <- function(sample_type = c("SAMPLE", "PATIENT")) {
   sample_type <- match.arg(sample_type)
   mapping <- switch(sample_type,
                     SAMPLE = "data_clinical_sample.txt",
-                    PATIENT = "data_clinical_sample.txt")
+                    PATIENT = "data_clinical_patient.txt")
   return(mapping)
 }
 
