@@ -10,7 +10,7 @@ annotate_expression(
   schema =
     "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld",
   verbose = TRUE,
-  update = FALSE
+  dry_run = TRUE
 )
 }
 \arguments{
@@ -23,7 +23,7 @@ Can specify different model/version, but in some cases may not work well.}
 
 \item{verbose}{Give verbose reports for what's happening.}
 
-\item{update}{Whether to apply annotations.}
+\item{dry_run}{Whether to apply annotations.}
 }
 \description{
 Annotate processed expression output

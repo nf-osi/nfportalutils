@@ -196,7 +196,7 @@ derive_annotations <- function(sample_io,
   x <- sample_io[grep(pattern, output_name)] 
   n <- nrow(x)
   if(!length(n)) stop(glue::glue("Expected {format} files not found. Are you annotating the right files?"))
-  if(verbose) message("Creating annotations for ", n, " files")
+  if(verbose) message(glue::glue("Creating annotations for ", n, " {format} files"))
   
   props <- get_dependency_from_json_schema(id = template, schema = schema)
   props <- props[!props %in% c("comments", "entityId", "fileFormat", "dataType", "dataSubtype", "progressReportNumber")]
@@ -366,10 +366,10 @@ annotate_called_variants <- function(sample_io,
 #' Check missing annotations, usually because input files are missing values so nothing could be copied.
 #' It might also be helpful to visualize the manifest via a package like `naniar::vis_miss(manifest)`.
 #' 
-#' @param manifest The manifest from one of the `annotate_*` functions.
-#' @param sample_io The input/output mapping used; only used if missing annotations detected.
+#' @param manifest A manifest, usually from one of the `annotate_*` functions.
+#' @param sample_io Input/output mapping used; only used if missing annotations detected.
 #' @return NULL if no problems, otherwise a table of entity ids affected, the attributes missing, and inputs used. 
-#' @param export
+#' @export
 qc_manifest <- function(manifest, sample_io) {
   missing <- apply(manifest, 2, function(x) sum(is.na(x)))
   if(all(missing == 0)) {
