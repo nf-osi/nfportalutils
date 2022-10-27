@@ -19,9 +19,8 @@
 #' In the future, it would be preferable to store clinical metadata in a separate normalized table.
 #' For now, this clinical data is pulled in from the view. To map NF clinical variables to the 
 #' [cBioPortal dictionary](https://github.com/cBioPortal/clinical-data-dictionary/blob/e9ec08f48bd57aabf193da70cdb5b88bdef5d01d/docs/resource_uri_to_clinical_attribute_mapping.txt)
-#' [as recommended](https://docs.cbioportal.org/file-formats/#custom-columns-in-clinical-data:~:text=The%20Clinical%20Data%20Dictionary%20from%20MSKCC%20is%20used%20to%20normalize%20clinical%20data), 
-#' this step requires a `ref_map` YAML file, which specifies what will be translated to cBioPortal and how. 
-#' The YAML is expected in a specific format.
+#' [as recommended](https://docs.cbioportal.org/file-formats/#custom-columns-in-clinical-data), 
+#' this step requires a `ref_map`, which is a YAML file.
 #' 
 #' 3. Make meta files. Meta files are needed for describing the study, mutations data file, and clinical data files. 
 #' 
