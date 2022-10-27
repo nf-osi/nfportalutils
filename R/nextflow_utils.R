@@ -229,7 +229,9 @@ derive_annotations <- function(sample_io,
 #' 
 #' 3. Manually add annotations that can't (yet?) be derived from #1 or #2. Has to be done outside of this util.
 #' 
-#' Always returns a "partial" manifest; the param `dry_run` specifies whether annotations should be applied.
+#' Always returns a "partial" manifest, which can be adjusted as needed; 
+#' for example, if default values such as the linked workflow version are out of date. 
+#' The param `dry_run` specifies whether annotations should be applied.
 #' 
 #' @inheritParams get_by_prop_from_json_schema
 #' @inheritParams annotate_with_tool_stats
@@ -296,37 +298,62 @@ annotate_expression <- function(sample_io,
 #' One can specify to only annotate either the "vcf" or "maf" files and create a manifest
 #' for just those files, or use "auto" to detect the file types present in `sample_io`.
 #' 
-#' `maf` files use the same template but with different default values, such a subclass term for `dataType`.
+#' `maf` files use the same template but with different default values, such as a subclass term for `dataType`.
 #' If in the future `maf`s require a significantly different template, 
 #' then this should be factored out into a separate annotation function.
 #' 
 #' @inheritParams annotate_aligned_reads
 #' @param sample_io Table mapping input to outputs, which reference output `.vcf.gz` or `maf` files.
-#' @param format Variant format, "auto" to handle any "vcf" or "maf", or specify one for more control. See details.
-#' @param data_type Variant type, given that this can be used with either somatic or germline.
+#' @param format Variant format, "auto" to handle any "vcf" or "maf" files present automatically, or specify one explicitly. See details.
+#' @param data_type Variant type, use "auto" to infer from naming scheme and current NF processing SOP, or specify more explicitly.
 #' @export
 annotate_called_variants <- function(sample_io,
                                      format = c("auto", "vcf", "maf"),
                                      template = "bts:ProcessedVariantCallsTemplate",
                                      schema = "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld",
-                                     data_type = c("SomaticVariants", "GermlineVariants"),
+                                     data_type = c("auto", "SomaticVariants", "GermlineVariants", "AnnotatedSomaticVariants", "AnnotatedGermlineVariants"),
                                      verbose = TRUE,
                                      dry_run = TRUE) {
   
   format <- match.arg(format)
   if(format == "auto") {
-    
-    
+    annotations <- list()
+    if(any(grepl("vcf[.]gz$", sample_io$output_name))) annotations$vcf <- derive_annotations(sample_io, template, schema, format = "vcf", verbose)
+    if(any(grepl("maf$", sample_io$output_name))) annotations$maf <- derive_annotations(sample_io, template, schema, format = "maf", verbose)
+    annotations <- rbindlist(annotations)
+  } else {
+    annotations <- derive_annotations(sample_io, template, schema, format = format, verbose)
   }
+  
   data_type <- match.arg(data_type)
-  annotations <- derive_annotations(sample_io, template, schema, format = format, verbose)
-  # Overrides
-  if(format == "maf") {
-    data_type <- paste0("Annotated", data_type)
-    annotations[, workflow := "nf-vcf2maf"] 
-    annotations[, workflowLink := "https://github.com/Sage-Bionetworks-Workflows/nf-vcf2maf/tree/1.0.1"]
+  if(data_type == "auto") {
+    data_type_assign <- function(name, format) {
+      if(grepl("_vs_", name) && format == "vcf") { 
+        "SomaticVariants" 
+      } else if(!grepl("_vs_", name) && format == "vcf") { # vcfs can be annotated, but this is based on NF processing
+        "GermlineVariants" 
+      } else if(grepl("_vs_", name) && format == "maf") { 
+        "AnnotatedSomaticVariants" 
+      } else if(!grepl("_vs_", name) && format == "maf") { 
+        "AnnotatedGermlineVariants" 
+      } else { 
+        stop("Tried to use incompatible values in data assignment rules.") 
+      }
+    }
+  } else {
+    data_type_assign <- function(name, format) { data_type }
   }
-  annotations[, dataType := data_type]
+  annotations[, data_type := data_type_assign(Filename, fileFormat), by = entityId]
+  
+  annotations[fileFormat == "vcf" & workflow == "Strelka", workflowLink := "https://nf-co.re/sarek/2.7.1/output#strelka2"]
+  annotations[fileFormat == "vcf" & workflow == "Strelka", workflow := "Strelka2"]
+  annotations[fileFormat == "vcf" & workflow == "Mutect2", workflowLink := "https://nf-co.re/sarek/2.7.1/output#gatk-mutect2"]
+  annotations[fileFormat == "vcf" & workflow == "FreeBayes", workflowLink := "https://nf-co.re/sarek/2.7.1/output#freebayes"]
+  annotations[fileFormat == "vcf" & workflow == "DeepVariant", workflowLink := "https://github.com/google/deepvariant/tree/r1.1"]
+  
+  annotations[fileFormat == "maf", workflow := "nf-vcf2maf"] 
+  annotations[fileFormat == "maf", workflowLink := "https://github.com/Sage-Bionetworks-Workflows/nf-vcf2maf/tree/1.0.1"] 
+    
   if(!dry_run) {
     annotate_with_manifest(annotations)
     if(verbose) message("Applied annotations.")
