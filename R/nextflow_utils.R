@@ -225,18 +225,18 @@ derive_annotations <- function(sample_io,
 #' Ideally, the data model itself should include inheritance rules; since that isn't possible currently, 
 #' we hard-code lots of stuff, so this is hard to generalize for other data models. 
 #' 
-#' 2. Extract metrics from auxiliary files to surface as annotations. See  \code{\link{annotate_with_tool_stats}}.
+#' 2. Extract metrics from auxiliary files to surface as annotations. See \code{\link{annotate_with_tool_stats}}.
 #' 
 #' 3. Manually add annotations that can't (yet?) be derived from #1 or #2. Has to be done outside of this util.
 #' 
-#' Always returns a "partial" manifest; the param `update` specifies whether annotations should be applied.
+#' Always returns a "partial" manifest; the param `dry_run` specifies whether annotations should be applied.
 #' 
 #' @inheritParams get_by_prop_from_json_schema
 #' @inheritParams annotate_with_tool_stats
 #' @param template (Optional) URI of template in data model to use, prefixed if needed. 
 #' Can specify different model/version, but in some cases may not work well.
 #' @param sample_io Table mapping input to outputs.
-#' @param update Whether to apply annotations.
+#' @param dry_run Whether to apply annotations.
 #' @param verbose Give verbose reports for what's happening.
 #' @export
 annotate_aligned_reads <- function(sample_io,
@@ -245,7 +245,7 @@ annotate_aligned_reads <- function(sample_io,
                                    template = "bts:ProcessedAlignedReadsTemplate",
                                    schema = "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld",
                                    verbose = TRUE,
-                                   update = FALSE) {
+                                   dry_run = TRUE) {
   
   annotations <- derive_annotations(sample_io, template, schema, format = "bam", verbose)
   qc <- annotate_with_tool_stats(samtools_stats_file, picard_stats_file, sample_io)
@@ -256,7 +256,7 @@ annotate_aligned_reads <- function(sample_io,
   }
 
   annotations[, dataType := "AlignedReads"]
-  if(update) {
+  if(!dry_run) {
     annotate_with_manifest(annotations)
     if(verbose) message("Applied annotations.")
   }
@@ -273,12 +273,12 @@ annotate_expression <- function(sample_io,
                                 template = "bts:ProcessedExpressionTemplate",
                                 schema = "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld",
                                 verbose = TRUE,
-                                update = FALSE) {
+                                dry_run = TRUE) {
   
   annotations <- derive_annotations(sample_io, template, schema, format = "sf", verbose)
   annotations[, expressionUnit := "TPM"]
   annotations[, dataType := "geneExpression"]
-  if(update) {
+  if(!dry_run) {
     annotate_with_manifest(annotations)
     if(verbose) message("Applied annotations.")
   }
@@ -289,24 +289,35 @@ annotate_expression <- function(sample_io,
 
 #' Annotate somatic or germline variants output
 #' 
-#' Variant format defaults to `vcf`, with `maf`s produced in subsequent annotation workflow as is the SOP for NF.
-#' Thus, if `maf`, this upgrades the dataType and overrides a few attribute values.
-#' If in the future `maf`s require a different template, then this should be factored out into another specialized annotation function.
+#' Currently, `vcf` are output first and `maf`s appear after a subsequent workflow run, 
+#' so depending on when `map_sample_output_sarek` is run to create a `sample_io` file, 
+#' there will be just `vcf` files or both. 
+#' (In the future, the workflows will likely be joined so both are deposited at the same run.)
+#' One can specify to only annotate either the "vcf" or "maf" files and create a manifest
+#' for just those files, or use "auto" to detect the file types present in `sample_io`.
+#' 
+#' `maf` files use the same template but with different default values, such a subclass term for `dataType`.
+#' If in the future `maf`s require a significantly different template, 
+#' then this should be factored out into a separate annotation function.
 #' 
 #' @inheritParams annotate_aligned_reads
-#' @param sample_io Table mapping input to outputs, where outputs are expected to be `.vcf.gz` files.
-#' @param format Variant format, either "vcf" or "maf". See details for assumptions.
+#' @param sample_io Table mapping input to outputs, which reference output `.vcf.gz` or `maf` files.
+#' @param format Variant format, "auto" to handle any "vcf" or "maf", or specify one for more control. See details.
 #' @param data_type Variant type, given that this can be used with either somatic or germline.
 #' @export
 annotate_called_variants <- function(sample_io,
-                                     format = c("vcf", "maf"),
+                                     format = c("auto", "vcf", "maf"),
                                      template = "bts:ProcessedVariantCallsTemplate",
                                      schema = "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld",
                                      data_type = c("SomaticVariants", "GermlineVariants"),
                                      verbose = TRUE,
-                                     update = FALSE) {
+                                     dry_run = TRUE) {
   
   format <- match.arg(format)
+  if(format == "auto") {
+    
+    
+  }
   data_type <- match.arg(data_type)
   annotations <- derive_annotations(sample_io, template, schema, format = format, verbose)
   # Overrides
@@ -316,7 +327,7 @@ annotate_called_variants <- function(sample_io,
     annotations[, workflowLink := "https://github.com/Sage-Bionetworks-Workflows/nf-vcf2maf/tree/1.0.1"]
   }
   annotations[, dataType := data_type]
-  if(update) {
+  if(!dry_run) {
     annotate_with_manifest(annotations)
     if(verbose) message("Applied annotations.")
   }
