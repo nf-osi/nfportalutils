@@ -17,14 +17,15 @@
 #' 2. Make the clinical data files. 
 #' For NF, the clinical metadata are annotations on the files/surfaced in a view and are pretty basic. 
 #' In the future, it would be preferable to store clinical metadata in a separate normalized table.
-#' For now, this clinical data is pulled in from the view. To map NF clinical variables to the cBioPortal dictionary 
+#' For now, this clinical data is pulled in from the view. To map NF clinical variables to the 
+#' [cBioPortal dictionary](https://github.com/cBioPortal/clinical-data-dictionary/blob/e9ec08f48bd57aabf193da70cdb5b88bdef5d01d/docs/resource_uri_to_clinical_attribute_mapping.txt)
 #' [as recommended](https://docs.cbioportal.org/file-formats/#custom-columns-in-clinical-data:~:text=The%20Clinical%20Data%20Dictionary%20from%20MSKCC%20is%20used%20to%20normalize%20clinical%20data), 
-#' this step also requires a `ref_map` YAML file, which specifies what will be translated to cBioPortal and how. 
+#' this step requires a `ref_map` YAML file, which specifies what will be translated to cBioPortal and how. 
 #' The YAML is expected in a specific format.
 #' 
 #' 3. Make meta files. Meta files are needed for describing the study, mutations data file, and clinical data files. 
 #' 
-#' This wrapper creates the dataset. However, there are additional steps that should be done after such as validation.
+#' This wrapper creates the dataset, but there are additional steps such as validation that have to be done outside of R (with a cBioPortal instance).
 #' You do not need necessarily need to set up a full local development server but will need the cBioPortal back-end at least.
 #' See [docs for the dataset validation](https://docs.cbioportal.org/using-the-dataset-validator/).
 #' You can use the back-end image such as `cbioportal/cbioportal:4.1.13` and mount the dataset into the container 
