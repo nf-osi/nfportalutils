@@ -52,36 +52,50 @@ get_cbio_filename <- function(clinical_type = c("SAMPLE", "PATIENT")) {
 #' Write cBioPortal clinical file 
 #' 
 #' Wrapper function for creating clinical files. There are two: PATIENT and SAMPLE. 
-#' The patient file is actually optional, so if there are no patient attributes 
-#' to create a file for, that is OK.
-#' `df` is expected to be a table containing all clinical data available, or maybe even some irrelevant data 
-#' (since NF data is not well-normalized and we just have a single table with everything).
+#' The PATIENT file is actually optional, so there are only checks for making sure SAMPLE can be created.
+#' `df` is expected to be a table containing clinical data available, and maybe even some irrelevant data 
+#' (since NF data is not well-normalized and there is a single table with everything).
+#' 
 #' This relies on a `ref_map` specification to know which clinical data to include for cBioPortal
 #' and how to segregate the clinical attributes into the right files. 
 #' For example, say `df` contains clinical variables A-X, but mappings are only specified for
 #' variables A-C, L-M and others are not meant to be surfaced/made public. This will subset the `df` to what's specified in the mapping.
-#' On the other hand, if there is a mapping for variable Z that is _not_ in the clinical data, then this will throw error. 
+#' Conversely, if there is a mapping for variable Z that is _not_ in the clinical data, this _will_ throw error. 
 #' 
 #' @inheritParams ref_map
 #' @inheritParams make_cbio_clinical_header
 #' @inheritParams get_cbio_filename
-#' @param na_replace Possible NA values to replace with "" in exported file.
+#' @param na_recode Possible NA values to replace with a blank string (which seems to be standard) in exported file.
 #' @param delim Delimiter character used for writing file, defaults to tab-delimited per cBioPortal specs.
 #' @param verbose Whether to be verbose, default TRUE.
 #' @export
 write_cbio_clinical <- function(df, 
                                 ref_map, 
-                                na_recode = c("NA", "NaN", "unknown", "", "."),
+                                na_recode = c("NA", "NaN", "unknown", "Unknown"),
                                 delim = "\t",
                                 publish_dir = ".",
                                 verbose = TRUE) {
   
   m <- use_ref_map(ref_map)
+  attributes <- m$source
   m <- split(m, by = "attribute_type")
-  if(!"SAMPLE" %in% names(m)) stop("SAMPLE data not present, which is required!")
+  
+  # Move/factor out these checks?
+  if(!all(attributes %in% names(df))) stop(glue::glue_collapse(setdiff(attributes, names(df)), ","), " specified in mapping but not available in data. Check data.")
+  if(!"SAMPLE" %in% names(m)) stop("According to mapping, no SAMPLE clinical file will be created. Check mapping.")
+  
   for(clinical_type in names(m)) {
     .df <- df[, m[[clinical_type]]$source ]
-    .df <- .df %>% recode()
+    # cBioPortal does not allow list columns
+    for(col in names(.df)) {
+      if(class(.df[[col]]) == "list") {
+        .df[[col]] <- paste(.df[[col]], sep = ",") 
+        warning(glue::glue("Coerced {col} data from list for export, you may want to check output."))
+      }
+      # Use actual NA's so that `write.table` can write out "" consistently
+      .df[.df[[col]] %in% na_recode, col ] <- NA_character_
+
+    }
     filename <- get_cbio_filename(clinical_type)
     header <- make_cbio_clinical_header(.df, 
                                         m[[clinical_type]]$label, 
@@ -91,15 +105,15 @@ write_cbio_clinical <- function(df,
     df_out <- rbind(header, .df)
     path <- glue::glue("{publish_dir}/{filename}")
     write.table(df_out, 
-                file = path), 
+                file = path, 
                 sep = delim, 
                 na = "",
                 col.names = F, 
                 row.names = F, 
                 quote = F)
-    
     if(verbose) message(glue::glue("{clinical_type} data written to: {path}"))
   }
+  
 }
 
 # -- META FILES ---------------------------------------------------------------- #
@@ -238,7 +252,10 @@ make_meta_maf <- function(cancer_study_identifier,
   invisible(df_file)
 }
 
-# --- Other utils --------------------------------------------------------------#
+# --- Meta study -------------------------------------------------------------- #
+
+
+# --- Other utils -------------------------------------------------------------- #
 
 #' Read and use a mapping file 
 #' 
