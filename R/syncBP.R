@@ -56,10 +56,10 @@ syncBP_maf <- function(merged_maf,
     dir.create(publish_dir)
   }
   
-  if(verbose) message("--- Getting the `merged_maf` file ---")
+  if(verbose) message("--- Getting `merged_maf` file ---")
   file <- .syn$get(merged_maf, downloadLocation = publish_dir)
   
-  if(verbose) message("--- Standardizing `maf` release file name ---")
+  if(verbose) message("--- Standardizing `maf` release filename ---")
   data_mutations_extended <- sub(file$name, "data_mutations_extended.txt", file$path)
   file.rename(file$path, data_mutations_extended)
   
@@ -71,7 +71,7 @@ syncBP_maf <- function(merged_maf,
   if(!is.null(check_result)) stop("Unfortunately, check of `maf` release failed so will not continue.")
   
   if(verbose) message("--- Pulling the clinical data ---")
-  df <- get_data_for_releasable(sample_sheet, ref_view, verbose = verbose)
+  df <- get_data_for_releasable(ss, ref_view, verbose = verbose)
   
   if(verbose) message("--- Making the clinical data files ---")
   write_cbio_clinical(df, ref_map = ref_map, publish_dir = publish_dir, verbose = verbose)
@@ -87,6 +87,7 @@ syncBP_maf <- function(merged_maf,
 
 #' Download data from a view for releasable samples in samplesheet 
 #' 
+#' This tries to check that complete data could be retrieved from said view. 
 #' Note: Since the view is typically denormalized, not all data might be clinical. 
 #' A downstream step will do some of the additional processing/subsetting needed.
 #'  
@@ -94,16 +95,22 @@ syncBP_maf <- function(merged_maf,
 #' @param ref_view View to get data from. 
 #' @param verbose Output details.
 #' @keywords internal
-get_data_for_releasable <- function(samplesheet, ref_view, verbose = TRUE) {
+get_data_for_releasable <- function(samplesheet, 
+                                    ref_view, 
+                                    verbose = TRUE) {
   
-  ids <- samplesheet[is_releasable == TRUE, biospecimen_id]
-  if(verbose) {
-    message(glue::glue("Retrieving data for {length(ids)} releasable ids from {ref_view}"))
-  }
+  # bc specimen ids in samplesheet are different than actual ids on the files to avoid spaces, use file ids
+  # ids <- samplesheet[is_releasable == TRUE, biospecimen_id]
+  ss_key <- "synapse_id"
+  rv_key <- "id"
+  ids <- samplesheet[is_releasable == TRUE, get(ss_key)]
   ls <- glue::glue_collapse(glue::single_quote(ids), sep = ",")
-  ref_view <- .syn$tableQuery("SELECT * FROM {ref_view} WHERE specimenID in (ls)")
-  ref_view <- ref_view$asDataFrame()
-  return(ref_view)
+  n <- length(ids)
+  if(verbose) message(glue::glue("Retrieving from {ref_view} data for {n} releasable ids: {ls}"))
+  ref_view <- .syn$tableQuery(glue::glue("SELECT * FROM {ref_view} WHERE {rv_key} in ({ls})"))
+  df <- ref_view$asDataFrame()
+  if(nrow(df) != n) stop(glue::glue("Data retrieved for {nrow(df)} of {n} release ids. Is this right `ref_view`?"))
+  return(df)
 }
 
 
@@ -115,7 +122,8 @@ get_data_for_releasable <- function(samplesheet, ref_view, verbose = TRUE) {
 #' @param merged_maf Maf file as a `data.table`.
 #' @param samplesheet Samplesheet as a `data.table`.
 #' @return Returns `NULL` if everything OK, else the sample ids that don't match expectations.
-check_maf_release <- function(merged_maf, samplesheet) {
+check_maf_release <- function(merged_maf, 
+                              samplesheet) {
   
   # samplesheet[is_releasable == TRUE, .N]
   ss_samples <- samplesheet[is_releasable == TRUE, biospecimen_id]
