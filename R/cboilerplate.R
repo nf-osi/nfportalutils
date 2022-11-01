@@ -237,7 +237,8 @@ make_meta_genomic_generic <- function(cancer_study_identifier,
 make_meta_maf <- function(cancer_study_identifier, 
                           data_filename = "data_mutations_extended.txt",
                           publish_dir = ".",
-                          write = TRUE) {
+                          write = TRUE,
+                          verbose = TRUE) {
   
   meta_filename <- "meta_mutations_extended.txt"
   df_file <- make_meta_genomic_generic(cancer_study_identifier = cancer_study_identifier, 
@@ -252,7 +253,57 @@ make_meta_maf <- function(cancer_study_identifier,
   invisible(df_file)
 }
 
-# --- Meta study -------------------------------------------------------------- #
+# --- Meta study --------------------------------------------------------------- #
+
+#' Template for meta study file
+#' 
+#' @keywords internal
+make_meta_study_generic <- function(type_of_cancer, 
+                                      cancer_study_identifier, 
+                                      name, 
+                                      description, 
+                                      groups, 
+                                      short_name) {
+  rows <- rep(NA, 6)
+  rows[1] <- glue::glue("type_of_cancer: {type_of_cancer}")
+  rows[2] <- glue::glue("cancer_study_identifier: {cancer_study_identifier}")
+  rows[3] <- glue::glue("name: {name}")
+  rows[4] <- glue::glue("description: {description}")
+  rows[5] <- glue::glue("groups: {groups}")
+  rows[6] <- glue::glue("short_name: {short_name}")
+  return(rows)
+}
+
+#' Make meta study file
+#' 
+#' Reused from https://github.com/Sage-Bionetworks/genie-erbb2-cbio/blob/develop/create_meta.R#L179
+#' 
+#' @inheritParams make_meta_genomic_generic
+#' @param type_of_cancer Type of cancer, defaults to "mixed". See also http://oncotree.mskcc.org/#/home.
+#' @param name Name of the study.
+#' @param description Description of the study.
+#' @param short_name Short name for the study.
+#' @export
+make_meta_study <- function(cancer_study_identifier,
+                            type_of_cancer = "mixed",
+                            name, 
+                            description, 
+                            short_name,
+                            publish_dir = ".",
+                            write = TRUE,
+                            verbose = TRUE) {
+  
+  meta_filename <- "meta_study.txt"
+  df_file <- make_meta_study_generic(cancer_study_identifier = cancer_study_identifier,
+                                     type_of_cancer = type_of_cancer, 
+                                     name = name, 
+                                     description = description, 
+                                     groups = "PUBLIC", 
+                                     short_name = short_name)
+  
+  if(write) write_meta(df_file, meta_filename, publish_dir, verbose)
+  invisible(df_file)
+}
 
 
 # --- Other utils -------------------------------------------------------------- #

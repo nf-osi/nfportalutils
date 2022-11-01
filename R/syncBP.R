@@ -1,11 +1,11 @@
 #' Make cBioPortal mutations dataset from Synapse assets
 #' 
 #' The NF-OSI workflow produces a single merged maf file that represents a filtered subset of the `maf`s,
-#' including only the (non-germline) data that _can_ be released for cBioPortal.
-#' However, this data file by itself is not immediately loadable into an instance of a cBioPortal server.
-#' It needs to be packaged with some other files, 
-#' such as this [example of a minimal public dataset with mutations data](https://github.com/cBioPortal/datahub/tree/1e03ea6ab5e0ddd497ecf349cbee7d50aeebcd5e/public/msk_ch_2020). 
-#' To create this bundle of cBioPortal files, this wrapper calls a number of lower-level functions to do the following:
+#' containing only the (non-germline) data that _can_ be released for cBioPortal.
+#' However, this data file by itself is not immediately loadable into an instance of a cBioPortal server
+#' and needs to be packaged with other files, such as this 
+#' [example of a public mutations dataset](https://github.com/cBioPortal/datahub/tree/1e03ea6ab5e0ddd497ecf349cbee7d50aeebcd5e/public/msk_ch_2020). 
+#' This is a wrapper that goes through several steps needed to create said bundle of cBioPortal files more conveniently.
 #' 
 #' 1. A simple sanity check that this is the version of the maf release file that we want, based on the samplesheet.
 #' For example, version 1 of the samplesheet will generate a version 1 of the merged maf, 
@@ -16,18 +16,18 @@
 #' 
 #' 2. Make the clinical data files. 
 #' For NF, the clinical metadata are annotations on the files/surfaced in a view and are pretty basic. 
-#' In the future, it would be preferable to store clinical metadata in a separate normalized table.
+#' In the future, it would be preferable to store clinical metadata in a real normalized table.
 #' For now, this clinical data is pulled in from the view. To map NF clinical variables to the 
 #' [cBioPortal dictionary](https://github.com/cBioPortal/clinical-data-dictionary/blob/e9ec08f48bd57aabf193da70cdb5b88bdef5d01d/docs/resource_uri_to_clinical_attribute_mapping.txt)
 #' [as recommended](https://docs.cbioportal.org/file-formats/#custom-columns-in-clinical-data), 
 #' this step requires a `ref_map`, which is a YAML file.
 #' 
-#' 3. Make meta files. Meta files are needed for describing the study, mutations data file, and clinical data files. 
+#' 3. Make meta files. Meta files are needed for describing the study, mutations data file, clinical data files. 
 #' 
-#' This wrapper creates the dataset, but there are additional steps such as validation that have to be done outside of R (with a cBioPortal instance).
-#' You do not need necessarily need to set up a full local development server but will need the cBioPortal back-end at least.
+#' While this creates the dataset, there are additional steps such as validation that have to be done outside of R (with a cBioPortal instance).
+#' While a full local development server is not necessarily needed, some version of the cBioPortal back-end needs to be available locally.
 #' See [docs for the dataset validation](https://docs.cbioportal.org/using-the-dataset-validator/).
-#' Use the back-end image such as `cbioportal/cbioportal:4.1.13` and mount the dataset into the container 
+#' Use a back-end image such as `cbioportal/cbioportal:4.1.13` and mount the dataset into the container 
 #' for running validation in offline mode, e.g. with the command 
 #' `docker run -e S=/cbioportal/nfosi_2022 -v $(pwd)/nfosi_2022:/cbioportal/nfosi_2022 -w /cbioportal/core/src/main/scripts/importer --entrypoint /bin/bash cbioportal/cbioportal:4.1.13 -c './validateData.py -s $S -p ../../../test/scripts/test_data/api_json_system_tests/ -v'`
 #' 
@@ -38,8 +38,8 @@
 #' @param ref_view A view or table that contains clinical data for the samples. 
 #' @param cancer_study_identifier The study identifier, defaults to `nfosi_YEAR`.
 #' @param publish_dir Where to output the cBioPortal set of files. 
-#' Defaults to a folder with same name as `cancer_study_identifier`.
-#' @param verbose Verbosity option passed to implementers.
+#' Defaults to (creating if necessary) a folder with same name as `cancer_study_identifier`.
+#' @param verbose Whether to be verbose throughout.
 #' @export
 syncBP_maf <- function(merged_maf,
                        samplesheet,
@@ -80,6 +80,16 @@ syncBP_maf <- function(merged_maf,
   make_meta_clinical(cancer_study_identifier, publish_dir = publish_dir, verbose = verbose)
   make_meta_maf(cancer_study_identifier, publish_dir = publish_dir, verbose = verbose)
   
+  # If a single value in tumorType, use that, otherwise "mixed" as the catch-all
+  cancer_type <- unique(df$tumorType)
+  cancer_type <- cancer_type[cancer_type != ""]
+  cancer_type_official <- if(length(cancer_type) != 1) "mixed" else cancer_type
+  make_meta_study(cancer_study_identifier,
+                  type_of_cancer = cancer_type_official,
+                  name = glue::glue("NF-OSI Processed Data"), 
+                  description = "The mutations data are processed from standard NF-OSI (https://sagebionetworks.org/research-projects/nf-open-science-initiative/) pipelines and funded by the Neurofibromatosis Therapeutic Acceleration Program (NTAP)", 
+                  short_name = glue::glue("NF-OSI (Sage Bionetworks, {format(Sys.Date(), '%Y')})"))
+  
   if(verbose) message("All files have been added successfully.")
   
 }
@@ -106,7 +116,7 @@ get_data_for_releasable <- function(samplesheet,
   ids <- samplesheet[is_releasable == TRUE, get(ss_key)]
   ls <- glue::glue_collapse(glue::single_quote(ids), sep = ",")
   n <- length(ids)
-  if(verbose) message(glue::glue("Retrieving from {ref_view} data for {n} releasable ids: {ls}"))
+  if(verbose) message(glue::glue("Retrieving from {ref_view} data for {n} releasable ids"))
   ref_view <- .syn$tableQuery(glue::glue("SELECT * FROM {ref_view} WHERE {rv_key} in ({ls})"))
   df <- ref_view$asDataFrame()
   if(nrow(df) != n) stop(glue::glue("Data retrieved for {nrow(df)} of {n} release ids. Is this right `ref_view`?"))
