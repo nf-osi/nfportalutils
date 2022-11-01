@@ -74,7 +74,7 @@ syncBP_maf <- function(merged_maf,
   if(file.exists(glue::glue("{publish_dir}/data_clinical_patient.txt"))) {
     make_meta_patient(cancer_study_identifier, publish_dir = publish_dir, verbose = verbose)
   }
-  make_meta_clinical(cancer_study_identifier, publish_dir = publish_dir, verbose = verbose)
+  make_meta_sample(cancer_study_identifier, publish_dir = publish_dir, verbose = verbose)
   make_meta_maf(cancer_study_identifier, publish_dir = publish_dir, verbose = verbose)
   
   # If a single value in tumorType, use that, otherwise "mixed" as the catch-all
