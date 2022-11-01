@@ -24,22 +24,14 @@
 #' 
 #' 3. Make meta files. Meta files are needed for describing the study, mutations data file, clinical data files. 
 #' 
-#' While this creates the dataset, there are additional steps such as validation that have to be done outside of R (with a cBioPortal instance).
-#' While a full local development server is not necessarily needed, some version of the cBioPortal back-end needs to be available locally.
-#' See [docs for the dataset validation](https://docs.cbioportal.org/using-the-dataset-validator/).
-#' Use a back-end image such as `cbioportal/cbioportal:4.1.13` and mount the dataset into the container 
-#' for running validation in offline mode, e.g. with the command 
-#' `docker run -e S=/cbioportal/nfosi_2022 -v $(pwd)/nfosi_2022:/cbioportal/nfosi_2022 -w /cbioportal/core/src/main/scripts/importer --entrypoint /bin/bash cbioportal/cbioportal:4.1.13 -c './validateData.py -s $S -p ../../../test/scripts/test_data/api_json_system_tests/ -v'`
-#' 
 #' @param merged_maf Synapse id of `merged maf` file for public release.
 #' @param samplesheet Synapse id or local path to samplesheet with release info.
-#' @param ref_map YAML file specifying the mapping of (NF) clinical metadata to cBioPortal model. 
-#' This follows a specific format.
-#' @param ref_view A view or table that contains clinical data for the samples. 
+#' @param ref_map YAML file specifying the mapping of (NF) clinical metadata to cBioPortal model. See details.
+#' @param ref_view A view that contains clinical data for the release files. 
 #' @param cancer_study_identifier The study identifier, defaults to `nfosi_YEAR`.
-#' @param publish_dir Where to output the cBioPortal set of files. 
+#' @param publish_dir Where to output the set of files. 
 #' Defaults to (creating if necessary) a folder with same name as `cancer_study_identifier`.
-#' @param verbose Whether to be verbose throughout.
+#' @param verbose Whether to provide informative messages throughout.
 #' @export
 syncBP_maf <- function(merged_maf,
                        samplesheet,
@@ -77,6 +69,11 @@ syncBP_maf <- function(merged_maf,
   write_cbio_clinical(df, ref_map = ref_map, publish_dir = publish_dir, verbose = verbose)
   
   if(verbose) message("--- Making the meta files ---")
+  # only make meta patient if see that it has been outputted; 
+  # meta sample is required and previous step will error otherwise
+  if(file.exists(glue::glue("{publish_dir}/data_clinical_patient.txt"))) {
+    make_meta_patient(cancer_study_identifier, publish_dir = publish_dir, verbose = verbose)
+  }
   make_meta_clinical(cancer_study_identifier, publish_dir = publish_dir, verbose = verbose)
   make_meta_maf(cancer_study_identifier, publish_dir = publish_dir, verbose = verbose)
   
@@ -157,3 +154,9 @@ check_maf_release <- function(merged_maf,
   
   invisible(result)
 }
+
+#' TO DO
+#' 
+#' When a dataset has already been created, one might want to only add or update a 
+#' data type (where clinical data is the same). Having an `add_*` or `update_*` 
+#' type util might be useful.
