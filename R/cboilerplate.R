@@ -71,7 +71,7 @@ get_cbio_filename <- function(clinical_type = c("SAMPLE", "PATIENT")) {
 #' @export
 write_cbio_clinical <- function(df, 
                                 ref_map, 
-                                na_recode = c("NA", "unknown", "", "."),
+                                na_recode = c("NA", "NaN", "unknown", "", "."),
                                 delim = "\t",
                                 publish_dir = ".",
                                 verbose = TRUE) {
@@ -89,7 +89,7 @@ write_cbio_clinical <- function(df,
                                         m[[clinical_type]]$data_type)
     
     df_out <- rbind(header, .df)
-    path <- glue::glue("{publish_dir}/{filename}"
+    path <- glue::glue("{publish_dir}/{filename}")
     write.table(df_out, 
                 file = path), 
                 sep = delim, 
