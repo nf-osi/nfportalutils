@@ -55,7 +55,7 @@ syncBP_maf <- function(merged_maf,
   data_mutations_extended <- sub(file$name, "data_mutations_extended.txt", file$path)
   file.rename(file$path, data_mutations_extended)
   
-  if(verbose) message("--- Checking the `maf` release file ---")
+  if(verbose) message("--- Checking the `maf` release file against samplesheet ---")
   mm <- dt_read(data_mutations_extended) # don't bother with maftools dependency as doing basic check
   ss <- dt_read(samplesheet)
   check_result <- check_maf_release(mm, ss)
@@ -85,7 +85,9 @@ syncBP_maf <- function(merged_maf,
                   type_of_cancer = cancer_type_official,
                   name = glue::glue("NF-OSI Processed Data"), 
                   description = "The mutations data are processed from standard NF-OSI (https://sagebionetworks.org/research-projects/nf-open-science-initiative/) pipelines and funded by the Neurofibromatosis Therapeutic Acceleration Program (NTAP)", 
-                  short_name = glue::glue("NF-OSI (Sage Bionetworks, {format(Sys.Date(), '%Y')})"))
+                  short_name = glue::glue("NF-OSI (Sage Bionetworks, {format(Sys.Date(), '%Y')})"),
+                  publish_dir = publish_dir, 
+                  verbose = verbose)
   
   if(verbose) message("All files have been added successfully.")
   

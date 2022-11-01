@@ -19,17 +19,16 @@ syncBP_maf(
 
 \item{samplesheet}{Synapse id or local path to samplesheet with release info.}
 
-\item{ref_map}{YAML file specifying the mapping of (NF) clinical metadata to cBioPortal model.
-This follows a specific format.}
+\item{ref_map}{YAML file specifying the mapping of (NF) clinical metadata to cBioPortal model. See details.}
 
-\item{ref_view}{A view or table that contains clinical data for the samples.}
+\item{ref_view}{A view that contains clinical data for the release files.}
 
 \item{cancer_study_identifier}{The study identifier, defaults to \code{nfosi_YEAR}.}
 
-\item{publish_dir}{Where to output the cBioPortal set of files.
+\item{publish_dir}{Where to output the set of files.
 Defaults to (creating if necessary) a folder with same name as \code{cancer_study_identifier}.}
 
-\item{verbose}{Whether to be verbose throughout.}
+\item{verbose}{Whether to provide informative messages throughout.}
 }
 \description{
 The NF-OSI workflow produces a single merged maf file that represents a filtered subset of the \code{maf}s,
@@ -56,11 +55,4 @@ For now, this clinical data is pulled in from the view. To map NF clinical varia
 this step requires a \code{ref_map}, which is a YAML file.
 \item Make meta files. Meta files are needed for describing the study, mutations data file, clinical data files.
 }
-
-While this creates the dataset, there are additional steps such as validation that have to be done outside of R (with a cBioPortal instance).
-While a full local development server is not necessarily needed, some version of the cBioPortal back-end needs to be available locally.
-See \href{https://docs.cbioportal.org/using-the-dataset-validator/}{docs for the dataset validation}.
-Use a back-end image such as \verb{cbioportal/cbioportal:4.1.13} and mount the dataset into the container
-for running validation in offline mode, e.g. with the command
-\verb{docker run -e S=/cbioportal/nfosi_2022 -v $(pwd)/nfosi_2022:/cbioportal/nfosi_2022 -w /cbioportal/core/src/main/scripts/importer --entrypoint /bin/bash cbioportal/cbioportal:4.1.13 -c './validateData.py -s $S -p ../../../test/scripts/test_data/api_json_system_tests/ -v'}
 }
