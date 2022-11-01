@@ -2,9 +2,13 @@
 # Attribution: The following utils to make cBioPortal files are adapted from some code written by the awesome @hhunterzinck
 # in the repo https://github.com/Sage-Bionetworks/genie-erbb2-cbio/
 
-# TO DO: Many of functions for making meta files according to the data type might
-# benefit from implementation using S3 classes especially if we will be using more different types in the future,
+# TO DO / DEV NOTES: 
+# 1. Many of functions for making meta files according to the data type might
+# benefit from implementation using S3 classes esp. if will be using more different types in the future,
 # but that is currently not worth the rewrite.
+
+# 2. It may make sense to write meta files automatically whenever writing a 
+# data file is called. This might be mainly updating the main wrapper or creating more wrappers.
 
 # -- DATA FILES ---------------------------------------------------------------- #
 # Data files store data... cBioPortal has format specifications specific to the data type. 
@@ -62,12 +66,11 @@ get_cbio_filename <- function(clinical_type = c("SAMPLE", "PATIENT")) {
 #' variables A-C, L-M and others are not meant to be surfaced/made public. This will subset the `df` to what's specified in the mapping.
 #' Conversely, if there is a mapping for variable Z that is _not_ in the clinical data, this _will_ throw error. 
 #' 
-#' @inheritParams ref_map
+#' @inheritParams use_ref_map
 #' @inheritParams make_cbio_clinical_header
-#' @inheritParams get_cbio_filename
+#' @inheritParams write_meta
 #' @param na_recode Possible NA values to replace with a blank string (which seems to be standard) in exported file.
 #' @param delim Delimiter character used for writing file, defaults to tab-delimited per cBioPortal specs.
-#' @param verbose Whether to be verbose, default TRUE.
 #' @export
 write_cbio_clinical <- function(df, 
                                 ref_map, 
@@ -122,8 +125,16 @@ write_cbio_clinical <- function(df,
 #' Write meta file
 #' 
 #' Slightly different implementation than https://github.com/Sage-Bionetworks/genie-erbb2-cbio/blob/develop/create_meta.R#L220
+#' 
+#' @param data The data (lines) to write.
+#' @param filename Name of file.
+#' @param publish_dir Directory path to write to, defaults to current.
+#' @param verbose Report where file has been written.
 #' @keywords internal
-write_meta <- function(data, filename, publish_dir = ".", verbose = TRUE) {
+write_meta <- function(data, 
+                       filename, 
+                       publish_dir = ".", 
+                       verbose = TRUE) {
   
   path <- glue::glue("{publish_dir}/{filename}")
   writeLines(data, con = path)
@@ -158,9 +169,13 @@ make_meta_clinical_generic <- function(cancer_study_identifier,
 #' 
 #' Adapted from https://github.com/Sage-Bionetworks/genie-erbb2-cbio/blob/develop/create_meta.R#L101
 #' @inheritParams make_meta_clinical_generic
+#' @inheritParams write_meta
+#' @param write Whether to write the meta file for the clinical data file.
 #' @export
 make_meta_patient <- function(cancer_study_identifier, 
                               data_filename = "data_clinical_patient.txt", 
+                              write = TRUE,
+                              publish_dir = ".",
                               verbose = TRUE) {
   
   meta_filename <- "meta_clinical_patient.txt"
@@ -177,6 +192,9 @@ make_meta_patient <- function(cancer_study_identifier,
 #' 
 #' Adapted from https://github.com/Sage-Bionetworks/genie-erbb2-cbio/blob/develop/create_meta.R#L109
 #' @inheritParams make_meta_clinical_generic
+#' @inheritParams make_meta_patient
+#' @inheritParams write_meta
+#' @export
 make_meta_sample <- function(cancer_study_identifier, 
                              data_filename = "data_clinical_sample.txt",
                              publish_dir = ".",
@@ -232,7 +250,10 @@ make_meta_genomic_generic <- function(cancer_study_identifier,
 #' Reused from https://github.com/Sage-Bionetworks/genie-erbb2-cbio/blob/develop/make_meta.R#L157
 #' 
 #' @inheritParams make_meta_genomic_generic
-#' @param data_filename Name of the data file. Defaults to a standard name.
+#' @inheritParams write_meta
+#' @param data_filename Name of the data file. Defaults to "data_mutations_extended.txt".
+#' @param write Whether to write the meta file for the data file.
+#' @param 
 #' @export
 make_meta_maf <- function(cancer_study_identifier, 
                           data_filename = "data_mutations_extended.txt",
@@ -279,6 +300,8 @@ make_meta_study_generic <- function(type_of_cancer,
 #' Reused from https://github.com/Sage-Bionetworks/genie-erbb2-cbio/blob/develop/create_meta.R#L179
 #' 
 #' @inheritParams make_meta_genomic_generic
+#' @inheritParams write_meta
+#' @inheritParams make_meta_patient
 #' @param type_of_cancer Type of cancer, defaults to "mixed". See also http://oncotree.mskcc.org/#/home.
 #' @param name Name of the study.
 #' @param description Description of the study.
