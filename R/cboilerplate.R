@@ -89,15 +89,16 @@ write_cbio_clinical <- function(df,
                                         m[[clinical_type]]$data_type)
     
     df_out <- rbind(header, .df)
+    path <- glue::glue("{publish_dir}/{filename}"
     write.table(df_out, 
-                file = glue::glue("{publish_dir}/{filename}"), 
+                file = path), 
                 sep = delim, 
                 na = "",
                 col.names = F, 
                 row.names = F, 
                 quote = F)
     
-    if(verbose) message(glue::glue("Created {filename}"))
+    if(verbose) message(glue::glue("{clinical_type} data written to: {path}"))
   }
 }
 
@@ -108,8 +109,11 @@ write_cbio_clinical <- function(df,
 #' 
 #' Slightly different implementation than https://github.com/Sage-Bionetworks/genie-erbb2-cbio/blob/develop/create_meta.R#L220
 #' @keywords internal
-write_meta <- function(data, filename, publish_dir = ".") {
-  writeLines(data, con = glue::glue("{publish_dir}/{filename}"))
+write_meta <- function(data, filename, publish_dir = ".", verbose = TRUE) {
+  
+  path <- glue::glue("{publish_dir}/{filename}")
+  writeLines(data, con = path)
+  if(verbose) message(glue::glue("Meta file written to: {path}"))
 }
 
 # -- Clinical meta files ------------------------------------------------------- #
@@ -142,7 +146,8 @@ make_meta_clinical_generic <- function(cancer_study_identifier,
 #' @inheritParams make_meta_clinical_generic
 #' @export
 make_meta_patient <- function(cancer_study_identifier, 
-                              data_filename = "data_clinical_patient.txt") {
+                              data_filename = "data_clinical_patient.txt", 
+                              verbose = TRUE) {
   
   meta_filename <- "meta_clinical_patient.txt"
   df_file <- make_meta_clinical_generic(cancer_study_identifier = cancer_study_identifier,
@@ -150,7 +155,7 @@ make_meta_patient <- function(cancer_study_identifier,
                                         datatype = "PATIENT_ATTRIBUTES",
                                         data_filename = data_filename)
   
-  if(write) write_meta(df_file, meta_filename, publish_dir)
+  if(write) write_meta(df_file, meta_filename, publish_dir, verbose)
   invisible(df_file)
 }
 
@@ -161,7 +166,8 @@ make_meta_patient <- function(cancer_study_identifier,
 make_meta_sample <- function(cancer_study_identifier, 
                              data_filename = "data_clinical_sample.txt",
                              publish_dir = ".",
-                             write = TRUE) {
+                             write = TRUE,
+                             verbose = TRUE) {
   
   meta_filename <- "meta_clinical_sample.txt"
   df_file <- make_meta_clinical_generic(cancer_study_identifier = cancer_study_identifier, 
@@ -169,7 +175,7 @@ make_meta_sample <- function(cancer_study_identifier,
                                         datatype = "SAMPLE_ATTRIBUTES", 
                                         data_filename = data_filename)
   
-  if(write) write_meta(df_file, meta_filename, publish_dir)
+  if(write) write_meta(df_file, meta_filename, publish_dir, verbose)
   invisible(df_file)
 }
 
@@ -228,7 +234,7 @@ make_meta_maf <- function(cancer_study_identifier,
                                        profile_description = "Mutation data from NF-OSI processing.",
                                        data_filename = data_filename)
   
-  if(write) write_meta(df_file, meta_filename, publish_dir)
+  if(write) write_meta(df_file, meta_filename, publish_dir, verbose)
   invisible(df_file)
 }
 
