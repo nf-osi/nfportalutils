@@ -27,38 +27,83 @@
 #' This wrapper creates the dataset, but there are additional steps such as validation that have to be done outside of R (with a cBioPortal instance).
 #' You do not need necessarily need to set up a full local development server but will need the cBioPortal back-end at least.
 #' See [docs for the dataset validation](https://docs.cbioportal.org/using-the-dataset-validator/).
-#' You can use the back-end image such as `cbioportal/cbioportal:4.1.13` and mount the dataset into the container 
+#' Use the back-end image such as `cbioportal/cbioportal:4.1.13` and mount the dataset into the container 
 #' for running validation in offline mode, e.g. with the command 
 #' `docker run -e S=/cbioportal/nfosi_2022 -v $(pwd)/nfosi_2022:/cbioportal/nfosi_2022 -w /cbioportal/core/src/main/scripts/importer --entrypoint /bin/bash cbioportal/cbioportal:4.1.13 -c './validateData.py -s $S -p ../../../test/scripts/test_data/api_json_system_tests/ -v'`
 #' 
-#' @param merged_maf Synapse id or local path to merged maf file for public release, to be checked with samplesheet.
+#' @param merged_maf Synapse id of `merged maf` file for public release.
 #' @param samplesheet Synapse id or local path to samplesheet with release info.
-#' @param ref_view A view or table that contains clinical data for the samples.
 #' @param ref_map YAML file specifying the mapping of (NF) clinical metadata to cBioPortal model. 
 #' This follows a specific format.
+#' @param ref_view A view or table that contains clinical data for the samples. 
+#' @param cancer_study_identifier The study identifier, defaults to `nfosi_YEAR`.
 #' @param publish_dir Where to output the cBioPortal set of files. 
-#' Defaults to a folder called "nfosi_{current year}" in the current working directory.
+#' Defaults to a folder with same name as `cancer_study_identifier`.
+#' @param verbose Verbosity option passed to implementers.
 #' @export
 syncBP_maf <- function(merged_maf,
                        samplesheet,
-                       ref_view, 
                        ref_map,
-                       publish_dir = glue::glue("nfosi_{format(Sys.Date(), '%Y')}")) {
+                       ref_view, 
+                       cancer_study_identifier = glue::glue("nfosi_{format(Sys.Date(), '%Y')}"),
+                       publish_dir = cancer_study_identifier,
+                       verbose = TRUE) {
   
-  message("--- Checking the `merged_maf` files ---")
-  mm <- dt_read(merged_maf) # don't bother with maftools dependency as doing basic check
+  .check_login()
+  
+  if(!dir.exists(publish_dir)) {
+    if(verbose) message(glue::glue("Creating {publish_dir} dataset directory"))
+    dir.create(publish_dir)
+  }
+  
+  if(verbose) message("--- Getting the `merged_maf` file ---")
+  file <- .syn$get(merged_maf, downloadLocation = publish_dir)
+  
+  if(verbose) message("--- Standardizing `maf` release file name ---")
+  data_mutations_extended <- sub(file$name, "data_mutations_extended.txt", file$path)
+  file.rename(file$path, data_mutations_extended)
+  
+  if(verbose) message("--- Checking the `maf` release file ---")
+  mm <- dt_read(data_mutations_extended) # don't bother with maftools dependency as doing basic check
   ss <- dt_read(samplesheet)
   check_result <- check_maf_release(mm, ss)
   
-  if(!is.null(check_result)) stop("Unfortunately, check failed so will not continue.")
-  if(!dir.exists(publish_dir)) dir.create(publish_dir)
+  if(!is.null(check_result)) stop("Unfortunately, check of `maf` release failed so will not continue.")
   
-  message("--- Making the clinical data files ---")
+  if(verbose) message("--- Pulling the clinical data ---")
+  df <- get_data_for_releasable(sample_sheet, ref_view, verbose = verbose)
   
-  # TO DO
+  if(verbose) message("--- Making the clinical data files ---")
+  write_cbio_clinical(df, ref_map = ref_map, publish_dir = publish_dir, verbose = verbose)
   
-  message("--- Making the meta files ---")
+  if(verbose) message("--- Making the meta files ---")
+  make_meta_clinical(cancer_study_identifier, publish_dir = publish_dir, verbose = verbose)
+  make_meta_maf(cancer_study_identifier, publish_dir = publish_dir, verbose = verbose)
   
+  if(verbose) message("All files have been added successfully.")
+  
+}
+
+
+#' Download data from a view for releasable samples in samplesheet 
+#' 
+#' Note: Since the view is typically denormalized, not all data might be clinical. 
+#' A downstream step will do some of the additional processing/subsetting needed.
+#'  
+#' @param samplesheet Samplesheet `data.table`.
+#' @param ref_view View to get data from. 
+#' @param verbose Output details.
+#' @keywords internal
+get_data_for_releasable <- function(samplesheet, ref_view, verbose = TRUE) {
+  
+  ids <- samplesheet[is_releasable == TRUE, biospecimen_id]
+  if(verbose) {
+    message(glue::glue("Retrieving data for {length(ids)} releasable ids from {ref_view}"))
+  }
+  ls <- glue::glue_collapse(glue::single_quote(ids), sep = ",")
+  ref_view <- .syn$tableQuery("SELECT * FROM {ref_view} WHERE specimenID in (ls)")
+  ref_view <- ref_view$asDataFrame()
+  return(ref_view)
 }
 
 
