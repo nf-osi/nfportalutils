@@ -84,7 +84,7 @@ syncBP_maf <- function(merged_maf,
   make_meta_study(cancer_study_identifier,
                   type_of_cancer = cancer_type_official,
                   name = glue::glue("NF-OSI Processed Data"), 
-                  description = "The mutation data are processed using the "sarek" nf-core pipeline. The data are contributed by researchers funded by the Neurofibromatosis Therapeutic Acceleration Program (NTAP). The reprocessing of the raw data is managed by the NF Open Science Initiative (https://nf.synapse.org/).", 
+                  description = "The mutation data were processed using the `sarek` nf-core pipeline. The data are contributed by researchers funded by the Neurofibromatosis Therapeutic Acceleration Program (NTAP). The reprocessing of the raw data is managed by the NF Open Science Initiative (https://nf.synapse.org/).", 
                   short_name = glue::glue("NF-OSI (Sage Bionetworks, {format(Sys.Date(), '%Y')})"),
                   publish_dir = publish_dir, 
                   verbose = verbose)
