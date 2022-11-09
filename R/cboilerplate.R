@@ -303,8 +303,8 @@ make_meta_study_generic <- function(type_of_cancer,
   # This check can be done in a more upfront manner here, though will need to download the data from GitHub 
   
   rows <- c()
-  rows <- append(rows, glue::glue("type_of_cancer: {type_of_cancer}"))
   rows <- append(rows, glue::glue("cancer_study_identifier: {cancer_study_identifier}"))
+  rows <- append(rows, glue::glue("type_of_cancer: {type_of_cancer}"))
   rows <- append(rows, glue::glue("name: {name}"))
   rows <- append(rows, glue::glue("description: {description}"))
   if(!is.null(citation)) rows <- append(rows, glue::glue("citation: {citation}"))
