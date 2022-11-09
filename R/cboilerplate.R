@@ -30,9 +30,10 @@ make_cbio_clinical_header <- function(df, label, description, data_type) {
   # Original code assigns a default priority = 1 to all; this is kept until we need more complex configuration
   header <- rbind(label, description, data_type, rep(1))
   header <- t(apply(header, 1, function(x) { return(c(paste0("#", x[1]), x[2:length(x)]))}))
-  header <- rbind(header, colnames(df))
+  header <- rbind(header, label) # use harmonized name as row-5 attribute names
   rownames(header) <- NULL
   colnames(header) <- colnames(df)
+  header <- as.data.frame(header)
   return(header)
 }
 
@@ -87,13 +88,14 @@ write_cbio_clinical <- function(df,
   if(!all(attributes %in% names(df))) stop(glue::glue_collapse(setdiff(attributes, names(df)), ","), " specified in mapping but not available in data. Check data.")
   if(!"SAMPLE" %in% names(m)) stop("According to mapping, no SAMPLE clinical file will be created. Check mapping.")
   
+  files <- list()
   for(clinical_type in names(m)) {
     .df <- df[, m[[clinical_type]]$source ]
     # cBioPortal does not allow list columns
     for(col in names(.df)) {
       if(class(.df[[col]]) == "list") {
         .df[[col]] <- paste(.df[[col]], sep = ",") 
-        warning(glue::glue("Coerced {col} data from list for export, you may want to check output."))
+        warning(glue::glue("Coerced {col} data from list for export, you may want to check output."), call. = F)
       }
       # Use actual NA's so that `write.table` can write out "" consistently
       .df[.df[[col]] %in% na_recode, col ] <- NA_character_
@@ -115,8 +117,9 @@ write_cbio_clinical <- function(df,
                 row.names = F, 
                 quote = F)
     if(verbose) message(glue::glue("{clinical_type} data written to: {path}"))
+    files[[clinical_type]] <- df_out
   }
-  
+  invisible(files)
 }
 
 # -- META FILES ---------------------------------------------------------------- #
@@ -295,6 +298,9 @@ make_meta_study_generic <- function(type_of_cancer,
   # Check meta params -- there probably should just be JSON schemas for all of these meta configs  
   if(!is.null(pmid) && is.null(citation)) stop("If `pmid` is used, `citation` has to be filled in.")
   if(!is.null(add_global_case_list) && !is.logical(add_global_case_list)) stop("Nonsensical value used for `add_global_case_list`.")
+  
+  # TO DO: If type of cancer does not match the ONCOTREE vocab, it will fail validation later on
+  # This check can be done in a more upfront manner here, though will need to download the data from GitHub 
   
   rows <- c()
   rows <- append(rows, glue::glue("type_of_cancer: {type_of_cancer}"))
