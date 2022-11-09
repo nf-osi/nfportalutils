@@ -24,11 +24,13 @@
 #' 
 #' 3. Make meta files. Meta files are needed for describing the study, mutations data file, clinical data files. 
 #' 
+#' @inheritParams make_meta_study
 #' @param merged_maf Synapse id of `merged maf` file for public release.
 #' @param samplesheet Synapse id or local path to samplesheet with release info.
 #' @param ref_map YAML file specifying the mapping of (NF) clinical metadata to cBioPortal model. See details.
-#' @param ref_view A view that contains clinical data for the release files. 
-#' @param cancer_study_identifier The study identifier, defaults to `nfosi_YEAR`.
+#' @param ref_view A view that contains clinical data for the release files.
+#' @param name Name of the cancer study, e.g. something following convention is "Malignant Peripheral Nerve Sheath Tumor (NF-OSI, 2022)".
+#' @param cancer_study_identifier Study identifier, convention is `{tumorType}_{institution}_{year}`, so for example "mpnst_nfosi_2022".
 #' @param publish_dir Where to output the set of files. 
 #' Defaults to (creating if necessary) a folder with same name as `cancer_study_identifier`.
 #' @param verbose Whether to provide informative messages throughout.
@@ -37,7 +39,11 @@ syncBP_maf <- function(merged_maf,
                        samplesheet,
                        ref_map,
                        ref_view, 
-                       cancer_study_identifier = glue::glue("nfosi_{format(Sys.Date(), '%Y')}"),
+                       name,
+                       cancer_study_identifier,
+                       citation = NULL,
+                       pmid = NULL,
+                       short_name = NULL,
                        publish_dir = cancer_study_identifier,
                        verbose = TRUE) {
   
@@ -78,14 +84,21 @@ syncBP_maf <- function(merged_maf,
   make_meta_maf(cancer_study_identifier, publish_dir = publish_dir, verbose = verbose)
   
   # If a single value in tumorType, use that, otherwise "mixed" as the catch-all
-  cancer_type <- unique(df$tumorType)
-  cancer_type <- cancer_type[cancer_type != ""]
-  cancer_type_official <- if(length(cancer_type) != 1) "mixed" else cancer_type
-  make_meta_study(cancer_study_identifier,
-                  type_of_cancer = cancer_type_official,
-                  name = glue::glue("NF-OSI Processed Data"), 
+  type_of_cancer <- unique(df$tumorType)
+  type_of_cancer <- type_of_cancer[type_of_cancer != ""]
+  if(length(type_of_cancer) != 1) {
+    type_of_cancer <- "mixed" 
+    if(verbose) message("More than one cancer type detected in data, using `mixed` for study.")
+  } 
+ 
+  # Uses defaults for `groups` and `global_case_list`
+  make_meta_study(cancer_study_identifier = cancer_study_identifier,
+                  type_of_cancer = type_of_cancer,
+                  name = name,
                   description = "The mutation data were processed using the `sarek` nf-core pipeline. The data are contributed by researchers funded by the Neurofibromatosis Therapeutic Acceleration Program (NTAP). The reprocessing of the raw data is managed by the NF Open Science Initiative (https://nf.synapse.org/).", 
-                  short_name = glue::glue("NF-OSI (Sage Bionetworks, {format(Sys.Date(), '%Y')})"),
+                  citation = citation,
+                  pmid = pmid,
+                  short_name = short_name,
                   publish_dir = publish_dir, 
                   verbose = verbose)
   
