@@ -278,26 +278,44 @@ make_meta_maf <- function(cancer_study_identifier,
 
 #' Template for meta study file
 #' 
+#' Adapted from https://github.com/Sage-Bionetworks/genie-erbb2-cbio/blob/develop/create_meta.R#L90
+#' Low-level internal function for the tedious templating. 
+#' 
 #' @keywords internal
-make_meta_study_generic <- function(type_of_cancer, 
-                                      cancer_study_identifier, 
-                                      name, 
-                                      description, 
-                                      groups, 
-                                      short_name) {
-  rows <- rep(NA, 6)
-  rows[1] <- glue::glue("type_of_cancer: {type_of_cancer}")
-  rows[2] <- glue::glue("cancer_study_identifier: {cancer_study_identifier}")
-  rows[3] <- glue::glue("name: {name}")
-  rows[4] <- glue::glue("description: {description}")
-  rows[5] <- glue::glue("groups: {groups}")
-  rows[6] <- glue::glue("short_name: {short_name}")
+make_meta_study_generic <- function(type_of_cancer,
+                                    cancer_study_identifier,
+                                    name,
+                                    description,
+                                    citation = NULL,
+                                    pmid = NULL,
+                                    groups = NULL,
+                                    short_name = NULL,
+                                    add_global_case_list = NULL) {
+  
+  # Check meta params -- there probably should just be JSON schemas for all of these meta configs  
+  if(!is.null(pmid) && is.null(citation)) stop("If `pmid` is used, `citation` has to be filled in.")
+  if(!is.null(add_global_case_list) && !is.logical(add_global_case_list)) stop("Nonsensical value used for `add_global_case_list`.")
+  
+  rows <- c()
+  rows <- append(rows, glue::glue("type_of_cancer: {type_of_cancer}"))
+  rows <- append(rows, glue::glue("cancer_study_identifier: {cancer_study_identifier}"))
+  rows <- append(rows, glue::glue("name: {name}"))
+  rows <- append(rows, glue::glue("description: {description}"))
+  if(!is.null(citation)) rows <- append(rows, glue::glue("citation: {citation}"))
+  if(!is.null(pmid)) rows <- append(rows, glue::glue("pmid: {pmid}"))
+  if(!is.null(groups)) rows <- append(rows, glue::glue("groups: {groups}"))
+  if(!is.null(short_name)) rows <- append(rows, glue::glue("short_name: {short_name}"))
+  if(!is.null(add_global_case_list)) {
+    add_global_case_list <- tolower(as.character(add_global_case_list)) 
+    rows <- append(rows, glue::glue("add_global_case_list: {add_global_case_list}"))
+  }
   return(rows)
 }
 
 #' Make meta study file
 #' 
-#' Reused from https://github.com/Sage-Bionetworks/genie-erbb2-cbio/blob/develop/create_meta.R#L179
+#' Adapted from https://github.com/Sage-Bionetworks/genie-erbb2-cbio/blob/develop/create_meta.R#L179
+#' See specifications at https://docs.cbioportal.org/file-formats/#meta-file.
 #' 
 #' @inheritParams make_meta_genomic_generic
 #' @inheritParams write_meta
@@ -305,24 +323,37 @@ make_meta_study_generic <- function(type_of_cancer,
 #' @param type_of_cancer Type of cancer, defaults to "mixed". See also http://oncotree.mskcc.org/#/home.
 #' @param name Name of the study.
 #' @param description Description of the study.
-#' @param short_name Short name for the study.
+#' @param citation (Optional) A relevant citation, e.g. "TCGA, Nature 2012".
+#' @param pmid (Optional) One or more relevant pubmed ids (comma separated without whitespace); if used, citation cannot be `NULL`.
+#' @param groups (Optional) Defaults to "PUBLIC" for use with public cBioPortal; 
+#' otherwise, use group names that make sense for your instance.
+#' @param add_global_case_list (Optional) Use `NULL` to ignore, but default is `TRUE` for an "All samples" case list to be generated automatically.
+#' @param short_name (Optional) Short name for the study.
 #' @export
 make_meta_study <- function(cancer_study_identifier,
                             type_of_cancer = "mixed",
                             name, 
                             description, 
-                            short_name,
+                            citation = NULL,
+                            pmid = NULL,
+                            groups = "PUBLIC",
+                            short_name = NULL,
+                            add_global_case_list = TRUE,
                             publish_dir = ".",
                             write = TRUE,
                             verbose = TRUE) {
   
   meta_filename <- "meta_study.txt"
+
   df_file <- make_meta_study_generic(cancer_study_identifier = cancer_study_identifier,
                                      type_of_cancer = type_of_cancer, 
                                      name = name, 
                                      description = description, 
-                                     groups = "PUBLIC", 
-                                     short_name = short_name)
+                                     citation = citation,
+                                     pmid = pmid,
+                                     groups = groups, 
+                                     short_name = short_name,
+                                     add_global_case_list = add_global_case_list)
   
   if(write) write_meta(df_file, meta_filename, publish_dir, verbose)
   invisible(df_file)
