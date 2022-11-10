@@ -101,6 +101,9 @@ write_cbio_clinical <- function(df,
       .df[.df[[col]] %in% na_recode, col ] <- NA_character_
 
     }
+    if(clinical_type == "PATIENT") {
+      .df <- unique(.df)
+    }
     filename <- get_cbio_filename(clinical_type)
     header <- make_cbio_clinical_header(.df, 
                                         m[[clinical_type]]$label, 
@@ -221,7 +224,7 @@ make_meta_sample <- function(cancer_study_identifier,
 #' Reused from https://github.com/Sage-Bionetworks/genie-erbb2-cbio/blob/develop/make_meta.R#L65
 #' 
 #' @inheritParams make_meta_clinical_generic
-#' @param stable_id
+#' @param stable_id Stable id.
 #' @param profile_name Name of the genomic profiling. This is set by the more specific `make_meta` utility. 
 #' For example, "Mutations" for `make_*_maf` and "Copy-number alterations" for `make_*_cna`.  
 #' @param profile_description Brief description for the genomic profiling. 
@@ -256,7 +259,6 @@ make_meta_genomic_generic <- function(cancer_study_identifier,
 #' @inheritParams write_meta
 #' @param data_filename Name of the data file. Defaults to "data_mutations_extended.txt".
 #' @param write Whether to write the meta file for the data file.
-#' @param 
 #' @export
 make_meta_maf <- function(cancer_study_identifier, 
                           data_filename = "data_mutations_extended.txt",
@@ -387,20 +389,10 @@ make_meta_study <- function(cancer_study_identifier,
 use_ref_map <- function(ref_map, as_dt = TRUE) {
   ref_map_ls <- yaml::read_yaml(ref_map) # this can read JSON
   mapping <- ref_map_ls$mapping
-  source <- unlist(sapply(mapping, function(x) x$source))
-  label <- unlist(sapply(mapping, function(x) x$target$label))
-  description <- unlist(sapply(mapping, function(x) x$target$description))
-  data_type <- unlist(sapply(mapping, function(x) x$target$data_type))
-  attribute_type <- unlist(sapply(mapping, function(x) x$target$attribute_type))
-  if(!all(is.character(source)) && !all(is.character(label)) && !all(is.character(description)) && !all(is.character(data_type)) && !all(is.character(attribute_type))) { 
-    stop("Looks like something is missing in the mapping or it is not the structure expected") 
-  }
+  
   if(as_dt) {
-    ref_map_dt <- data.table(source = source,
-                             label = label, 
-                             description = description,
-                             data_type = data_type,
-                             attribute_type = attribute_type)
+    ref_map_dt <- as.data.table(plyr::ldply(mapping, data.frame, stringsAsFactors=FALSE))
+    names(ref_map_dt) <- gsub("target.", "", names(ref_map_dt), fixed = TRUE)
     return(ref_map_dt)
   } else {
     return(ref_map_ls)
