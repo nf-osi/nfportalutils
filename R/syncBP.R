@@ -22,7 +22,7 @@
 #' [as recommended](https://docs.cbioportal.org/file-formats/#custom-columns-in-clinical-data), 
 #' this step requires a `ref_map`, which is a YAML file.
 #' 
-#' 3. Make meta files. Meta files are needed for describing the study, mutations data file, clinical data files. 
+#' 3. Make meta files. Meta files are needed for describing the study, mutations data file, clinical data files.
 #' 
 #' @inheritParams make_meta_study
 #' @param merged_maf Synapse id of `merged maf` file for public release.
@@ -70,6 +70,9 @@ syncBP_maf <- function(merged_maf,
   
   if(verbose) message("--- Pulling the clinical data ---")
   df <- get_data_for_releasable(ss, ref_view, verbose = verbose)
+  
+  if(verbose) message("--- Matching clinical data sample ids to `maf` ---")
+  df <- match_maf_sample_id(df)
   
   if(verbose) message("--- Making the clinical data files ---")
   write_cbio_clinical(df, ref_map = ref_map, publish_dir = publish_dir, verbose = verbose)
@@ -141,7 +144,7 @@ get_data_for_releasable <- function(samplesheet,
 #' Currently, this is a simple check to make sure released samples are expected. 
 #' It may be extended later on as needed. 
 #' 
-#' @param merged_maf Maf file as a `data.table`.
+#' @param merged_maf Maf data as a `data.table`.
 #' @param samplesheet Samplesheet as a `data.table`.
 #' @return Returns `NULL` if everything OK, else the sample ids that don't match expectations.
 check_maf_release <- function(merged_maf, 
@@ -170,8 +173,29 @@ check_maf_release <- function(merged_maf,
   invisible(result)
 }
 
-#' TO DO
+#' Match clinical data with maf sample ids
+#' 
+#' PATIENT_ID and SAMPLE_ID can only contain letters, numbers, points, underscores and/or hyphens.
+#' In the nf processing, sample id spaces are replaced with underscores in the `maf`,
+#' so this is applied to clinical data to match.
+#' 
+#' @param clinical_data Clinical data as a `data.table`.
+#' @param merged_maf Maf data as a `data.table`.
+#' @keywords internal
+match_maf_sample_id <- function(clinical_data, merged_maf = NULL) {
+  clinical_data$specimenID <- gsub(" ", "_", clinical_data$specimenID)
+  # TODO check mafs and clinical data after reformatting ids
+  # maf_samples <- unique(merged_maf$Tumor_Sample_Barcode)
+  return(clinical_data)
+}
+
+#' TO DO enhancements
 #' 
 #' When a dataset has already been created, one might want to only add or update a 
 #' data type (where clinical data is the same). Having an `add_*` or `update_*` 
-#' type util might be useful.
+#' type util might be useful, e.g. to add expression data to mutation data.
+#'
+#' Additionally, while meta files can be easily edited by hand after they are created, 
+#' some fields such as `cancer_study_identifier` will need to be changed across multiple files,
+#' so if someone can't use something like `sed` it might be helpful to have an R util for this.
+

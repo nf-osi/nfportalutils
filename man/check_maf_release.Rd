@@ -7,7 +7,7 @@
 check_maf_release(merged_maf, samplesheet)
 }
 \arguments{
-\item{merged_maf}{Maf file as a \code{data.table}.}
+\item{merged_maf}{Maf data as a \code{data.table}.}
 
 \item{samplesheet}{Samplesheet as a \code{data.table}.}
 }

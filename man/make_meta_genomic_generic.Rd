@@ -21,6 +21,8 @@ make_meta_genomic_generic(
 
 \item{datatype}{The cBioPortal data type of \code{data_filename}.}
 
+\item{stable_id}{Stable id.}
+
 \item{profile_name}{Name of the genomic profiling. This is set by the more specific \code{make_meta} utility.
 For example, "Mutations" for \verb{make_*_maf} and "Copy-number alterations" for \verb{make_*_cna}.}
 

@@ -9,11 +9,15 @@ make_meta_study_generic(
   cancer_study_identifier,
   name,
   description,
-  groups,
-  short_name
+  citation = NULL,
+  pmid = NULL,
+  groups = NULL,
+  short_name = NULL,
+  add_global_case_list = NULL
 )
 }
 \description{
-Template for meta study file
+Adapted from https://github.com/Sage-Bionetworks/genie-erbb2-cbio/blob/develop/create_meta.R#L90
+Low-level internal function for the tedious templating.
 }
 \keyword{internal}

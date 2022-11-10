@@ -9,7 +9,11 @@ make_meta_study(
   type_of_cancer = "mixed",
   name,
   description,
-  short_name,
+  citation = NULL,
+  pmid = NULL,
+  groups = "PUBLIC",
+  short_name = NULL,
+  add_global_case_list = TRUE,
   publish_dir = ".",
   write = TRUE,
   verbose = TRUE
@@ -24,7 +28,16 @@ make_meta_study(
 
 \item{description}{Description of the study.}
 
-\item{short_name}{Short name for the study.}
+\item{citation}{(Optional) A relevant citation, e.g. "TCGA, Nature 2012".}
+
+\item{pmid}{(Optional) One or more relevant pubmed ids (comma separated without whitespace); if used, citation cannot be \code{NULL}.}
+
+\item{groups}{(Optional) Defaults to "PUBLIC" for use with public cBioPortal;
+otherwise, use group names that make sense for your instance.}
+
+\item{short_name}{(Optional) Short name for the study.}
+
+\item{add_global_case_list}{(Optional) Use \code{NULL} to ignore, but default is \code{TRUE} for an "All samples" case list to be generated automatically.}
 
 \item{publish_dir}{Directory path to write to, defaults to current.}
 
@@ -33,5 +46,6 @@ make_meta_study(
 \item{verbose}{Report where file has been written.}
 }
 \description{
-Reused from https://github.com/Sage-Bionetworks/genie-erbb2-cbio/blob/develop/create_meta.R#L179
+Adapted from https://github.com/Sage-Bionetworks/genie-erbb2-cbio/blob/develop/create_meta.R#L179
+See specifications at https://docs.cbioportal.org/file-formats/#meta-file.
 }

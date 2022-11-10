@@ -9,7 +9,11 @@ syncBP_maf(
   samplesheet,
   ref_map,
   ref_view,
-  cancer_study_identifier = glue::glue("nfosi_{format(Sys.Date(), '\%Y')}"),
+  name,
+  cancer_study_identifier,
+  citation = NULL,
+  pmid = NULL,
+  short_name = NULL,
   publish_dir = cancer_study_identifier,
   verbose = TRUE
 )
@@ -23,7 +27,15 @@ syncBP_maf(
 
 \item{ref_view}{A view that contains clinical data for the release files.}
 
-\item{cancer_study_identifier}{The study identifier, defaults to \code{nfosi_YEAR}.}
+\item{name}{Name of the cancer study, e.g. something following convention is "Malignant Peripheral Nerve Sheath Tumor (NF-OSI, 2022)".}
+
+\item{cancer_study_identifier}{Study identifier, convention is \verb{\{tumorType\}_\{institution\}_\{year\}}, so for example "mpnst_nfosi_2022".}
+
+\item{citation}{(Optional) A relevant citation, e.g. "TCGA, Nature 2012".}
+
+\item{pmid}{(Optional) One or more relevant pubmed ids (comma separated without whitespace); if used, citation cannot be \code{NULL}.}
+
+\item{short_name}{(Optional) Short name for the study.}
 
 \item{publish_dir}{Where to output the set of files.
 Defaults to (creating if necessary) a folder with same name as \code{cancer_study_identifier}.}
