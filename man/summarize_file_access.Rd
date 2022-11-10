@@ -14,13 +14,14 @@ summarize_file_access(principal_id, access_type, fileview_id)
 \item{fileview_id}{Syn id of the view. View must include \code{benefactorId} and \code{type}.}
 }
 \description{
+Some portion adapted from \verb{@allaway}'s original script.
 Common usages are:
 \itemize{
 \item Check numbers of files are viewable and downloadable for registered Synapse users:
-\code{summarize_file_access("DOWNLOAD", principal_id = 273948, "syn16858331")}
+\code{summarize_file_access(principal_id = 273948, access_type = "DOWNLOAD", "syn16858331")}
 \item Check that files within the portal purview are actually editable for the NF-OSI Sage Team,
 because we need at least edit permissions for updating annotations (historically, some issues with hackathon projects, etc.):
-\code{summarize_file_access("DOWNLOAD", principal_id = 3378999, "syn16858331")}
+\code{summarize_file_access(principal_id = 3378999, access_type = "UPDATE", "syn16858331")}
 }
 }
 \details{

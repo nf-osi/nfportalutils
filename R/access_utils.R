@@ -4,12 +4,13 @@
 
 #' Summarize file access for files within some view
 #' 
+#' Some portion adapted from `@allaway`'s original script.
 #' Common usages are:
 #' - Check numbers of files are viewable and downloadable for registered Synapse users:
-#' `summarize_file_access("DOWNLOAD", principal_id = 273948, "syn16858331")`
+#' `summarize_file_access(principal_id = 273948, access_type = "DOWNLOAD", "syn16858331")`
 #' - Check that files within the portal purview are actually editable for the NF-OSI Sage Team,
 #'  because we need at least edit permissions for updating annotations (historically, some issues with hackathon projects, etc.):
-#'  `summarize_file_access("DOWNLOAD", principal_id = 3378999, "syn16858331")`
+#'  `summarize_file_access(principal_id = 3378999, access_type = "UPDATE", "syn16858331")`
 #' 
 #' More complex usage:
 #' - Check access for _multiple_ teams.

@@ -32,7 +32,7 @@ When talking about "public" files, this usually means files that are viewable an
 This group has id `273948`, so we use in the query below:
 
 ```{r query-1}
-public_access <- summarize_file_access("DOWNLOAD", principal_id = 273948, "syn16858331")
+public_access <- summarize_file_access(principal_id = 273948, "DOWNLOAD", "syn16858331")
 public_access
 ```
 
@@ -48,5 +48,5 @@ A file may have inherited from a benefactor at an earlier point, but then become
 so queries based on a past state will likely not work.
 Don't try something like: 
 ```{r query-bad, eval=F}
-public_access_q3_2022 <- summarize_file_access("DOWNLOAD", principal_id = 273948, "syn16858331.47")
+public_access_q3_2022 <- summarize_file_access(principal_id = 273948, "DOWNLOAD", "syn16858331.47")
 ```
