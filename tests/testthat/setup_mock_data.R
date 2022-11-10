@@ -2,7 +2,7 @@
 # Create test data for old annotations that can be especially inconsistent with regard to denoting NA
 # `Comments` is included because the typical view data includes non-clinical data that needs to be ignored
 n <- 20
-test_data_ok <- data.frame(individualID = sample(1:6, n, replace = TRUE),
+mock_data_ok <- data.frame(individualID = sample(1:6, n, replace = TRUE),
                         comments = sample(c("foo", "bar", "baz", ""), n, replace = TRUE)) %>%
   dplyr::mutate(sex = ifelse(individualID %% 2, "Male", "Female"),
          nf1Genotype = c("+/-", "-/-", "+/+", "", "NA", "unknown")[individualID],
@@ -13,8 +13,8 @@ test_data_ok <- data.frame(individualID = sample(1:6, n, replace = TRUE),
          tissue = sample(c("Blood", "Skin", "", "NA"), n, replace = TRUE),
          individualID = paste0("p", individualID))
 
-test_data_missing_an_attribute <- test_data_ok %>% dplyr::select(-tissue)
-test_data_missing_sample_attributes <- test_data_ok %>% dplyr::select(-c(specimenID, tumorType, age, tissue))
+mock_data_missing_an_attribute <- mock_data_ok %>% dplyr::select(-tissue)
+mock_data_missing_sample_attributes <- mock_data_ok %>% dplyr::select(-c(specimenID, tumorType, age, tissue))
          
   
   
