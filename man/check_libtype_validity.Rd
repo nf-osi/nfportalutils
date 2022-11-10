@@ -4,26 +4,18 @@
 \alias{check_libtype_validity}
 \title{Check output strandedness matches samplesheet strandedness}
 \usage{
-check_libtype_validity(
-  syn_out,
-  samplesheet,
-  parse_fun = function(x) gsub("_T[0-9]$", "", x)
-)
+check_libtype_validity(multiqc_id)
 }
 \arguments{
-\item{syn_out}{The Synapse ID of the "star_salmon" output folder}
-
-\item{samplesheet}{A local file or syn id of samplesheet.}
-
-\item{parse_fun}{Function implementing how to parse samples in samplesheet.}
+\item{multiqc_id}{The Synapse ID of the "multiqc_data.json" output file}
 }
 \description{
 This function allows you to (post-workflow) check that the library type inferred by
-Salmon (ISR, ISF, IU) during processing matches the "strandedness" provided for each sample in the workflow sample sheet.
+during processing matches the "strandedness" provided for each sample in the workflow sample sheet.
 }
 \examples{
 \dontrun{
- check_libtype_validity(syn_out = 'syn30840584', samplesheet = "syn30841441") #should pass
- check_libtype_validity(syn_out = 'syn30840584', samplesheet = "syn39593587") #should fail
+ out <- check_libtype_validity(multiqc_id = 'syn29530566') #should pass
+ out <- check_libtype_validity(multiqc_id = 'syn34573377') #should fail
 }
 }

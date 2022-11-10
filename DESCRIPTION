@@ -37,7 +37,8 @@ Imports:
     FastKNN,
     crayon,
     emoji,
-    testthat
+    testthat,
+    jqr
 URL: https://github.com/nf-osi/nfportalutils
 BugReports: https://github.com/nf-osi/nfportalutils/issues
 Suggests: 

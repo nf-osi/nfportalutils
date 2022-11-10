@@ -2,16 +2,16 @@
 % Please edit documentation in R/nextflow_testing_utils.R
 \name{extract_libtype}
 \alias{extract_libtype}
-\title{Extract the library type from cmd_info.json in nf-core/rnaseq output}
+\title{Extract the library type from multiqc_data.json in nf-core/rnaseq output}
 \usage{
-extract_libtype(syn_id)
+extract_libtype(multiqc_id)
 }
 \arguments{
-\item{syn_id}{A synapse id for cmd_info.json}
+\item{syn_id}{A synapse id for the multiqc_data.json file.}
 }
 \value{
-a string: ISR, ISF, or IU
+a data frame of library types
 }
 \description{
-Extract the library type from cmd_info.json in nf-core/rnaseq output
+Extract the library type from multiqc_data.json in nf-core/rnaseq output
 }

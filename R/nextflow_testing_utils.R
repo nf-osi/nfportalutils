@@ -72,64 +72,55 @@ identify_read_pair <- function(string){
 #' Check output strandedness matches samplesheet strandedness
 #'
 #' This function allows you to (post-workflow) check that the library type inferred by
-#' Salmon (ISR, ISF, IU) during processing matches the "strandedness" provided for each sample in the workflow sample sheet.
+#' during processing matches the "strandedness" provided for each sample in the workflow sample sheet.
 #'
-#' @param syn_out The Synapse ID of the "star_salmon" output folder
-#' @param samplesheet A local file or syn id of samplesheet.
-#' @param parse_fun Function implementing how to parse samples in samplesheet.
-#' @import data.table
+#' @param multiqc_id The Synapse ID of the "multiqc_data.json" output file
 #' @examples
 #' \dontrun{
-#'  check_libtype_validity(syn_out = 'syn30840584', samplesheet = "syn30841441") #should pass
-#'  check_libtype_validity(syn_out = 'syn30840584', samplesheet = "syn39593587") #should fail
+#'  out <- check_libtype_validity(multiqc_id = 'syn29530566') #should pass
+#'  out <- check_libtype_validity(multiqc_id = 'syn34573377') #should fail
 #' }
 #' @export
-check_libtype_validity <- function(syn_out,
-                                   samplesheet,
-                                   parse_fun = function(x) gsub("_T[0-9]$", "", x)){
+check_libtype_validity <- function(multiqc_id){
 
-  samples <- dt_read(samplesheet)
-  samples[, sample := parse_fun(sample)]
-  samples <- samples[, c("sample", "strandedness")]
+  mqc <- extract_libtype(multiqc_id)
 
-  message("Going through the outputs...this may take some seconds.")
-  .o <- walk(syn_out)
-
-  cmd_info <- lapply(.o[2:length(.o)], function(x) {
-    if("cmd_info.json" %in% unlist(x)) list(sample = x[[1]][[1]],
-                                       output_id = c(x[[3]][[1]][[2]]))
-  }) %>%
-    data.table::rbindlist() %>%
-    dplyr::mutate(sample = gsub("^.*/", "", sample)) %>%
-    dplyr::mutate(salmon_libtype = sapply(output_id, extract_libtype)) %>%
-    dplyr::mutate(salmon_libtype_mod = dplyr::case_when(
-      salmon_libtype=="IU" ~ "unstranded",
-      salmon_libtype=="ISF" ~ "forward",
-      salmon_libtype=="ISR" ~ "reverse",
-    )) %>%
-    dplyr::full_join(samples) %>%
-    dplyr::mutate(libtype_matches = salmon_libtype_mod == strandedness)
-
-  if(!all(cmd_info$libtype_matches)){
-    test_failed("Samplesheet library type/strandedness mismatch detected, check output.")
-  }else{
+  if(length(mqc)==1 && is.na(mqc)){
     test_passed("All samplesheet library type/strandedness match expected values.")
-  }
+  }else{
+    mqc <- mqc %>%
+      dplyr::mutate(libtype_matches = inferred_strandedness == provided_strandedness)
 
-  cmd_info
+    fail_length <- length(mqc$libtype_matches)-sum(mqc$libtype_matches)
+
+    test_failed(glue::glue("Samplesheet library type/strandedness mismatch detected in {fail_length} samples, check output."))
+
+    mqc
+  }
 }
 
 
-#' Extract the library type from cmd_info.json in nf-core/rnaseq output
+#' Extract the library type from multiqc_data.json in nf-core/rnaseq output
 #'
-#' @param syn_id A synapse id for cmd_info.json
-#' @returns a string: ISR, ISF, or IU
+#' @param syn_id A synapse id for the multiqc_data.json file.
+#' @returns a data frame of library types
 #' @import jsonlite
+#' @import jqr
 #'
-extract_libtype <- function(syn_id){
-  jsn <- .syn$get(syn_id)$path
-  foo <- jsonlite::read_json(jsn)
-  foo$libType
+extract_libtype <- function(multiqc_id){
+  jsn <- .syn$get(multiqc_id)$path
+  foo <- jsonlite::fromJSON(jqr::jq(file(jsn), '[. | {warn: .report_saved_raw_data."multiqc_warning:_fail_strand_check"}]'), flatten = F )
+  if(length(foo$warn)==1 && is.na(foo$warn)){
+    NA
+  }else{
+  lapply(foo$warn, function(x){
+    b <- x[['Inferred strandedness']]
+    c <- x[['Provided strandedness']]
+    c("inferred_strandedness" = b, "provided_strandedness" = c)
+  }) %>%
+    purrr::set_names(gsub("sample.", "",names(foo$warn))) %>%
+    dplyr::bind_rows(.id = "sample")
+  }
 }
 
 
