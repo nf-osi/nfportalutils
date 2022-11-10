@@ -48,7 +48,7 @@ Compilation of a cBioPortal dataset does require putting together a number of as
 merged_maf <- "syn36553188"
 ref_view <- "syn43278088"
 samplesheet <- "syn41830510"
-ref_map <- "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/b615da50f20a47dabbd98ac69329f374f82bc5ea/mappings/cBioPortal.yaml"
+ref_map <- "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/mappings/cBioPortal.yaml"
 ```
 
 
@@ -58,7 +58,10 @@ This will create a folder with the set of files needed.
 syncBP_maf(merged_maf,
            samplesheet,
            ref_map,
-           ref_view)
+           ref_view,
+           cancer_study_identifier = "mixed_nfosi_2022",
+           name = "Plexiform Neurofibroma and Neurofibroma (Pratilas 2022)",
+           citation = "TBD")
 ```
 
 ## Updating or adding to a dataset
@@ -67,13 +70,11 @@ This is a TO-DO section.
 
 ## Validation
 
-There are additional steps such as validation that have to be done outside of the package with either your custom cBioPortal backend or [this validator](https://github.com/cBioPortal/datahub-study-curation-tools/tree/master/validation/validator).
-See also [docs for the dataset validation](https://docs.cbioportal.org/using-the-dataset-validator/).
+There are additional steps such as generating case lists and validation that have to be done _outside_ of the package with a cBioPortal backend, where each portal may have specific configurations (such as genomic reference) to validate against.
+See the [general docs for dataset validation](https://docs.cbioportal.org/using-the-dataset-validator/).
 
-Use a back-end image such as `cbioportal/cbioportal:4.1.13` and mount the dataset into the container for running validation in offline mode, e.g. with the command: 
-`docker run -e S=/cbioportal/nfosi_2022 -v $(pwd)/nfosi_2022:/cbioportal/nfosi_2022 -w /cbioportal/core/src/main/scripts/importer --entrypoint /bin/bash cbioportal/cbioportal:4.1.13 -c './validateData.py -s $S -p ../../../test/scripts/test_data/api_json_system_tests/ -v'`
-
-Assuming your present working directory is `~/datahub/public` and a study folder called `nfosi_2022` has been placed into it, mount the dataset into the container and specify validation like so:
-`docker run --rm -v $(pwd):/datahub cbioportal/cbioportal:4.1.13 validateStudies.py -d /datahub -l nfosi_2022 -u http://cbioportal.org -html /datahub/nfosi_2022/html_report`
+For the _public_ portal, the suggested step using the public server is given below.  
+Assuming your present working directory is `~/datahub/public` and a study folder called `mixed_nfosi_2022` has been placed into it, mount the dataset into the container and run validation like so:
+`docker run --rm -v $(pwd):/datahub cbioportal/cbioportal:4.1.13 validateStudies.py -d /datahub -l mixed_nfosi_2022 -u http://cbioportal.org -html /datahub/mixed_nfosi_2022/html_report`
 
  
