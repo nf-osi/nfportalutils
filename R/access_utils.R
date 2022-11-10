@@ -75,6 +75,7 @@ check_access <- function(id,
 #' such as updating a project tracking table, so a wrapper or "callback" functionality might be needed.
 #' 
 #' @param id Synapse entity id.
+#' @export
 make_public <- function(id) {
   .check_login()
   ALL_REGISTERED_SYNAPSE_USERS_GROUP <- "273948"
