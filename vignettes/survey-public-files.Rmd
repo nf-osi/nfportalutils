@@ -38,7 +38,7 @@ public_access
 
 Breakdown as absolute number and as proportions:
 ```{r query-1}
-public_access[, .(n_downloadable = sum(N)), by = access][, .(access, n_downloadable, proportion = n_downloadable / sum(n_downloadable))]
+public_access[, .(n_files = sum(N)), by = access][, .(access, n_files, proportion = n_files / sum(n_files))]
 ```
 
 ## Some Nuances
