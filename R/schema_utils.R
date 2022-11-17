@@ -67,7 +67,7 @@ as_table_schema <- function(df,
 #' 
 #' Use with schematic-generated JSON-LD schema: given `@id`, get connected nodes by specified prop (e.g. `sms:something`).
 #' Intended to be a generic used to define more specific lookup utils. 
-#' Can do recursive lookup, though graph should actually a tree/acyclic (!). 
+#' Can do recursive lookup, though graph should be a tree/acyclic (!). 
 #' (Useful for props such as `dependsOn`, doesn't make sense for props such as `rdfs:label`.)
 #' 
 #' @param id Id (`@id`) for which to get range values; include prefix if needed. 
@@ -91,7 +91,7 @@ get_by_prop_from_json_schema <- function(id,
   }
   
   matches <- Filter(function(x) x$`@id` == id, schema)
-  if(!length(matches)) stop("Id not found in schema!")
+  if(!length(matches)) stop(glue::glue("Id `{id}` not found in schema!"))
   ids <- unlist(lapply(matches[[1]][[prop]], function(x) x$`@id`))
   
   if(return_labels) {
