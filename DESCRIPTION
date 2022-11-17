@@ -36,7 +36,9 @@ Imports:
     xml2,
     FastKNN,
     crayon,
-    emoji
+    emoji,
+    plyr,
+    yaml
 URL: https://github.com/nf-osi/nfportalutils
 BugReports: https://github.com/nf-osi/nfportalutils/issues
 Suggests: 
