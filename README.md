@@ -9,12 +9,18 @@ The goal of nfportalutils is to provide convenience functions for updating NF-OS
 
 ## Installation
 
-You can install nfportalutils from here:
+You can install `nfportalutils` from here:
 
 ``` r
 remotes::install_github("nf-osi/nfportalutils")
 ```
 
+## Package Notes
+
+- A vignette is available for nextflow annotation utils, which is [precomputed](https://ropensci.org/blog/2019/12/08/precompute-vignettes/). 
+If the vignette is downloaded, use `vignette("annotate-nf-processed-data", package = "nfportalutils")` to view.
+- For development, run `devtools::check(vignettes = FALSE)` early and often.
+- At minimal, address any `ERRORS` and `WARNINGS`, but we do have a lot of `NOTES` that need to be resolved... 
 
 ## Code of Conduct
   

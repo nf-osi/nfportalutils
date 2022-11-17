@@ -7,7 +7,7 @@
 derive_annotations(sample_io, template, schema, format, verbose = TRUE)
 }
 \arguments{
-\item{format}{File format of the processed data.}
+\item{format}{File format of the processed data, e.g. "vcf".}
 }
 \description{
 Build annotations through inheritance from inputs. If multiple inputs, inherit props from the FIRST input.

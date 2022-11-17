@@ -62,6 +62,9 @@ map_sample_output_rnaseq <- function(syn_out) {
 #' `*VariantCalling/<TUMOR_vs_NORMAL>/<CALLER>`. This walks through the output destination (URI of `*VariantCalling`)
 #' with similar intention to \code{\link{map_sample_output_rnaseq}}, but for Sarek outputs.
 #' 
+#' Note: And additional step post-Sarek will create MAFs in the output subdirectory DeepVariant. 
+#' If this is run _after_ the MAF creation step, this will return file indexes with those .maf files.
+#' 
 #' @param syn_out Syn id of syn output destination with files of interest. 
 #' @import data.table
 #' @return A `data.table` with cols `caller` `caller_path` `caller_syn` `output_name` `output_id` `sample` `workflow`
@@ -181,7 +184,7 @@ annotate_with_tool_stats <- function(samtools_stats_file = NULL,
 #' Files that pass through this naturally have `dataSubtype` set to "processed" and `fileFormat` set 
 #' to the actual new file format. In the future, `template` itself may define `format` so we don't need to specify explicitly.
 #' 
-#' @param format File format of the processed data.
+#' @param format File format of the processed data, e.g. "vcf".
 #' @keywords internal
 derive_annotations <- function(sample_io,
                                template,
@@ -193,15 +196,17 @@ derive_annotations <- function(sample_io,
   x <- sample_io[grep(pattern, output_name)] 
   n <- nrow(x)
   if(!length(n)) stop(glue::glue("Expected {format} files not found. Are you annotating the right files?"))
-  if(verbose) message("Creating annotations for ", n, " files")
+  if(verbose) message(glue::glue("Creating annotations for ", n, " {format} files"))
   
   props <- get_dependency_from_json_schema(id = template, schema = schema)
   props <- props[!props %in% c("comments", "entityId", "fileFormat", "dataType", "dataSubtype", "progressReportNumber")]
   
   from <- sapply(x$input_id, `[`, 1)
   to <- x$output_id
-  annotations <- Map(function(f, t) copy_annotations(f, t, select = props), from, to) %>% setNames(to) %>% 
-   lapply(., reticulate::py_to_r) %>% rbindlist(fill = T, idcol = "entityId")
+  annotations <- Map(function(f, t) copy_annotations(f, t, select = props), from, to) %>% 
+    setNames(to) %>% 
+    lapply(., reticulate::py_to_r) %>% 
+    rbindlist(fill = T, idcol = "entityId")
   
   annotations <- merge(annotations, 
                        x[, .(entityId = output_id, Filename = output_name, workflow)], 
@@ -220,18 +225,20 @@ derive_annotations <- function(sample_io,
 #' Ideally, the data model itself should include inheritance rules; since that isn't possible currently, 
 #' we hard-code lots of stuff, so this is hard to generalize for other data models. 
 #' 
-#' 2. Extract metrics from auxiliary files to surface as annotations. See  \code{\link{annotate_with_tool_stats}}.
+#' 2. Extract metrics from auxiliary files to surface as annotations. See \code{\link{annotate_with_tool_stats}}.
 #' 
 #' 3. Manually add annotations that can't (yet?) be derived from #1 or #2. Has to be done outside of this util.
 #' 
-#' Always returns a "partial" manifest; the param `update` specifies whether annotations should be applied.
+#' Always returns a "partial" manifest, which can be adjusted as needed; 
+#' for example, if default values such as the linked workflow version are out of date. 
+#' The param `dry_run` specifies whether annotations should be applied.
 #' 
 #' @inheritParams get_by_prop_from_json_schema
 #' @inheritParams annotate_with_tool_stats
 #' @param template (Optional) URI of template in data model to use, prefixed if needed. 
 #' Can specify different model/version, but in some cases may not work well.
 #' @param sample_io Table mapping input to outputs.
-#' @param update Whether to apply annotations.
+#' @param dry_run Whether to apply annotations.
 #' @param verbose Give verbose reports for what's happening.
 #' @export
 annotate_aligned_reads <- function(sample_io,
@@ -240,7 +247,7 @@ annotate_aligned_reads <- function(sample_io,
                                    template = "bts:ProcessedAlignedReadsTemplate",
                                    schema = "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld",
                                    verbose = TRUE,
-                                   update = FALSE) {
+                                   dry_run = TRUE) {
   
   annotations <- derive_annotations(sample_io, template, schema, format = "bam", verbose)
   qc <- annotate_with_tool_stats(samtools_stats_file, picard_stats_file, sample_io)
@@ -251,7 +258,7 @@ annotate_aligned_reads <- function(sample_io,
   }
 
   annotations[, dataType := "AlignedReads"]
-  if(update) {
+  if(!dry_run) {
     annotate_with_manifest(annotations)
     if(verbose) message("Applied annotations.")
   }
@@ -268,12 +275,12 @@ annotate_expression <- function(sample_io,
                                 template = "bts:ProcessedExpressionTemplate",
                                 schema = "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld",
                                 verbose = TRUE,
-                                update = FALSE) {
+                                dry_run = TRUE) {
   
   annotations <- derive_annotations(sample_io, template, schema, format = "sf", verbose)
   annotations[, expressionUnit := "TPM"]
   annotations[, dataType := "geneExpression"]
-  if(update) {
+  if(!dry_run) {
     annotate_with_manifest(annotations)
     if(verbose) message("Applied annotations.")
   }
@@ -284,23 +291,73 @@ annotate_expression <- function(sample_io,
 
 #' Annotate somatic or germline variants output
 #' 
+#' Currently, `vcf` are output first and `maf`s appear after a subsequent workflow run, 
+#' so depending on when `map_sample_output_sarek` is run to create a `sample_io` file, 
+#' there will be just `vcf` files or both. 
+#' (In the future, the workflows will likely be joined so both are deposited at the same run.)
+#' One can specify to only annotate either the "vcf" or "maf" files and create a manifest
+#' for just those files, or use "auto" to detect the file types present in `sample_io`.
+#' 
+#' `maf` files use the same template but with different default values, such as a subclass term for `dataType`.
+#' If in the future `maf`s require a significantly different template, 
+#' then this should be factored out into a separate annotation function.
+#' 
 #' @inheritParams annotate_aligned_reads
-#' @param sample_io Table mapping input to outputs, where outputs are expected to be .vcf.gz files.
-#' @param data_type Variant type, given that this can be used with either somatic or germline.
+#' @param sample_io Table mapping input to outputs, which reference output `.vcf.gz` or `maf` files.
+#' @param format Variant format, "auto" to handle any "vcf" or "maf" files present automatically, or specify one explicitly. See details.
+#' @param data_type Variant type, use "auto" to infer from naming scheme and current NF processing SOP, or specify more explicitly.
 #' @export
 annotate_called_variants <- function(sample_io,
+                                     format = c("auto", "vcf", "maf"),
                                      template = "bts:ProcessedVariantCallsTemplate",
                                      schema = "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld",
-                                     data_type = c("SomaticVariants", "GermlineVariants"),
+                                     data_type = c("auto", "SomaticVariants", "GermlineVariants", "AnnotatedSomaticVariants", "AnnotatedGermlineVariants"),
                                      verbose = TRUE,
-                                     update = FALSE) {
+                                     dry_run = TRUE) {
   
-  annotations <- derive_annotations(sample_io, template, schema, format = "vcf", verbose)
+  format <- match.arg(format)
+  if(format == "auto") {
+    annotations <- list()
+    if(any(grepl("vcf[.]gz$", sample_io$output_name))) annotations$vcf <- derive_annotations(sample_io, template, schema, format = "vcf", verbose)
+    if(any(grepl("maf$", sample_io$output_name))) annotations$maf <- derive_annotations(sample_io, template, schema, format = "maf", verbose)
+    annotations <- rbindlist(annotations)
+  } else {
+    annotations <- derive_annotations(sample_io, template, schema, format = format, verbose)
+  }
+  
   data_type <- match.arg(data_type)
-  annotations[, dataType := data_type]
-  if(update) {
+  if(data_type == "auto") {
+    data_type_assign <- function(name, format) {
+      if(grepl("_vs_", name) && format == "vcf") { 
+        "SomaticVariants" 
+      } else if(!grepl("_vs_", name) && format == "vcf") { # vcfs can be annotated, but this is based on NF processing
+        "GermlineVariants" 
+      } else if(grepl("_vs_", name) && format == "maf") { 
+        "AnnotatedSomaticVariants" 
+      } else if(!grepl("_vs_", name) && format == "maf") { 
+        "AnnotatedGermlineVariants" 
+      } else { 
+        stop("Tried to use incompatible values in data assignment rules.") 
+      }
+    }
+  } else {
+    data_type_assign <- function(name, format) { data_type }
+  }
+  annotations[, data_type := data_type_assign(Filename, fileFormat), by = entityId]
+  
+  annotations[fileFormat == "vcf" & workflow == "Strelka", workflowLink := "https://nf-co.re/sarek/2.7.1/output#strelka2"]
+  annotations[fileFormat == "vcf" & workflow == "Strelka", workflow := "Strelka2"]
+  annotations[fileFormat == "vcf" & workflow == "Mutect2", workflowLink := "https://nf-co.re/sarek/2.7.1/output#gatk-mutect2"]
+  annotations[fileFormat == "vcf" & workflow == "FreeBayes", workflowLink := "https://nf-co.re/sarek/2.7.1/output#freebayes"]
+  annotations[fileFormat == "vcf" & workflow == "DeepVariant", workflowLink := "https://github.com/google/deepvariant/tree/r1.1"]
+  
+  annotations[fileFormat == "maf", workflow := "nf-vcf2maf"] 
+  annotations[fileFormat == "maf", workflowLink := "https://github.com/Sage-Bionetworks-Workflows/nf-vcf2maf/tree/1.0.1"] 
+    
+  if(!dry_run) {
     annotate_with_manifest(annotations)
     if(verbose) message("Applied annotations.")
   }
   return(annotations)
 }
+
