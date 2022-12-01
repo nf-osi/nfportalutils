@@ -1,7 +1,7 @@
-FROM rocker/r-base:4.1.2
+FROM rocker/r-base:4.2.2
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends software-properties-common \
+    apt-get -y --no-install-recommends install software-properties-common \
     python3.6 \
     python3-pip \
     libcurl4-openssl-dev \
