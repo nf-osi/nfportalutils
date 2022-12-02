@@ -12,3 +12,4 @@ A message.
 \description{
 Checks .syn object exists.
 }
+\keyword{internal}

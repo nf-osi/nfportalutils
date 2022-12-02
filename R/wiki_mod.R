@@ -7,7 +7,7 @@
 #' @param label Button label text.
 #' @param url URL that the button will link to.
 #' @param align Button alignment, can be one of "None", "Left", "Right", or "Center" (defaults to "None").
-#' @export
+#' @keywords internal
 button_widget <- function(label,
                           url,
                           align = c("None", "Left", "Right", "Center")) {

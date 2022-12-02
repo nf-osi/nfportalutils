@@ -19,3 +19,4 @@ Refer to widget docs at \url{https://help.synapse.org/docs/Wikis.1975746682.html
 Buttons should be created sparingly and strategically.
 See \code{\link{remove_button}} in case of future regret.
 }
+\keyword{internal}
