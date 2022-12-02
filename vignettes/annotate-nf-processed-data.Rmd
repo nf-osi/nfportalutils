@@ -36,7 +36,7 @@ For non-nf-processed data, values can still be overridden.
 First load the `nfportalutils` package and log in. 
 The recommended default usage of `syn_login` is to use it without directly passing in credentials. 
 Instead, have available the `SYNAPSE_AUTH_TOKEN` environment variable with your token stored therein. 
-```{r setup}
+```{r setup, eval=FALSE}
 library(nfportalutils)
 library(data.table)
 syn_login()
@@ -81,7 +81,7 @@ This is handled by a couple of specialized functions.
 #### Aligned reads data files
 
 First, it helps to see the template for the aligned reads`(.bam`) data.  
-```{r rnaseq-see-annotations-bam}
+```{r rnaseq-see-annotations-bam, eval=FALSE}
 
 template <- "bts:ProcessedAlignedReadsTemplate"
 schema <- "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld"
