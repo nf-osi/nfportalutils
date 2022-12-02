@@ -94,7 +94,7 @@ new_project <- function(name,
 #' `createOrUpdate = TRUE` and then compare createdOn and modifiedOn to issue a warning
 #' (which would be more informative than current Python client).
 #' @param project_name Name of project to be created.
-#' @export
+#' @keywords internal
 new_project_strict <- function(project_name) {
   id <- try(.syn$findEntityId(project_name))
   if(class(id) == "try-error") {
@@ -243,7 +243,7 @@ add_default_folders <- function(project, folders = c("Analysis", "Milestone Repo
 #' @param creds Path to JSON creds file (service account token).
 #' @param cols List of columns that map to required parameters for \code{\link{new_project}}.
 #' Defaults are provided.
-#' @export
+#' @keywords internal
 get_gs_project_tracking  <- function(sheet,
                                       creds = NULL,
                                       cols = c(name = "studyName",
@@ -268,5 +268,5 @@ get_gs_project_tracking  <- function(sheet,
 }
 
 #' @rdname get_gs_project_tracking
-#' @export
+#' @keywords internal
 get_project_tracking <- get_gs_project_tracking

@@ -39,3 +39,4 @@ For example, say \code{df} contains clinical variables A-X, but mappings are onl
 variables A-C, L-M and others are not meant to be surfaced/made public. This will subset the \code{df} to what's specified in the mapping.
 Conversely, if there is a mapping for variable Z that is \emph{not} in the clinical data, this \emph{will} throw error.
 }
+\keyword{internal}

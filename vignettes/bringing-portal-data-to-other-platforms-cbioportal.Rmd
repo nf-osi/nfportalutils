@@ -30,7 +30,7 @@ This briefly describes usage for bringing data from NF-OSI (mainly NF-OSI proces
 First load the `nfportalutils` package and log in. 
 The recommended default usage of `syn_login` is to use it without directly passing in credentials. 
 Instead, have available the `SYNAPSE_AUTH_TOKEN` environment variable with your token stored therein. 
-```{r setup}
+```{r setup, eval=FALSE}
 library(nfportalutils)
 syn_login()
 ```
@@ -53,7 +53,7 @@ ref_map <- "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main
 
 
 This will create a folder with the set of files needed.
-```{r syncBP_maf}
+```{r syncBP_maf, eval=FALSE}
 
 syncBP_maf(merged_maf,
            samplesheet,

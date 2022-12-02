@@ -26,3 +26,4 @@ make_meta_patient(
 \description{
 Adapted from https://github.com/Sage-Bionetworks/genie-erbb2-cbio/blob/develop/create_meta.R#L101
 }
+\keyword{internal}

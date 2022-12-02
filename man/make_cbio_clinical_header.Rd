@@ -19,3 +19,4 @@ make_cbio_clinical_header(df, label, description, data_type)
 This is called from the wrapper \code{write_cbio_clinical}.
 Reused from https://github.com/Sage-Bionetworks/genie-erbb2-cbio/blob/develop/create_clinical.R#L396.
 }
+\keyword{internal}

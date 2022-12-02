@@ -25,6 +25,7 @@
 #' @param label Character vector representing a short label for each column in the dataset
 #' @param description Character vector representing a long descriptions for each column in the dataset
 #' @param data_type Character vector representing the data type of each column in the dataset
+#' @keywords internal
 make_cbio_clinical_header <- function(df, label, description, data_type) {
 
   # Original code assigns a default priority = 1 to all; this is kept until we need more complex configuration
@@ -45,6 +46,7 @@ make_cbio_clinical_header <- function(df, label, description, data_type) {
 #' and we (NF) currently don't use the TIMELINE type, so options have been simplified.
 #' @param clinical_type String representing cBioPortal clinical data type.  
 #' @return string
+#' @keywords internal
 get_cbio_filename <- function(clinical_type = c("SAMPLE", "PATIENT")) {
   
   clinical_type <- match.arg(clinical_type)
@@ -72,7 +74,7 @@ get_cbio_filename <- function(clinical_type = c("SAMPLE", "PATIENT")) {
 #' @inheritParams write_meta
 #' @param na_recode Possible NA values to replace with a blank string (which seems to be standard) in exported file.
 #' @param delim Delimiter character used for writing file, defaults to tab-delimited per cBioPortal specs.
-#' @export
+#' @keywords internal
 write_cbio_clinical <- function(df, 
                                 ref_map, 
                                 na_recode = c("NA", "NaN", "unknown", "Unknown"),
@@ -177,7 +179,7 @@ make_meta_clinical_generic <- function(cancer_study_identifier,
 #' @inheritParams make_meta_clinical_generic
 #' @inheritParams write_meta
 #' @param write Whether to write the meta file for the clinical data file.
-#' @export
+#' @keywords internal
 make_meta_patient <- function(cancer_study_identifier, 
                               data_filename = "data_clinical_patient.txt", 
                               write = TRUE,
@@ -200,7 +202,7 @@ make_meta_patient <- function(cancer_study_identifier,
 #' @inheritParams make_meta_clinical_generic
 #' @inheritParams make_meta_patient
 #' @inheritParams write_meta
-#' @export
+#' @keywords internal
 make_meta_sample <- function(cancer_study_identifier, 
                              data_filename = "data_clinical_sample.txt",
                              publish_dir = ".",
@@ -259,7 +261,7 @@ make_meta_genomic_generic <- function(cancer_study_identifier,
 #' @inheritParams write_meta
 #' @param data_filename Name of the data file. Defaults to "data_mutations_extended.txt".
 #' @param write Whether to write the meta file for the data file.
-#' @export
+#' @keywords internal
 make_meta_maf <- function(cancer_study_identifier, 
                           data_filename = "data_mutations_extended.txt",
                           publish_dir = ".",
