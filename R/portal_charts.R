@@ -91,6 +91,7 @@ as_mmd_node <- function(entity,
 #' flowchart <- processing_flowchart(year = 1)
 #' cat(flowchart, file = "flowchart.mmd")
 #'}
+#' @export
 processing_flowchart <- function(year = 1) {
   
   # Get data
