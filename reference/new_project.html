@@ -74,7 +74,7 @@ Since this is intended for actual new projects, it will fail if a same existing 
 <span>  admin_user <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">abstract</span>,</span>
 <span>  <span class="va">institution</span>,</span>
-<span>  funder <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CTF"</span>, <span class="st">"GFF"</span>, <span class="st">"NTAP"</span><span class="op">)</span>,</span>
+<span>  <span class="va">funder</span>,</span>
 <span>  <span class="va">initiative</span>,</span>
 <span>  datasets <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  webview <span class="op">=</span> <span class="cn">FALSE</span>,</span>
@@ -110,7 +110,7 @@ Currently, only takes one admin user, and the rest can be added via the UI.</p><
 
 
 <dt>funder</dt>
-<dd><p>The funder org, currently one of c("CTF", "GFF", "NTAP"). The relevant funder team will be made admin.</p></dd>
+<dd><p>The funding agency. The relevant funder team will be made admin.</p></dd>
 
 
 <dt>initiative</dt>
