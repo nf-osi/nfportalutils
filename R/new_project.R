@@ -17,7 +17,7 @@
 #' Currently, only takes one admin user, and the rest can be added via the UI.
 #' @param abstract Project abstract/description.
 #' @param institution Affiliated institution(s), **semicolon-sep if multiple**, e.g. "Stanford University; University of California, San Francisco".
-#' @param funder The funder org, currently one of c("CTF", "GFF", "NTAP"). The relevant funder team will be made admin.
+#' @param funder The funding agency. The relevant funder team will be made admin.
 #' @param initiative Title of funding initiative, e.g. "Young Investigator Award".
 #' @param datasets (Optional) Datasets for which folders will be created under main data folder ("Raw Data").
 #' @param webview Whether to open web browser to view newly created project. Defaults to FALSE.
@@ -30,7 +30,7 @@ new_project <- function(name,
                         admin_user = NULL,
                         abstract,
                         institution,
-                        funder = c("CTF", "GFF", "NTAP"),
+                        funder,
                         initiative,
                         datasets = NULL,
                         webview = FALSE,
@@ -55,13 +55,12 @@ new_project <- function(name,
   # Set NF-OSI Sage Team permissions to full admin
   NF_sharing <- make_admin(project, principal_id = 3378999)
 
-  # Set grant funding team to full admin
-  funder <- match.arg(funder)
+  # Set grant funding team to full admin -- ignore funders not associated with a team (e.g. NIH-NCI)
   funder <- switch(funder,
                    CTF = 3359657, ##CTF team
                    GFF = 3406072, ##GFF Admin team
                    NTAP = 3331266) ##NTAP Admin team
-  funder_sharing <- make_admin(project, funder)
+  if(!is.null(funder)) funder_sharing <- make_admin(project, funder)
 
   # Set project lead/pi user to full admin user if given
   if(!is.null(admin_user)) {

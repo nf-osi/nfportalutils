@@ -42,7 +42,7 @@ register_study(
 
 \item{fileview_id}{Synapse id of the study project's main fileview.}
 
-\item{funder}{The funder org, currently one of c("CTF", "GFF", "NTAP"). The relevant funder team will be made admin.}
+\item{funder}{The funding agency. The relevant funder team will be made admin.}
 
 \item{initiative}{Title of funding initiative, e.g. "Young Investigator Award".}
 
