@@ -18,3 +18,4 @@ Adapted from https://github.com/Sage-Bionetworks/genie-erbb2-cbio/blob/develop/c
 Note that of the clinical file types, the PATIENT type can actually be optional,
 and we (NF) currently don't use the TIMELINE type, so options have been simplified.
 }
+\keyword{internal}

@@ -43,3 +43,4 @@ This doesn't actually give the googlesheets4 project access to any data
 ("The Tidyverse API Packages project never receives your data or the permission to access your data."
 -- see https://www.tidyverse.org/google_privacy_policy/.)
 }
+\keyword{internal}

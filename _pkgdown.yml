@@ -1,0 +1,113 @@
+url: ~
+template:
+  bootstrap: 5
+
+reference:
+- title: Portal Tables Utils
+  desc: Augment and update one of the main portal tables (e.g. Portal - Studies)
+- contents: 
+  - starts_with("add_publication")
+  - assign_study_data_types
+  - calculate_related_studies
+  - register_study
+  - add_people_from_table
+  - register_study_files
+
+- title: Project Configuration and Management 
+  desc: Create or retrofit an NF project to expected default structure and assets
+- contents: 
+  - new_project
+  - add_default_fileview
+  - add_default_folders
+  - make_admin
+
+- title: Annotation Utils
+- subtitle: General annotation
+  desc: Add and manage annotations on Synapse entities
+- contents:
+  - update_study_annotations
+  - annotate_with_manifest
+  - copy_annotations 
+  - .modify_annotation
+  - qc_manifest
+- subtitle: Special annotation of nextflow processed data 
+  desc: Special annotation of nextflow processed data 
+- contents:
+  - map_reports_sarek
+  - map_sample_input_ss
+  - map_sample_io
+  - map_sample_output_rnaseq
+  - map_sample_output_sarek
+  - annotate_aligned_reads
+  - annotate_called_variants
+  - annotate_expression
+  - annotate_reports_sarek
+  - annotate_with_tool_stats
+
+- title: Data Model Utils
+  desc: Talk to a JSON-LD data model important to the portal data (i.e. NF-metadata-dictionary)
+- contents:
+  - get_by_prop_from_json_schema
+  - get_dependency_from_json_schema
+  - get_valid_values_from_json_schema
+  - key_label_to_id
+  - schema_max_str_len
+
+- title: Provenance Utils
+  desc: Manage provenance metadata
+- contents:
+  - contains("activity")
+  - delete_provenance
+  
+- title: Content Utils
+  desc: Create and manage Wiki-type content for projects and pages
+- contents: 
+  - add_default_wiki
+  - wiki_mod
+  - remove_wiki_subpage
+  - data_curator_app_subpage
+  - get_project_wiki
+  - check_wiki_links
+  - remove_button
+  
+- title: Export Data to Other Portals
+  desc: Helpers to export/release NF data to other portal/database formats
+- subtitle: cBioPortal
+  desc: Export data to cBioPortal format files
+- contents:
+  - syncBP_maf
+  - check_maf_release
+  - make_meta_study
+
+- title: Quality Control and Testing Utils
+  desc: QC data
+- contents:
+  - check_readpair_validity
+  - identify_read_pair
+  - test_failed
+  - test_passed
+  
+- title: Miscellaneous Low-level Utils
+  desc: Low-level functions
+- contents:
+  - syn_login
+  - table_query
+  - as_table_schema
+  - make_folder
+  - walk
+  - copy
+  - convert_to_stringlist
+  - bare_syn_id
+  - bad_url
+  - .update_table_data
+  - .update_view_data
+  - from_pubmed
+
+- title: Internal/experimental
+  description: Mostly meant to be internal or experimental stuff 
+- contents:
+  - .delim_string_to_vector
+  - .replace_string_column_with_stringlist_column
+  - .store_rows
+  - missing_annotation_email
+
