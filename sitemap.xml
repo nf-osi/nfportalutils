@@ -22,6 +22,9 @@
     <loc>/articles/index.html</loc>
   </url>
   <url>
+    <loc>/articles/survey-public-files.html</loc>
+  </url>
+  <url>
     <loc>/authors.html</loc>
   </url>
   <url>
@@ -92,6 +95,9 @@
   </url>
   <url>
     <loc>/reference/calculate_related_studies.html</loc>
+  </url>
+  <url>
+    <loc>/reference/check_access.html</loc>
   </url>
   <url>
     <loc>/reference/check_maf_release.html</loc>
@@ -211,6 +217,9 @@
     <loc>/reference/make_meta_study_generic.html</loc>
   </url>
   <url>
+    <loc>/reference/make_public.html</loc>
+  </url>
+  <url>
     <loc>/reference/map_reports_sarek.html</loc>
   </url>
   <url>
@@ -260,6 +269,9 @@
   </url>
   <url>
     <loc>/reference/strlist_JSON.html</loc>
+  </url>
+  <url>
+    <loc>/reference/summarize_file_access.html</loc>
   </url>
   <url>
     <loc>/reference/syn_login.html</loc>
