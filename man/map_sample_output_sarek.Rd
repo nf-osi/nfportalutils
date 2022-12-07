@@ -17,3 +17,7 @@ See https://nf-co.re/sarek. Processed outputs are nested by sample and variant c
 \verb{*VariantCalling/<TUMOR_vs_NORMAL>/<CALLER>}. This walks through the output destination (URI of \verb{*VariantCalling})
 with similar intention to \code{\link{map_sample_output_rnaseq}}, but for Sarek outputs.
 }
+\details{
+Note: And additional step post-Sarek will create MAFs in the output subdirectory DeepVariant.
+If this is run \emph{after} the MAF creation step, this will return file indexes with those .maf files.
+}

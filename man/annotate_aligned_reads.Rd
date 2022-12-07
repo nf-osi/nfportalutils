@@ -12,7 +12,7 @@ annotate_aligned_reads(
   schema =
     "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld",
   verbose = TRUE,
-  update = FALSE
+  dry_run = TRUE
 )
 }
 \arguments{
@@ -29,7 +29,7 @@ Can specify different model/version, but in some cases may not work well.}
 
 \item{verbose}{Give verbose reports for what's happening.}
 
-\item{update}{Whether to apply annotations.}
+\item{dry_run}{Whether to apply annotations.}
 }
 \description{
 Put together annotation components for nextflow star-salmon outputs. Annotations come from several sources:
@@ -42,9 +42,11 @@ we hard-code lots of stuff, so this is hard to generalize for other data models.
 }
 \details{
 \enumerate{
-\item Extract metrics from auxiliary files to surface as annotations. See  \code{\link{annotate_with_tool_stats}}.
+\item Extract metrics from auxiliary files to surface as annotations. See \code{\link{annotate_with_tool_stats}}.
 \item Manually add annotations that can't (yet?) be derived from #1 or #2. Has to be done outside of this util.
 }
 
-Always returns a "partial" manifest; the param \code{update} specifies whether annotations should be applied.
+Always returns a "partial" manifest, which can be adjusted as needed;
+for example, if default values such as the linked workflow version are out of date.
+The param \code{dry_run} specifies whether annotations should be applied.
 }

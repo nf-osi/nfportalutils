@@ -24,7 +24,7 @@ syn_login <- function(username = NULL, password = NULL, authtoken = Sys.getenv("
 
 #' Checks .syn object exists.
 #' @returns A message.
-#' @export
+#' @keywords internal
 .check_login <- function(){
   if(!exists(".syn")){
     stop('Please run `nfportalutils::syn_login()` prior to running functions that require a connection to Synapse. (Alternatively, the Python `synapseclient` is unavailable.)')

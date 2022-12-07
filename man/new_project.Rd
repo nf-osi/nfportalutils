@@ -11,7 +11,7 @@ new_project(
   admin_user = NULL,
   abstract,
   institution,
-  funder = c("CTF", "GFF", "NTAP"),
+  funder,
   initiative,
   datasets = NULL,
   webview = FALSE,
@@ -32,7 +32,7 @@ Currently, only takes one admin user, and the rest can be added via the UI.}
 
 \item{institution}{Affiliated institution(s), \strong{semicolon-sep if multiple}, e.g. "Stanford University; University of California, San Francisco".}
 
-\item{funder}{The funder org, currently one of c("CTF", "GFF", "NTAP"). The relevant funder team will be made admin.}
+\item{funder}{The funding agency. The relevant funder team will be made admin.}
 
 \item{initiative}{Title of funding initiative, e.g. "Young Investigator Award".}
 

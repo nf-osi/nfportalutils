@@ -1,0 +1,80 @@
+---
+title: "Bringing Portal Data to Other Platforms (cBioPortal)"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Bringing Portal Data to Other Platforms (cBioPortal)}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+**Document Status:** Draft  
+**Estimated Reading Time:** 5 min
+
+## Special acknowledgments 
+
+Functionality demonstrated in this vignette benefited greatly from code originally written by [hhunterzinck](https://github.com/hhunterzinck). 
+
+## Intro
+
+This briefly describes usage for bringing data from NF-OSI (mainly NF-OSI processed data) is brought to other platforms (mainly cBioPortal). 
+
+## Set up
+
+First load the `nfportalutils` package and log in. 
+The recommended default usage of `syn_login` is to use it without directly passing in credentials. 
+Instead, have available the `SYNAPSE_AUTH_TOKEN` environment variable with your token stored therein. 
+```{r setup, eval=FALSE}
+library(nfportalutils)
+syn_login()
+```
+
+## Creating a mutations dataset
+
+Compilation of a cBioPortal dataset does require putting together a number of assets on Synapse and elsewhere, but the package should make it seem as straightforward as possible.
+
+- `merged_maf` references a final output file from the NF-OSI processing pipeline that is directly ready for public release. No modifications are needed for this file (except renaming it).
+- `ref_view` is a fileview that contains annotations for the files released.
+- `samplesheet` is a the samplesheet used for the data processing and ultimately creating `merged_maf`
+- `ref_map` maps clinical variables from the NF-OSI data dictionary to cBioPortal's
+
+```{r files}
+merged_maf <- "syn36553188"
+ref_view <- "syn43278088"
+samplesheet <- "syn41830510"
+ref_map <- "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/mappings/cBioPortal.yaml"
+```
+
+
+This will create a folder with the set of files needed.
+```{r syncBP_maf, eval=FALSE}
+
+syncBP_maf(merged_maf,
+           samplesheet,
+           ref_map,
+           ref_view,
+           cancer_study_identifier = "mixed_nfosi_2022",
+           name = "Plexiform Neurofibroma and Neurofibroma (Pratilas 2022)",
+           citation = "TBD")
+```
+
+## Updating or adding to a dataset
+
+This is a TO-DO section.
+
+## Validation
+
+There are additional steps such as generating case lists and validation that have to be done _outside_ of the package with a cBioPortal backend, where each portal may have specific configurations (such as genomic reference) to validate against.
+See the [general docs for dataset validation](https://docs.cbioportal.org/using-the-dataset-validator/).
+
+For the _public_ portal, the suggested step using the public server is given below.  
+Assuming your present working directory is `~/datahub/public` and a study folder called `mixed_nfosi_2022` has been placed into it, mount the dataset into the container and run validation like so:
+`docker run --rm -v $(pwd):/datahub cbioportal/cbioportal:4.1.13 validateStudies.py -d /datahub -l mixed_nfosi_2022 -u http://cbioportal.org -html /datahub/mixed_nfosi_2022/html_report`
+
+ 

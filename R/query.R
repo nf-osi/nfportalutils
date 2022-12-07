@@ -43,7 +43,7 @@ schema_max_str_len <- function(key,
 #' Query for schema key id given label
 #' 
 #' Utility to translate label to id using a schematic-generated schema.
-#' @inheritParams get_valid_values_from_json_schema
+#' 
 #' @param label The term label, a.k.a display name.
 #' @param prefixed Boolean to indicate whether to include namespace prefix or return bare ID. Defaults to `TRUE`.
 #' @param schema URL or local path to a .jsonld file which the schema is to be read from. 

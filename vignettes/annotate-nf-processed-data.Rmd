@@ -1,6 +1,7 @@
 ---
 title: "Annotating nextflow processed data"
 output: rmarkdown::html_vignette
+date: 2022-10-17
 vignette: >
   %\VignetteIndexEntry{annotating-nextflow-processed-data}
   %\VignetteEngine{knitr::rmarkdown}
@@ -17,18 +18,25 @@ knitr::opts_chunk$set(
 ## Intro
 
 This vignette documents in-practice usage of the annotation utils for nf-processed data files;
-it will probably updated as practices or underlying functions (which are still experimental) change. 
+it will probably updated as practices and underlying functions are refined. 
 
-Since examples reference real data, most of the interactive portions need at least read access.
-The portions that require modify access are mostly illustrative; `eval=F` by default. 
-(Note that if these are rerun, annotations will be duplicated.) 
+If you copy and paste some code to try out, you will need at least read access.
+The code to modify the entities' provenance/annotations are not evaluated.
+
+## Important note
+
+You may notice one minor difference in the annotation utils for RNA-seq expression vs variant calling data.
+The main difference is that one will add workflow directly, while the other doesn't. 
+This is a design change that will be made more consistent across the annotation functions going forward, 
+where workflow values will be added for everything by default, and functions will be kept up to date to make consistency easy for DCC staff.
+For non-nf-processed data, values can still be overridden. 
 
 ## Set up
 
 First load the `nfportalutils` package and log in. 
 The recommended default usage of `syn_login` is to use it without directly passing in credentials. 
 Instead, have available the `SYNAPSE_AUTH_TOKEN` environment variable with your token stored therein. 
-```{r setup}
+```{r setup, eval=FALSE}
 library(nfportalutils)
 library(data.table)
 syn_login()
@@ -73,7 +81,7 @@ This is handled by a couple of specialized functions.
 #### Aligned reads data files
 
 First, it helps to see the template for the aligned reads`(.bam`) data.  
-```{r rnaseq-see-annotations-bam}
+```{r rnaseq-see-annotations-bam, eval=FALSE}
 
 template <- "bts:ProcessedAlignedReadsTemplate"
 schema <- "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld"
@@ -125,8 +133,8 @@ annotate_with_manifest(l3_manifest)
 
 ## nf-sarek
 
-As the second part of this vignette shows, the process is pretty much the same as for [nf-rnaseq](#nf-rnaseq),
-though mapping inputs-outputs can be somewhat slower because of the output structure.
+As the second part of this vignette will show, the process for variant data is not much different,
+though mapping inputs-outputs can be somewhat slower.
 
 ### Creating helper resource files
 ```{r sarek-resources, eval=FALSE}
@@ -140,7 +148,8 @@ sample_io[workflow =="Strelka", workflow := "Strelka2"]
 
 ### Add provenance
 
-Note: For germline, make sure to include an additional DeepVariant reference as well.
+Use the manifest to add provenance. 
+
 ```{r sarek-add-provenance, eval=FALSE}
 
 wf_link <- c(FreeBayes = "https://nf-co.re/sarek/2.7.1/output#freebayes",
@@ -155,18 +164,21 @@ add_activity_batch(sample_io$output_id,
 
 ### Add annotations
 
-Adding annotations can be done with `annotate_called_variants`, which can be used for both somatic and germline.
+The `annotate_called_variants` util is used for both somatic and germline results, and will automatically try to fill in the right values. 
+However, you can set these in the parameters directly -- see `?annotate_called_variants`.
+This returns a manifest for examination and correction has needed.
  
 ```{r sarek-make-annotations, eval=FALSE}
 
-annotations <- annotate_called_variants(sample_io, data_type = "SomaticVariants")
-annotations[, workflowLink := wf_link[workflow]]
+manifest <- annotate_called_variants(sample_io)
+
 ```
 
-And apply...
-```{r sarek-apply-annotations, eval=FALSE}
+For example, if you used a slightly different version/fork, you should update it manually in the manifest.
+Otherwise, apply the annotations:
+```{r sarek-apply-manifest, eval=FALSE}
 
-annotate_with_manifest(annotations)
+annotate_with_manifest(manifest)
 ```
 
 

@@ -1,13 +1,15 @@
 Package: nfportalutils
-Title: What the Package Does (One Line, Title Case)
-Version: 0.0.0.9100
-Authors@R: 
-    person(given = "Allaway",
-           family = "Robert",
-           role = c("aut", "cre"),
+Title: NF Portal Utilities
+Version: 0.0.0.9110
+Authors@R: c(
+    person(given = "Robert", family = "Allaway", role = c("aut", "cre"),
            email = "robert.allaway@sagebionetworks.org",
-           comment = c(ORCID = "0000-0003-3573-3565"))
-Description: Provides functions for easy maintainence of NF Data Portal data. 
+           comment = c(ORCID = "0000-0003-3573-3565")),
+    person("Anh Nguyet", "Vu", role = c("aut"),
+           email = "anh.nguyet.vu@sagebionetworks.org",
+           comment = c(ORCID = "0000-0003-1488-6730"))       
+    )
+Description: Functions to help with maintainence and administration of NF Data Portal data, metadata, and projects. 
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
@@ -39,6 +41,8 @@ Imports:
     emoji,
     testthat,
     jqr
+    plyr,
+    yaml
 URL: https://github.com/nf-osi/nfportalutils
 BugReports: https://github.com/nf-osi/nfportalutils/issues
 Suggests: 
