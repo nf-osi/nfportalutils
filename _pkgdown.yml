@@ -53,6 +53,13 @@ reference:
   - key_label_to_id
   - schema_max_str_len
 
+- title: Governance Utils
+  desc: Analyze and manage data access/restrictions
+- contents:
+  - make_public
+  - check_access
+  - summarize_file_access
+
 - title: Provenance Utils
   desc: Manage provenance metadata
 - contents:
