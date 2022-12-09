@@ -76,6 +76,9 @@
     <loc>/reference/annotate_with_tool_stats.html</loc>
   </url>
   <url>
+    <loc>/reference/as_mmd_node.html</loc>
+  </url>
+  <url>
     <loc>/reference/as_table_schema.html</loc>
   </url>
   <url>
@@ -248,6 +251,12 @@
   </url>
   <url>
     <loc>/reference/pipe.html</loc>
+  </url>
+  <url>
+    <loc>/reference/ppp_mmd_template.html</loc>
+  </url>
+  <url>
+    <loc>/reference/processing_flowchart.html</loc>
   </url>
   <url>
     <loc>/reference/qc_manifest.html</loc>
