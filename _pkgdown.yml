@@ -76,6 +76,7 @@ reference:
   - get_project_wiki
   - check_wiki_links
   - remove_button
+  - processing_flowchart
   
 - title: Export Data to Other Portals
   desc: Helpers to export/release NF data to other portal/database formats
