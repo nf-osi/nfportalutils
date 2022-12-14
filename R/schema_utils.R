@@ -41,6 +41,7 @@ as_table_schema <- function(df,
     values <- df[[i]]
     if(grepl("STRING", col_type[i])) {
       maxsize <-  col_schema[[i]]$maximumSize
+      if(anyNA(values)) stop("Please remove NA values from STRING column", names(df)[i])
       size_fail <- sapply(values, function(x) any(nchar(x) > maxsize))
       if(any(size_fail)) stop(paste("Characters in", names(df)[i], "exceeds max size of", maxsize))
     }
