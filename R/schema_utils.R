@@ -20,6 +20,7 @@ as_table_schema <- function(df,
                             schema, 
                             list_truncate = FALSE) {
   
+  if("data.table" %in% class(df)) df <- as.data.frame(df)
   if("synapseclient.table.Schema" %in% class(schema) && reticulate::py_has_attr(schema, "columns_to_store")) { 
     col_schema <- schema$columns_to_store
   } else {
