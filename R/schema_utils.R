@@ -42,7 +42,7 @@ as_table_schema <- function(df,
     if(grepl("STRING", col_type[i])) {
       maxsize <-  col_schema[[i]]$maximumSize
       size_fail <- sapply(values, function(x) any(nchar(x) > maxsize))
-      if(any(size_fail)) stop(paste("Characters in", names(df)[i], "exceeds max size of", maxlen))
+      if(any(size_fail)) stop(paste("Characters in", names(df)[i], "exceeds max size of", maxsize))
     }
     if(grepl("*_LIST", col_type[i])) {
       maxlen <- col_schema[[i]]$maximumListLength
