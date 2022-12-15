@@ -6,10 +6,9 @@ test_that("`as_table_schema` works as expected for data that can be fit into sch
   test_fixture <- "syn49378540"
   test_data <- data.frame(Movie = "The Sound of Music",
                           Year = 1965,
-                          Favorites = list("raindrops","whiskers", "kettles"))
+                          Favorites = I(list(list("raindrops","whiskers", "kettles"))))
   test_data_storable <- as_table_schema(test_data, schema = test_fixture)
-  testthat::expect_no_error(.syn$store(test_data_storable))
-  
+  testthat::expect_s3_class(.syn$store(test_data_storable), "synapseclient.table.CsvFileTable")
 })
 
 test_that("`as_table_schema` errors for data with missing column", {
@@ -25,7 +24,7 @@ test_that("`as_table_schema` errors for data that exceeds list length as specifi
   test_fixture <- "syn49378540"
   test_data <- data.frame(Movie = "The Sound of Music",
                           Year = 1965,
-                          Favorites = list("raindrops", "whiskers", "kettles", "mittens")) # exceeds list length of 3
+                          Favorites = I(list(list("raindrops", "whiskers", "kettles", "mittens")))) # exceeds list length of 3
   testthat::expect_error(as_table_schema(test_data, schema = test_fixture, list_truncate = FALSE))
   
 })
@@ -35,7 +34,7 @@ test_that("`as_table_schema` returns result with warning for data that exceeds l
   test_fixture <- "syn49378540"
   test_data <- data.frame(Movie = "The Sound of Music",
                           Year = 1965,
-                          Favorites = list("raindrops", "whiskers", "kettles", "mittens")) # exceeds list length of 3
+                          Favorites = I(list(list("raindrops", "whiskers", "kettles", "mittens")))) # exceeds list length of 3
   testthat::expect_warning(as_table_schema(test_data, schema = test_fixture, list_truncate = TRUE))
   
 })
@@ -45,7 +44,7 @@ test_that("`as_table_schema` errors for data that exceeds character limits speci
   test_fixture <- "syn49378540"
   test_data <- data.frame(Movie = "The Sound of Music",
                           Year = 1965,
-                          Favorites = list("raindrops on roses", "whiskers")) # exceeds character size of 15
+                          Favorites = I(list(list("raindrops on roses", "whiskers")))) # exceeds character size of 15 for first value
   testthat::expect_error(as_table_schema(test_data, schema = test_fixture))
   
 })
