@@ -3,6 +3,9 @@
 # in order to successfully append data conforming to an existing Synapse schema
 
 test_that("`as_table_schema` works as expected for data that can be fit into schema without issue", {
+  skip_if_no_synapseclient()
+  skip_if_no_pandas()
+  skip_if_no_login()
   test_fixture <- "syn49378540"
   test_data <- data.frame(Movie = "The Sound of Music",
                           Year = 1965,
@@ -12,6 +15,9 @@ test_that("`as_table_schema` works as expected for data that can be fit into sch
 })
 
 test_that("`as_table_schema` errors for data with missing column", {
+  skip_if_no_synapseclient()
+  skip_if_no_pandas()
+  skip_if_no_login()
   test_fixture <- "syn49378540"
   test_data <- data.frame(Movie = "The Sound of Music",
                           Year = 1965)
@@ -21,6 +27,9 @@ test_that("`as_table_schema` errors for data with missing column", {
 
 
 test_that("`as_table_schema` errors for data that exceeds list length as specified in schema for LIST column and truncation is not allowed", {
+  skip_if_no_synapseclient()
+  skip_if_no_pandas()
+  skip_if_no_login()
   test_fixture <- "syn49378540"
   test_data <- data.frame(Movie = "The Sound of Music",
                           Year = 1965,
@@ -31,6 +40,9 @@ test_that("`as_table_schema` errors for data that exceeds list length as specifi
 
 
 test_that("`as_table_schema` returns result with warning for data that exceeds list length specified in schema for LIST column but truncated to fit", {
+  skip_if_no_synapseclient()
+  skip_if_no_pandas()
+  skip_if_no_login()
   test_fixture <- "syn49378540"
   test_data <- data.frame(Movie = "The Sound of Music",
                           Year = 1965,
@@ -41,6 +53,9 @@ test_that("`as_table_schema` returns result with warning for data that exceeds l
 
 
 test_that("`as_table_schema` errors for data that exceeds character limits specified in schema for STRING_LIST column", {
+  skip_if_no_synapseclient()
+  skip_if_no_pandas()
+  skip_if_no_login()
   test_fixture <- "syn49378540"
   test_data <- data.frame(Movie = "The Sound of Music",
                           Year = 1965,
