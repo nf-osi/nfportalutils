@@ -104,8 +104,9 @@ make_public <- function(id) {
 #' @param entity_ids Vector of entity ids.
 #' @param create_dataset Optionally, create a dataset of the entity_ids, so that the user can easily retrieve them.
 #' @param project_id If create_dataset=T, which project to create it in.
+#' @param dataset_name Optional name for dataset to be created
 #' @export
-grant_specific_file_access <- function(principal_id, entity_ids, create_dataset = F, project_id = NULL) {
+grant_specific_file_access <- function(principal_id, entity_ids, create_dataset = F, project_id = NULL, dataset_name = NULL) {
   # .check_login()
 
   if(create_dataset & is.null(project_id)){
@@ -125,10 +126,14 @@ grant_specific_file_access <- function(principal_id, entity_ids, create_dataset 
     list(entityId = id, versionNumber = vsn)
   })
 
+  if(is.null(dataset_name)){
+    dataset_name <- glue::glue("Dataset {Sys.Date()} for {principal_id}")
+  }
+
   if(create_dataset){
     dataset <- .syn$store(
       synapseclient$Dataset(
-      name=glue::glue("Dataset {Sys.Date()} for {principal_id}"),
+      name=dataset_name,
       parent=project_id,
       dataset_items=dataset_items)
       )
