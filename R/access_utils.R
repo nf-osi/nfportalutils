@@ -148,7 +148,7 @@ grant_specific_file_access <- function(principal_id, entity_ids, create_dataset 
     message(glue::glue('{emoji::emoji("thumbsup")} Dataset created at {dataset$properties$id}'))
   }
 
-  message(glue::glue('{emoji::emoji("astonished")} Principal {principal_id} added to {length(entity_ids)}'))
+  message(glue::glue('{emoji::emoji("astonished")} Principal {principal_id} added to {length(entity_ids)} entities'))
 
   #TODO: set schema programmatically? might be easier to add annotations to schema in web client as needed to support principal_id...
 
