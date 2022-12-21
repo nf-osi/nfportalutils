@@ -20,6 +20,8 @@ as_table_schema <- function(df,
                             schema, 
                             list_truncate = FALSE) {
   
+  .check_login()
+  if("data.table" %in% class(df)) df <- as.data.frame(df)
   if("synapseclient.table.Schema" %in% class(schema) && reticulate::py_has_attr(schema, "columns_to_store")) { 
     col_schema <- schema$columns_to_store
   } else {
@@ -40,8 +42,9 @@ as_table_schema <- function(df,
     values <- df[[i]]
     if(grepl("STRING", col_type[i])) {
       maxsize <-  col_schema[[i]]$maximumSize
+      if(anyNA(values)) stop("Please remove NA values from STRING column", names(df)[i])
       size_fail <- sapply(values, function(x) any(nchar(x) > maxsize))
-      if(any(size_fail)) stop(paste("Characters in", names(df)[i], "exceeds max size of", maxlen))
+      if(any(size_fail)) stop(paste("Characters in", names(df)[i], "exceeds max size of", maxsize))
     }
     if(grepl("*_LIST", col_type[i])) {
       maxlen <- col_schema[[i]]$maximumListLength
