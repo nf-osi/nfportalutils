@@ -9,7 +9,7 @@ RUN apt-get update && \
     libxml2-dev
 
 
-RUN pip install pandas synapseclient==2.7.0
+RUN pip install --break-system-packages pandas synapseclient==2.7.0
 
 COPY . /nfportalutils
 
