@@ -174,7 +174,7 @@ make_admin <- function(entity, principal_id) {
 #' for(i in seq_along(datasets)) attr(datasets[[i]], "assay") <- assays[[i]] 
 #' make_folder(parent = "syn26462036", datasets)  
 #'}
-make_folder <- function(parent, folders, check_names = TRUE) {
+make_folder <- function(parent, folders) {
 
   refs <- list()
   for (i in folders) {
