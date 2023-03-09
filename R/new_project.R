@@ -73,7 +73,9 @@ new_project <- function(name,
   data_folder <- folders[["Raw Data"]]
 
   # Create data-specific folders in "Raw Data"
-  if(length(datasets)) make_folder(parent = data_folder$properties$id, folders = datasets)
+  if(length(datasets)) {
+    make_folder(parent = data_folder$properties$id, folders = datasets)
+  }
 
   # Add Project Files and Metadata fileview, add NF schema; currently doesn't add facets
   fv <- add_default_fileview(project)
@@ -162,14 +164,22 @@ make_admin <- function(entity, principal_id) {
 #' Use to set up a scaffold of standard upper-level folders as well as
 #' customized data folders within "Raw Data" for a new project.
 #' @param parent The Synapse id or object that should be the parent container, i.e. the project or another folder.
-#' @param folders Character vector giving one or more folder names of folder(s) to create.
+#' @param folders List giving one or more folder names of folder(s) to create.
 #' @return A list of the created folder object(s).
 #' @export
-make_folder <- function(parent, folders) {
+#' @examples
+#' \dontrun{ 
+#' datasets <- list("sequencing data", "imaging data")
+#' assays <- c("rnaSeq", "immunohistochemistry")
+#' for(i in seq_along(datasets)) attr(datasets[[i]], "assay") <- assays[[i]] 
+#' make_folder(parent = "syn26462036", datasets)  
+#'}
+make_folder <- function(parent, folders, check_names = TRUE) {
 
   refs <- list()
   for (i in folders) {
-    folder <- synapseclient$Folder(i, parent = parent)
+    # If datasets have "assay" or other attributes, this is added as annotations
+    folder <- synapseclient$Folder(i, parent = parent, annotations = attributes(i))
     folder <- .syn$store(folder)
     refs[[i]] <- folder
   }
