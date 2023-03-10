@@ -4,7 +4,7 @@
 \alias{make_folder}
 \title{Create project folders}
 \usage{
-make_folder(parent, folders, check_names = TRUE)
+make_folder(parent, folders)
 }
 \arguments{
 \item{parent}{The Synapse id or object that should be the parent container, i.e. the project or another folder.}
