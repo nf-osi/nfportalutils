@@ -59,6 +59,7 @@ reference:
   - make_public
   - check_access
   - summarize_file_access
+  - grant_specific_file_access
 
 - title: Provenance Utils
   desc: Manage provenance metadata
