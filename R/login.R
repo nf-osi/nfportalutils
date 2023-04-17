@@ -1,10 +1,10 @@
 #' Logs into Synapse.
 #' 
 #' Wrapper around https://python-docs.synapse.org/build/html/index.html#synapseclient.Synapse.login
-#' Similarly, providing no args will default to highest preference of using a `SYNAPSE_AUTH_TOKEN` env var to log in.
-#' @param username a Synapse username (optional, not required if .synapseConfig available)
-#' @param password a Synapse password (optional, not required if .synapseConfig available)
-#' @param authtoken Uses `SYNAPSE_AUTH_TOKEN` environmental variable, or a personal access token string can be provided.
+#' Username and password authentication is not supported.
+#' Recommendation is to store `SYNAPSE_AUTH_TOKEN` in environment, so login can be used simply as `syn_login()`.
+#'  
+#' @param authtoken Uses `SYNAPSE_AUTH_TOKEN` environmental variable, or a personal access token (PAT) can be provided.
 #' @examples
 #' \dontrun{
 #' library(nfportalutils)
@@ -12,13 +12,9 @@
 #' }
 #' @import reticulate
 #' @export
-syn_login <- function(username = NULL, password = NULL, authtoken = Sys.getenv("SYNAPSE_AUTH_TOKEN")){
+syn_login <- function(authtoken = Sys.getenv("SYNAPSE_AUTH_TOKEN")){
   .syn <<- synapseclient$Synapse()
-  if (authtoken == "") {
-    .syn$login(username, password)
-  } else {
-    .syn$login(authToken = authtoken)
-  }
+  .syn$login(authToken = authtoken)
   invisible(.syn)
 }
 
