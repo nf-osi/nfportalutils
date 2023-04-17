@@ -151,12 +151,17 @@ add_default_fileview <- function(project) {
 #'
 #' Convenience method to set admin permissions
 #' @param entity The Synapse entity, e.g. project or folder.
-#' @param principal_id User or team id that will have the configured access to the entity.
+#' @param principal_id User/team name or id (e.g. "NF-OSI Sage Team", "3378999", "nf-bot", or "3423450") that will have the configured access to the entity.
 #' @export
 make_admin <- function(entity, principal_id) {
-  admin <- .syn$setPermissions(entity = entity,
-                               principalId = principal_id,
-                               accessType = list('DELETE', 'CHANGE_SETTINGS', 'MODERATE', 'CREATE', 'READ','DOWNLOAD', 'UPDATE', 'CHANGE_PERMISSIONS'))
+  if(is_valid_user(principal_id) || is_valid_team(principal_id)) {
+    admin <- .syn$setPermissions(entity = entity,
+                                 principalId = principal_id,
+                                 accessType = list('DELETE', 'CHANGE_SETTINGS', 'MODERATE', 'CREATE', 'READ','DOWNLOAD', 'UPDATE', 'CHANGE_PERMISSIONS'))
+  } else {
+    warning("Principal specified is not a valid user or team. Ignoring, please correct and resolve manually.")
+    return(FALSE)
+  }
 }
 
 #' Create project folders
@@ -234,6 +239,24 @@ add_default_wiki <- function(project,
 #' @export
 add_default_folders <- function(project, folders = c("Analysis", "Milestone Reports", "Raw Data")) {
    make_folder(parent = project, folders)
+}
+
+#' Check that is valid user in Synapse
+#' @keywords internal
+is_valid_user <- function(id) {
+  status <- tryCatch(
+    .syn$getUserProfile(id), error = function(e) return(NULL) 
+    )
+  if(length(status)) return(TRUE) else return(FALSE)
+}
+
+#' Check that is valid team in Synapse
+#' @keywords internal
+is_valid_team <- function(id) {
+  status <- tryCatch(
+    .syn$getTeam(id), error = function(e) return(NULL) 
+  )
+  if(length(status)) return(TRUE) else return(FALSE)
 }
 
 #' Get and parse data from Google Sheets for initializing a new project
