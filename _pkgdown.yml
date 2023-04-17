@@ -56,6 +56,7 @@ reference:
 - title: Governance Utils
   desc: Analyze and manage data access/restrictions
 - contents:
+  - make_public_viewable
   - make_public
   - check_access
   - summarize_file_access
