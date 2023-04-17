@@ -20,13 +20,28 @@ You can install `nfportalutils` from here:
 remotes::install_github("nf-osi/nfportalutils")
 ```
 
-## Other Package Notes
+## Additional Notes for Users
 
-- A couple of vignettes are available which are [precomputed](https://ropensci.org/blog/2019/12/08/precompute-vignettes/). 
-If the vignette is downloaded, use e.g. `vignette("annotate-nf-processed-data", package = "nfportalutils")` to view.
-- For development, run `devtools::check(vignettes = FALSE)` early and often.
+- View function reference on docs site at [Reference](https://nf-osi.github.io/nfportalutils/reference/index.html). 
+- An alternative to viewing vignettes as Articles on the [docs site](https://nf-osi.github.io/nfportalutils/index.html) is to download them with pkg install and load with e.g. `vignette("annotate-nf-processed-data", package = "nfportalutils")` to view.
+
+## Additional Notes for Contributors 
+
+### Contrib workflow
+- Branch of `develop` and make changes
+- Run `devtools::check(vignettes = FALSE)` early and often, and definitely before submitting a PR
+- Make a pull request to `develop`; this will run `R-CMD-CHECK` and `pkgdown`
+- Request a reviewer if both checks pass
+- Reviewer requests changes or merges
+
+### Local development tips
+- Some vignettes need to be [precomputed](https://ropensci.org/blog/2019/12/08/precompute-vignettes/). 
+- Again, run `devtools::check(vignettes = FALSE)` early and often.
 - At minimal, address any `ERRORS` and `WARNINGS`.
 - Yes, we do have a lot of `NOTES` that need to be resolved. 
+- For custom indexing after adding/updating functions, edit the `_pkgdown.yml`.
+- Preview the pkg docs site locally with `pkgdown::build_site()`.
+
 
 ## Code of Conduct
   
