@@ -34,7 +34,6 @@ Imports:
     lubridate,
     rlang,
     tidyr,
-    googlesheets4,
     xml2,
     FastKNN,
     crayon,
