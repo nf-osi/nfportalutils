@@ -20,6 +20,7 @@
 #' @param funder The funding agency. The relevant funder team will be made admin.
 #' @param initiative Title of funding initiative, e.g. "Young Investigator Award".
 #' @param datasets (Optional) Datasets for which folders will be created under main data folder ("Raw Data").
+#' @param publicview Whether to put this project in the public view instead of staying private (registered or non-registered users can see project).
 #' @param webview Whether to open web browser to view newly created project. Defaults to FALSE.
 #' @param ... Additional arguments. Not used.
 #' @return The project object.
@@ -33,6 +34,7 @@ new_project <- function(name,
                         funder,
                         initiative,
                         datasets = NULL,
+                        publicview = FALSE,
                         webview = FALSE,
                         ...) {
 
@@ -67,6 +69,10 @@ new_project <- function(name,
     user_sharing <- make_admin(project, admin_user)
   }
 
+  if(publicview) {
+    public_sharing <- make_public_viewable(project)
+  }
+  
   # ASSETS ---------------------------------------------------------------------#
   # Create default upper-level folders
   folders <- add_default_folders(project)
