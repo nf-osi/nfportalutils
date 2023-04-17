@@ -14,6 +14,7 @@ new_project(
   funder,
   initiative,
   datasets = NULL,
+  publicview = FALSE,
   webview = FALSE,
   ...
 )
@@ -37,6 +38,8 @@ Currently, only takes one admin user, and the rest can be added via the UI.}
 \item{initiative}{Title of funding initiative, e.g. "Young Investigator Award".}
 
 \item{datasets}{(Optional) Datasets for which folders will be created under main data folder ("Raw Data").}
+
+\item{publicview}{Whether to put this project in the public view instead of staying private (registered or non-registered users can see project).}
 
 \item{webview}{Whether to open web browser to view newly created project. Defaults to FALSE.}
 
