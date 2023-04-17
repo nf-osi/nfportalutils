@@ -4,22 +4,15 @@
 \alias{syn_login}
 \title{Logs into Synapse.}
 \usage{
-syn_login(
-  username = NULL,
-  password = NULL,
-  authtoken = Sys.getenv("SYNAPSE_AUTH_TOKEN")
-)
+syn_login(authtoken = Sys.getenv("SYNAPSE_AUTH_TOKEN"))
 }
 \arguments{
-\item{username}{a Synapse username (optional, not required if .synapseConfig available)}
-
-\item{password}{a Synapse password (optional, not required if .synapseConfig available)}
-
-\item{authtoken}{Uses \code{SYNAPSE_AUTH_TOKEN} environmental variable, or a personal access token string can be provided.}
+\item{authtoken}{Uses \code{SYNAPSE_AUTH_TOKEN} environmental variable, or a personal access token (PAT) can be provided.}
 }
 \description{
 Wrapper around https://python-docs.synapse.org/build/html/index.html#synapseclient.Synapse.login
-Similarly, providing no args will default to highest preference of using a \code{SYNAPSE_AUTH_TOKEN} env var to log in.
+Username and password authentication is not supported.
+Recommendation is to store \code{SYNAPSE_AUTH_TOKEN} in environment, so login can be used simply as \code{syn_login()}.
 }
 \examples{
 \dontrun{

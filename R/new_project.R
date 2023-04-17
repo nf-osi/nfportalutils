@@ -151,12 +151,17 @@ add_default_fileview <- function(project) {
 #'
 #' Convenience method to set admin permissions
 #' @param entity The Synapse entity, e.g. project or folder.
-#' @param principal_id User or team id that will have the configured access to the entity.
+#' @param principal_id User/team name or id (e.g. "NF-OSI Sage Team", "3378999", "nf-bot", or "3423450") that will have the configured access to the entity.
 #' @export
 make_admin <- function(entity, principal_id) {
-  admin <- .syn$setPermissions(entity = entity,
-                               principalId = principal_id,
-                               accessType = list('DELETE', 'CHANGE_SETTINGS', 'MODERATE', 'CREATE', 'READ','DOWNLOAD', 'UPDATE', 'CHANGE_PERMISSIONS'))
+  if(is_valid_user(principal_id) || is_valid_team(principal_id)) {
+    admin <- .syn$setPermissions(entity = entity,
+                                 principalId = principal_id,
+                                 accessType = list('DELETE', 'CHANGE_SETTINGS', 'MODERATE', 'CREATE', 'READ','DOWNLOAD', 'UPDATE', 'CHANGE_PERMISSIONS'))
+  } else {
+    warning("Principal specified is not a valid user or team. Ignoring, please correct and resolve manually.")
+    return(FALSE)
+  }
 }
 
 #' Create project folders
@@ -236,46 +241,21 @@ add_default_folders <- function(project, folders = c("Analysis", "Milestone Repo
    make_folder(parent = project, folders)
 }
 
-#' Get and parse data from Google Sheets for initializing a new project
-#'
-#' Notice: This is DEPRECATED and will be removed in the next version. 
-#' Currently, project tracking data is stored in a private GoogleSheet.
-#' For \code{\link{new_project}}, this wraps `googlesheets4` to get the needed data.
-#'
-#' If `creds` is not provided, i.e. there is no service account token,
-#' then usage requires authenticating the Tidyverse API in the browser to get an API token on your behalf.
-#' This doesn't actually give the googlesheets4 project access to any data
-#' ("The Tidyverse API Packages project never receives your data or the permission to access your data."
-#' -- see https://www.tidyverse.org/google_privacy_policy/.)
-#' @name get_gs_project_tracking
-#' @param sheet Sheet URL or id. See \code{\link[googlesheets4]{read_sheet}}.
-#' @param creds Path to JSON creds file (service account token).
-#' @param cols List of columns that map to required parameters for \code{\link{new_project}}.
-#' Defaults are provided.
+#' Check that is valid user in Synapse
 #' @keywords internal
-get_gs_project_tracking  <- function(sheet,
-                                      creds = NULL,
-                                      cols = c(name = "studyName",
-                                               pi = "studyPI",
-                                               lead = "studyLeads",
-                                               admin_user = NULL,
-                                               abstract = "abstract",
-                                               institution = "institutions",
-                                               funder = "fundingAgency",
-                                               initiative = "initiative",
-                                               disease = "diseaseFocus",
-                                               manifestations = "diseaseManifestations",
-                                               grant_doi = "grantDOI"
-                                               )
-                                             ) {
-
-  if(!is.null(creds) && file.exists(creds)) googlesheets4::gs4_auth(path = creds)
-  # read_sheet will check if some auth is available
-  projects <- googlesheets4::read_sheet(sheet) %>%
-    dplyr::select(all_of(cols))
-  projects
+is_valid_user <- function(id) {
+  status <- tryCatch(
+    .syn$getUserProfile(id), error = function(e) return(NULL) 
+    )
+  if(length(status)) return(TRUE) else return(FALSE)
 }
 
-#' @rdname get_gs_project_tracking
+#' Check that is valid team in Synapse
 #' @keywords internal
-get_project_tracking <- get_gs_project_tracking
+is_valid_team <- function(id) {
+  status <- tryCatch(
+    .syn$getTeam(id), error = function(e) return(NULL) 
+  )
+  if(length(status)) return(TRUE) else return(FALSE)
+}
+
