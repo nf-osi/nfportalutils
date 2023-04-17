@@ -69,6 +69,29 @@ check_access <- function(id,
 
 # -- SETTING ACCESS -------------------------------------------------------------#
 
+#' Set public access to VIEW (READ) only for an entity 
+#' 
+#' Set both registered users and non-registered users to have VIEW-only permissions. 
+#' See code{link{make_public}} for more permissive permissions to download (for registered users), which is usually set later at data release time.
+#' 
+#' @param id Synapse entity id.
+#' @export
+make_public_viewable <- function(id) {
+  .check_login()
+  ALL_REGISTERED_SYNAPSE_USERS_GROUP <- "273948"
+  PUBLIC_GROUP <- "273949"
+  # set registered synapse users to view, download
+  .syn$setPermissions(entity = id,
+                      principalId = ALL_REGISTERED_SYNAPSE_USERS_GROUP,
+                      accessType = list("READ"))
+  
+  # set public to view
+  .syn$setPermissions(entity = id,
+                      principalId = PUBLIC_GROUP,
+                      accessType = list("READ"))
+}
+
+
 #' Make public
 #'
 #' Sets READ/DOWNLOAD permissions for web and registered users equivalently to the "Make Public" button in Synapse UI.
