@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="index.html">nfportalutils</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9110</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9200</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -84,14 +84,40 @@
 <code class="sourceCode R"><span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"nf-osi/nfportalutils"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="other-package-notes">Other Package Notes<a class="anchor" aria-label="anchor" href="#other-package-notes"></a>
+<h2 id="additional-notes-for-users">Additional Notes for Users<a class="anchor" aria-label="anchor" href="#additional-notes-for-users"></a>
 </h2>
 <ul>
-<li>A couple of vignettes are available which are <a href="https://ropensci.org/blog/2019/12/08/precompute-vignettes/" class="external-link">precomputed</a>. If the vignette is downloaded, use e.g. <code><a href="articles/annotate-nf-processed-data.html">vignette("annotate-nf-processed-data", package = "nfportalutils")</a></code> to view.</li>
-<li>For development, run <code>devtools::check(vignettes = FALSE)</code> early and often.</li>
+<li>View function reference on docs site at <a href="https://nf-osi.github.io/nfportalutils/reference/index.html" class="external-link">Reference</a>.</li>
+<li>An alternative to viewing vignettes as Articles on the <a href="https://nf-osi.github.io/nfportalutils/index.html" class="external-link">docs site</a> is to download them with pkg install and load with e.g. <code><a href="articles/annotate-nf-processed-data.html">vignette("annotate-nf-processed-data", package = "nfportalutils")</a></code> to view.</li>
+</ul>
+</div>
+<div class="section level2">
+<h2 id="additional-notes-for-contributors">Additional Notes for Contributors<a class="anchor" aria-label="anchor" href="#additional-notes-for-contributors"></a>
+</h2>
+<div class="section level3">
+<h3 id="contrib-workflow">Contrib workflow<a class="anchor" aria-label="anchor" href="#contrib-workflow"></a>
+</h3>
+<ul>
+<li>Branch of <code>develop</code> and make changes</li>
+<li>Run <code>devtools::check(vignettes = FALSE)</code> early and often, and definitely before submitting a PR</li>
+<li>Make a pull request to <code>develop</code>; this will run <code>R-CMD-CHECK</code> and <code>pkgdown</code>
+</li>
+<li>Request a reviewer if both checks pass</li>
+<li>Reviewer requests changes or merges</li>
+</ul>
+</div>
+<div class="section level3">
+<h3 id="local-development-tips">Local development tips<a class="anchor" aria-label="anchor" href="#local-development-tips"></a>
+</h3>
+<ul>
+<li>Some vignettes need to be <a href="https://ropensci.org/blog/2019/12/08/precompute-vignettes/" class="external-link">precomputed</a>.</li>
+<li>Again, run <code>devtools::check(vignettes = FALSE)</code> early and often.</li>
 <li>At minimal, address any <code>ERRORS</code> and <code>WARNINGS</code>.</li>
 <li>Yes, we do have a lot of <code>NOTES</code> that need to be resolved.</li>
+<li>For custom indexing after adding/updating functions, edit the <code>_pkgdown.yml</code>.</li>
+<li>Preview the pkg docs site locally with <code><a href="https://pkgdown.r-lib.org/reference/build_site.html" class="external-link">pkgdown::build_site()</a></code>.</li>
 </ul>
+</div>
 </div>
 <div class="section level2">
 <h2 id="code-of-conduct">Code of Conduct<a class="anchor" aria-label="anchor" href="#code-of-conduct"></a>

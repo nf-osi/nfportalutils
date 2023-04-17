@@ -172,9 +172,6 @@
     <loc>/reference/get_dependency_from_json_schema.html</loc>
   </url>
   <url>
-    <loc>/reference/get_gs_project_tracking.html</loc>
-  </url>
-  <url>
     <loc>/reference/get_project_wiki.html</loc>
   </url>
   <url>
@@ -188,6 +185,12 @@
   </url>
   <url>
     <loc>/reference/index.html</loc>
+  </url>
+  <url>
+    <loc>/reference/is_valid_team.html</loc>
+  </url>
+  <url>
+    <loc>/reference/is_valid_user.html</loc>
   </url>
   <url>
     <loc>/reference/key_label_to_id.html</loc>
