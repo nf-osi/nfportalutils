@@ -55,13 +55,13 @@ new_project <- function(name,
 
   # PERMISSIONS ----------------------------------------------------------------#
   # Set NF-OSI Sage Team permissions to full admin
-  NF_sharing <- make_admin(project, principal_id = 3378999)
+  NF_sharing <- make_admin(project, principal_id = "3378999")
 
   # Set grant funding team to full admin -- ignore funders not associated with a team (e.g. NIH-NCI)
   funder <- switch(funder,
-                   CTF = 3359657, ##CTF team
-                   GFF = 3406072, ##GFF Admin team
-                   NTAP = 3331266) ##NTAP Admin team
+                   CTF = "3359657", ##CTF team
+                   GFF = "3406072", ##GFF Admin team
+                   NTAP = "3331266") ##NTAP Admin team
   if(!is.null(funder)) funder_sharing <- make_admin(project, funder)
 
   # Set project lead/pi user to full admin user if given
