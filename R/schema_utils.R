@@ -16,6 +16,7 @@
 #' Synapse id of target table from which to get schema.
 #' @param list_truncate If length exceeds schema max for list columns, set `TRUE` to allow data truncation, `FALSE` to error only (default).
 #' @return Synapse Table object ready for storing.
+#' @export
 as_table_schema <- function(df, 
                             schema, 
                             list_truncate = FALSE) {
