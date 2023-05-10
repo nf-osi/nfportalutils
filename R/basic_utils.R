@@ -52,11 +52,20 @@ dt_read <- function(file) {
 bare_syn_id <- function(uri) {
   not_na <- which(!is.na(uri))
   x <- uri[not_na]
-  syn <- regmatches(x, regexpr("syn[0-9]{8}", x))
+  syn <- regmatches(x, regexpr("syn[0-9]{8,9}", x))
   uri[not_na] <- syn
   return(uri)
 }
 
+#' Validate a Synapse ID
+#'
+#' Returns the id if valid, throws error if not.
+#' @param id Id string.
+#' @keywords internal
+is_valid_syn_id <- function(id) {
+  result <- grepl("^syn[0-9]{8,9}$", id)
+  result
+}
 
 #' Walk through a directory
 #' 
