@@ -42,28 +42,39 @@ summarize_file_access <- function(principal_id, # 3378999 for NF-OSI
   return(access)
 }
 
-#' Check access
+#' Check access by specific principals and access type 
 #'
+#' Under the hood, uses `get_acl` and does the desired filtering of results.
 #' @param id The benefactor entity.
-#' @param principal_id Group(s) for which to check the access type.
-#' @param access_type Which access type(s) to check for; result summarizes whether there are permissions for _all_ types specified.
+#' @param principal_id User(s) or team(s) for which to check the access type. Default NULL if interested only in `access_type`. 
+#' @param access_type Which access type(s) to check for; default result summarizes whether there are permissions for either _all_ or _any_ types specified.
+#' @param operator Use "all" (default) or "any" when multiple types are given in `access_type`.
 #' @export
 check_access <- function(id,
-                         principal_id,
-                         access_type = c("CREATE", "UPDATE", "CHANGE_SETTINGS", "DOWNLOAD", "MODERATE", "READ", "CHANGE_PERMISSIONS", "DELETE")) {
+                         principal_id = NULL,
+                         access_type = c("CREATE", "UPDATE", "CHANGE_SETTINGS", "DOWNLOAD", "MODERATE", "READ", "CHANGE_PERMISSIONS", "DELETE"),
+                         operator = c("all", "any")) {
 
   access_type <- match.arg(access_type, several.ok = TRUE)
-  stopifnot(is.numeric(principal_id))
+  operator <- match.fun(match.arg(operator))
+  stopifnot(is.null(principal_id) || is.integer(principal_id))
+  if(is.null(principal_id)) principal_id <- expression(unique(principalId))
+  acl_result <- get_acl(id)
+  setkey(acl_result, principalId)
+  # returns NA in accessType if principal does not have that access
+  access_result <- acl_result[.(eval(principal_id))][, .(access = operator(access_type %in% accessType)), by = .(principalId)]
+  return(access_result)
+}
 
+#' ACL service util
+#' 
+#' @export
+get_acl <- function(id) {
   acl_result <- tryCatch({
     .syn$restGET(glue::glue("https://repo-prod.prod.sagebase.org/repo/v1/entity/{id}/acl"))$resourceAccess %>%
-    rbindlist(.)
+      rbindlist(.)
   }, error = function(e) stop(glue::glue("Error for {id}: {e$message}")))
-
-  setkey(acl_result, "principalId")
-  # returns NA in accessType if principal does not have that access
-  access_result <- acl_result[.(principal_id)][, .(access = all(access_type %in% accessType)), by = .(principalId)]
-  return(access_result)
+  acl_result
 }
 
 
