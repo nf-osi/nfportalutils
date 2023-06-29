@@ -35,6 +35,7 @@
 #'}
 nf_sarek_datasets <- function(output_map, 
                               parent, 
+                              workflow = c("FreeBayes", "Mutect2", "Strelka", "DeepVariant"),
                               verbose = TRUE, 
                               dry_run = TRUE) { 
   
@@ -60,9 +61,9 @@ nf_sarek_datasets <- function(output_map,
     }
   }
   pattern <- "vcf.gz(.tbi)?$"
-  WORKFLOW <- c("FreeBayes", "Mutect2", "Strelka", "DeepVariant")
+  workflow <- match.arg(workflow)
   datasets <- list()
-  for(i in WORKFLOW) {
+  for(i in workflow) {
     dataset <- output_map[workflow == i & grepl(pattern, output_name)]
     if(nrow(dataset)) {
       if(verbose) glue::glue("Creating {i} dataset with {nrow(dataset)} files") 
@@ -86,7 +87,7 @@ nf_sarek_datasets <- function(output_map,
 #' Create NF STAR-Salmon dataset
 #' 
 #' Organize gene expression quantification files (.sf) into one dataset. 
-#' Uses version 1 of the files and creates a Draft dataset.
+#' Uses version 1 of the files and creates a "Draft" dataset.
 #' See also `nf_sarek_datasets`.
 #' 
 #' @inheritParams nf_sarek_datasets
