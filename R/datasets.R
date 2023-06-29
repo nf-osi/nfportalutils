@@ -1,3 +1,19 @@
+#' As dataset items
+#' 
+#' Helper taking entity ids to create records in the structure needed for dataset creation.
+#' Note: Currently does not check that ids are "file" entities; technically dataset items can't be folders, for example.
+#'
+#' @param ids Ids of entities to make into dataset items.
+#' @param version Integer for version that will be used for all items, e.g. 1. 
+#' If NULL, this will look up the latest version for each id and use that.
+as_dataset_items <- function(ids, version = NULL) {
+  if(is.null(version)) {
+    version <- lapply(ids, function(id) .syn$get(id)$properties$versionNumber)
+  }
+  dataset_items <- Map(function(id, version) list(entityId = id, versionNumber = 1L), ids, version)
+  dataset_items
+} 
+
 #' Create Sarek-processed datasets
 #' 
 #' Organize variant call files from Nextflow Sarek into 3-4 datasets, 
@@ -69,7 +85,7 @@ nf_sarek_datasets <- function(output_map,
       if(verbose) glue::glue("Creating {i} dataset with {nrow(dataset)} files") 
       
       name <- glue::glue("{gvtype} Genomic Variants - {i} Pipeline")
-      dataset_items <- lapply(dataset$output_id, function(entity) list(entityId = entity, versionNumber = 1L))
+      dataset_items <- as_dataset_items(dataset$output_id)
       
       syn_dataset <- synapseclient$Dataset(name = name,
                                            parent = parent,
@@ -105,10 +121,9 @@ nf_star_salmon_datasets <- function(output_map,
                                     dry_run = TRUE) { 
   
   # Select the .sf and index files
-  dataset_items <- output_map[grepl(".sf$", output_name), output_id]
-  name <- "Gene Expression Quantification from RNA-seq"
-  dataset_items <- lapply(dataset_items, function(entity) list(entityId = entity, versionNumber = 1L))
-  dataset <- synapseclient$Dataset(name = name,
+  output_ids <- output_map[grepl(".sf$", output_name), output_id]
+  dataset_items <- as_dataset_items(output_ids)
+  dataset <- synapseclient$Dataset(name = "Gene Expression Quantification from RNA-seq",
                                    parent = parent,
                                    dataset_items = dataset_items)
   
