@@ -1,7 +1,6 @@
 #' As dataset items
 #' 
-#' Helper taking entity ids to create records in the structure needed for dataset creation.
-#' Note: Currently does not check that ids are "file" entities; technically dataset items can't be folders, for example.
+#' Helper taking entity ids to create records in the structure needed for dataset items or dataset collection items.
 #'
 #' @param ids Ids of entities to make into dataset items.
 #' @param version Integer for version that will be used for all items, e.g. 1. 
