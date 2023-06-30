@@ -3,13 +3,13 @@
 #' Helper taking entity ids to create records in the structure needed for dataset items or dataset collection items.
 #'
 #' @param ids Ids of entities to make into dataset items.
-#' @param version Integer for version that will be used for all items, e.g. 1. 
+#' @param item_version Integer for version that will be used for all items, e.g. 1. 
 #' If NULL, this will look up the latest version for each id and use that.
-as_dataset_items <- function(ids, version = NULL) {
-  if(is.null(version)) {
-    version <- lapply(ids, function(id) .syn$get(id)$properties$versionNumber)
+as_dataset_items <- function(ids, item_version = NULL) {
+  if(is.null(item_version)) {
+    item_version <- lapply(ids, function(id) .syn$get(id)$properties$versionNumber)
   }
-  dataset_items <- Map(function(id, version) list(entityId = id, versionNumber = 1L), ids, version)
+  dataset_items <- Map(function(id, version) list(entityId = id, versionNumber = 1L), ids, item_version)
   names(dataset_items) <- NULL # need to unname list for API
   dataset_items
 }
@@ -28,6 +28,25 @@ add_to_dataset_collection <- function(dataset_ids, collection_id) {
   items <- as_dataset_items(dataset_ids)
   e$items <- c(e$items, items)
   .syn$restPUT(glue::glue("https://repo-prod.prod.sagebase.org/repo/v1/entity/{collection_id}"), body = jsonlite::toJSON(e, auto_unbox = TRUE))
+}
+
+#' New dataset with given items
+#'
+#' Make a _new_ dataset with given set of entities.
+#'
+#' @inheritParams as_dataset_items
+#' @param name Name of the dataset. It should be unique within the `parent` project.
+#' @param parent Synapse id of parent project where the datasets will live.
+#' @param items Id(s) of items to include.
+#' Usually the same parent project storing the files, but in some cases it may be a different project.
+#' @param dry_run If TRUE, don't actually store dataset, just return the data object for inspection or further modification.
+new_dataset <- function(name, parent, items, item_version = NULL, dry_run = TRUE) {
+
+  dataset_items <- as_dataset_items(items, item_version)
+  dataset <- synapseclient$Dataset(name = name,
+                                   parent = parent,
+                                   dataset_items = dataset_items)
+  if(dry_run) dataset else .syn$store(dataset)
 }
 
 #' Create Sarek-processed datasets
@@ -50,12 +69,9 @@ add_to_dataset_collection <- function(dataset_ids, collection_id) {
 #' so if there are multiple batches, the names will have to be made unique by adding
 #' the batch number, source data id, processing date, or whatever makes sense.
 #' 
+#' @inheritParams new_dataset
 #' @param output_map The `data.table` returned from `map_sample_output_sarek`. See details for alternatives.
-#' @param parent Synapse id of parent project where the datasets will live. 
-#' Usually the same parent project storing the files, but in some cases it may be a different project.
 #' @param verbose Optional, whether to be verbose -- defaults to TRUE.
-#' @param dry_run If TRUE, don't actually store datasets and return the objects for inspection or modification, 
-#' e.g. setting a better title or description than the default.
 #' @import data.table
 #' @return A list of dataset objects.
 #' @export
@@ -98,15 +114,9 @@ nf_sarek_datasets <- function(output_map,
   for(i in workflow) {
     dataset <- output_map[workflow == i & grepl(pattern, output_name)]
     if(nrow(dataset)) {
-      if(verbose) glue::glue("Creating {i} dataset with {nrow(dataset)} files") 
-      
+      if(verbose) glue::glue("Creating {i} dataset with {nrow(dataset)} files")
       name <- glue::glue("{gvtype} Genomic Variants - {i} Pipeline")
-      dataset_items <- as_dataset_items(dataset$output_id)
-      
-      syn_dataset <- synapseclient$Dataset(name = name,
-                                           parent = parent,
-                                           dataset_items = dataset_items)
-      
+      dataset <- new_dataset(name = name, parent = parent, items = dataset$output_id, dry_run = TRUE)
       if(dry_run) datasets[[i]] <- syn_dataset else datasets[[i]] <- .syn$store(syn_dataset)
     }
   }
@@ -122,6 +132,7 @@ nf_sarek_datasets <- function(output_map,
 #' Uses version 1 of the files and creates a "Draft" dataset.
 #' See also `nf_sarek_datasets`.
 #' 
+#' @inheritParams new_dataset
 #' @inheritParams nf_sarek_datasets
 #' @param output_map The `data.table` returned from `map_sample_output_sarek`.
 #' @export
@@ -138,13 +149,8 @@ nf_star_salmon_datasets <- function(output_map,
   
   # Select the .sf and index files
   output_ids <- output_map[grepl(".sf$", output_name), output_id]
-  dataset_items <- as_dataset_items(output_ids)
-  dataset <- synapseclient$Dataset(name = "Gene Expression Quantification from RNA-seq",
-                                   parent = parent,
-                                   dataset_items = dataset_items)
-  
-  if(dry_run) dataset else .syn$store(syn_dataset)
-  
+  new_dataset(name = "Gene Expression Quantification from RNA-seq",
+              parent = parent,
+              items = output_ids,
+              dry_run = dry_run)
 }
-
-
