@@ -7,27 +7,11 @@
 #' If NULL, this will look up the latest version for each id and use that.
 as_dataset_items <- function(ids, item_version = NULL) {
   if(is.null(item_version)) {
-    item_version <- lapply(ids, function(id) .syn$get(id)$properties$versionNumber)
+    item_version <- lapply(ids, function(id) .syn$get(id, downloadFile = FALSE)$properties$versionNumber)
   }
   dataset_items <- Map(function(id, version) list(entityId = id, versionNumber = 1L), ids, item_version)
   names(dataset_items) <- NULL # need to unname list for API
   dataset_items
-}
-
-#' Add to dataset collection
-#' 
-#' Add dataset(s) to an _existing_ dataset collection. 
-#' Notes: 
-#' - If somehow non-dataset entities are included, Synapse will ignore these ids.
-#' - Implemented with lower-level REST calls because the Python client (as of v2.7) doesn't seem to have the method for yet dataset collections.
-#' 
-#' @param dataset_ids Character vector of one or more dataset entity ids to add.
-#' @param collection_id Id of the dataset collection.
-add_to_dataset_collection <- function(dataset_ids, collection_id) {
-  e <- .syn$restGET(glue::glue("https://repo-prod.prod.sagebase.org/repo/v1/entity/{collection_id}"))
-  items <- as_dataset_items(dataset_ids)
-  e$items <- c(e$items, items)
-  .syn$restPUT(glue::glue("https://repo-prod.prod.sagebase.org/repo/v1/entity/{collection_id}"), body = jsonlite::toJSON(e, auto_unbox = TRUE))
 }
 
 #' New dataset with given items
@@ -154,3 +138,25 @@ nf_star_salmon_datasets <- function(output_map,
               items = output_ids,
               dry_run = dry_run)
 }
+
+# -- Dataset Collections -------------------------------------------------------#
+
+#' Add to dataset collection
+#' 
+#' Add dataset(s) to an _existing_ dataset collection. 
+#' Implemented with lower-level REST API because the Python client (as of v2.7) doesn't yet 
+#' implement an `add_scope`-type method for dataset collections that is available for entity view.
+#' Notes: 
+#' - TODO: Check that ids are unique with existing items or Synapse will reject.
+#' - TODO: Check that entities are datasets or this will fail.
+#' 
+#' @param dataset_ids Character vector of one or more dataset entity ids to add.
+#' @param collection_id Id of the dataset collection.
+add_to_dataset_collection <- function(dataset_ids, collection_id) {
+  e <- .syn$restGET(glue::glue("https://repo-prod.prod.sagebase.org/repo/v1/entity/{collection_id}"))
+  items <- as_dataset_items(dataset_ids)
+  e$items <- c(e$items, items)
+  .syn$restPUT(glue::glue("https://repo-prod.prod.sagebase.org/repo/v1/entity/{collection_id}"), body = jsonlite::toJSON(e, auto_unbox = TRUE))
+}
+
+# ------------------------------------------------------------------------------#
