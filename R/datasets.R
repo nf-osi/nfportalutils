@@ -40,7 +40,7 @@ new_dataset <- function(name, parent, items, item_version = NULL, dry_run = TRUE
 #' "{type} Genomic Variants - {workflow} Pipeline", e.g. "Somatic Genomic Variants - Strelka Pipeline".
 #' As you can see, this assumes that you want to create datasets that segregate Somatic and Germline calls. 
 #' This makes sense for NF because Germline calls can be treated differently.  
-#' This uses version 1 of all files and creates a Draft version of the dataset.
+#' This uses latest version of all files and creates a Draft version of the dataset.
 #' 
 #' Since we basically just need the syn entity id, variant type, and workflow to group the files. 
 #' Instead of getting this info through running `map_*` as in the example,
@@ -113,7 +113,7 @@ nf_sarek_datasets <- function(output_map,
 #' Create NF STAR-Salmon dataset
 #' 
 #' Organize gene expression quantification files (.sf) into one dataset. 
-#' Uses version 1 of the files and creates a "Draft" dataset.
+#' Uses latest version of the files and creates a "Draft" dataset.
 #' See also `nf_sarek_datasets`.
 #' 
 #' @inheritParams new_dataset
@@ -167,6 +167,7 @@ is_dataset <- function(id) {
 #' This may be useful given that sometimes "datasets" can be folder or file entities. Note that using check will be slower.
 #' @param replace If specified items are current items in the collection, replace items with the current version?
 #' The safe default is FALSE to ensure any version changes are intentional.
+#' @export
 add_to_dataset_collection <- function(items, collection_id, check_items = FALSE, replace = FALSE) {
   
   if(check_items) {
@@ -190,5 +191,7 @@ add_to_dataset_collection <- function(items, collection_id, check_items = FALSE,
   }
   .syn$restPUT(glue::glue("https://repo-prod.prod.sagebase.org/repo/v1/entity/{collection_id}"), body = jsonlite::toJSON(dc, auto_unbox = TRUE))
 }
+
+#' 
 
 # ------------------------------------------------------------------------------#
