@@ -139,24 +139,56 @@ nf_star_salmon_datasets <- function(output_map,
               dry_run = dry_run)
 }
 
+# -- Checks------------- -------------------------------------------------------#
+
+#' Check whether entity is dataset
+#' 
+#' @keywords internal
+is_dataset <- function(id) {
+  tryCatch({
+    entity <- .syn$get(id, downloadFile = FALSE)
+    entity$properties$concreteType == "org.sagebionetworks.repo.model.table.Dataset"
+  },
+  error = function(e) FALSE)
+}
+
+
 # -- Dataset Collections -------------------------------------------------------#
 
 #' Add to dataset collection
 #' 
-#' Add dataset(s) to an _existing_ dataset collection. 
+#' Add dataset(s) to an _existing_ dataset collection.
 #' Implemented with lower-level REST API because the Python client (as of v2.7) doesn't yet 
 #' implement an `add_scope`-type method for dataset collections that is available for entity view.
-#' Notes: 
-#' - TODO: Check that ids are unique with existing items or Synapse will reject.
-#' - TODO: Check that entities are datasets or this will fail.
 #' 
-#' @param dataset_ids Character vector of one or more dataset entity ids to add.
+#' @param items Character vector of one or more dataset entity ids to add, using their current version. 
 #' @param collection_id Id of the dataset collection.
-add_to_dataset_collection <- function(dataset_ids, collection_id) {
-  e <- .syn$restGET(glue::glue("https://repo-prod.prod.sagebase.org/repo/v1/entity/{collection_id}"))
-  items <- as_dataset_items(dataset_ids)
-  e$items <- c(e$items, items)
-  .syn$restPUT(glue::glue("https://repo-prod.prod.sagebase.org/repo/v1/entity/{collection_id}"), body = jsonlite::toJSON(e, auto_unbox = TRUE))
+#' @param check_items Whether to check that ids are really dataset entities and remove non-dataset entities with warning (default FALSE). 
+#' This may be useful given that sometimes "datasets" can be folder or file entities. Note that using check will be slower.
+#' @param replace If specified items are current items in the collection, replace items with the current version?
+#' The safe default is FALSE to ensure any version changes are intentional.
+add_to_dataset_collection <- function(items, collection_id, check_items = FALSE, replace = FALSE) {
+  
+  if(check_items) {
+    confirmed_dataset <- sapply(items, is_dataset)
+    if(any(!confirmed_dataset)) {
+      warning("Items which are not dataset entities will be ignored:", items[!confirmed_dataset])
+      items <- items[confirmed_dataset]
+    }
+  }
+  dc <- .syn$restGET(glue::glue("https://repo-prod.prod.sagebase.org/repo/v1/entity/{collection_id}"))
+  current_items <- sapply(dc$items, function(i) i$entityId)
+  
+  # Synapse will normally throw error if trying to add a dataset already in collection
+  if(any(items %in% current_items) && !replace) {
+    stop("Datasets to be added are already in collection. Use `replace = TRUE` if you want to override existing dataset versions.") 
+  } else if (any(items %in% current_items && replace)) {
+    dc$items <- as_dataset_items(union(current_items, items))
+    message("Some datasets replaced with their most current version:", items[items %in% current_items])
+  } else {
+    dc$items <- c(dc$items, as_dataset_items(items))
+  }
+  .syn$restPUT(glue::glue("https://repo-prod.prod.sagebase.org/repo/v1/entity/{collection_id}"), body = jsonlite::toJSON(dc, auto_unbox = TRUE))
 }
 
 # ------------------------------------------------------------------------------#
