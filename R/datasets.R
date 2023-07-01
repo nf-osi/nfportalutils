@@ -159,7 +159,7 @@ is_dataset <- function(id) {
 #' 
 #' Add dataset(s) to an _existing_ dataset collection.
 #' Implemented with lower-level REST API because the Python client (as of v2.7) doesn't yet 
-#' implement an `add_scope`-type method for dataset collections that is available for entity view.
+#' implement dataset collection methods.
 #' 
 #' @param items Character vector of one or more dataset entity ids to add, using their current version. 
 #' @param collection_id Id of the dataset collection.
