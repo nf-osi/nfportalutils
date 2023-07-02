@@ -1,37 +1,143 @@
-#' As dataset items
+# -- Editing Collections -------------------------------------------------------#
+
+# General helpers that should work for both datasets (collection of files) 
+# and dataset collections (collection of datasets).
+
+
+#' As collection items
 #' 
-#' Helper taking entity ids to create records in the structure needed for dataset items or dataset collection items.
+#' Helper taking entity ids to create records used for dataset items or dataset collection items.
+#' Collection items have the form `list(entityId = id, versionNumber = x)`.
 #'
 #' @param ids Ids of entities to make into dataset items.
 #' @param item_version Integer for version that will be used for all items, e.g. 1. 
 #' If NULL, this will look up the latest version for each id and use that.
-as_dataset_items <- function(ids, item_version = NULL) {
+#' @keywords internal
+as_coll_items <- function(ids, item_version = NULL) {
   if(is.null(item_version)) {
     item_version <- lapply(ids, function(id) .syn$get(id, downloadFile = FALSE)$properties$versionNumber)
   }
-  dataset_items <- Map(function(id, version) list(entityId = id, versionNumber = 1L), ids, item_version)
-  names(dataset_items) <- NULL # need to unname list for API
-  dataset_items
+  items <- Map(function(id, version) list(entityId = id, versionNumber = 1L), ids, item_version)
+  names(items) <- NULL # need to unname list for API
+  items
 }
 
-#' New dataset with given items
+
+#' Apply updates to current collection of items
+#' 
+#' Given another collection that can represent updates of both types replace or add,
+#' this applies an update join keyed on `entityId` for the replace and 
+#' appends the new items to get the updated collection.
+#' 
+#' @param current_items List of lists representing a collection of items.
+#' @param update_items Collection of items to apply as updates to `current_items`. 
+update_items <- function(current_coll, update_coll) {
+  
+  current_coll <- data.table::rbindlist(current_coll)
+  update_coll <- data.table::rbindlist(update_coll)
+  replaced <- current_coll[update_coll, on = .(entityId), versionNumber := i.versionNumber]
+  added <- update_coll[!current_coll, on = .(entityId)]
+  updated <- rbind(replaced, added)
+  # reconversion; using pure apply as.list coerces versionNumber into char
+  updated <- apply(updated, 1, function(i) list(entityId = unname(i[1]), versionNumber = as.integer(i[2]))) 
+  updated
+} 
+
+
+#' Update item versions to "latest" in a collection
+#' 
+#' Update an _existing_ collection so that all items or a subset of items reference their latest version.
+#' This should work for both datasets (collection of files) and dataset collections (collection of datasets).
+#' 
+#' @param collection_id 
+#' @param items Vector of dataset ids for which to update reference to latest version, 
+#' or "all" (default) to update all in the dataset collection.
+#' @export
+use_latest_in_collection(collection_id, items = "all") {
+  coll <- .syn$restGET(glue::glue("https://repo-prod.prod.sagebase.org/repo/v1/entity/{collection_id}"))
+  item_set <- match.arg(items)
+  current_items <- sapply(coll$items, function(i) i$entityId)
+  
+  if(item_set == "all") {
+    coll$items <- as_coll_items(current_items)
+  } else {
+    
+    # Check subset; if no check, this becomes `add_to_collection`
+    if(!all(items %in% current_items)) {
+      warning("Subset given includes items not actually in collection. These will be ignored:", items[!items %in% current_items])
+      items <- items[items %in% current_items]
+      updated_items <- update_items(coll$items, as_coll_items(items))
+      coll$items <- updated_items
+    }
+  }
+  .syn$store(coll)
+  
+}
+
+
+#' Add to collection
 #'
-#' Make a _new_ dataset with given set of entities.
+#' Add items(s) to an _existing_ collection, using the item(s)' current (latest) version.
+#' For datasets, the items should be files. For dataset collections, the items should be datasets.
+#' If an item attempting to be added happens to already be in the collection,
+#' this might lead to version conflicts, so the update will be rejected unless `force` is true.
+#' 
+#' This is implemented with lower-level REST API because the Python client (as of v2.7) doesn't yet 
+#' implement dataset collection class and methods (but dataset and relevant methods like `add_item` method are available).
+#' Thus, while this is generic enough to handle both datasets and dataset collections 
+#' it is expected to be used more for dataset collections given that the dataset method is provided.
+#' 
+#' @param collection_id Id of the collection.
+#' @param items Character vector of one or more dataset entity ids to add.
+#' @param check_items Whether to check that ids are really appropriate item types and remove non-appropriate item types
+#' to help avoid Synapse errors (default `FALSE` because in most cases `items` are curated, and using check will be slower).
+#' @param force If some items are currently in the collection with a different version, 
+#' should these items be force-added using current version? The safe default is `FALSE` to ensure any such updates are intentional.
+#' @export
+add_to_collection <- function(collection_id, items, check_items = FALSE, force = FALSE) {
+  
+  coll <- .syn$restGET(glue::glue("https://repo-prod.prod.sagebase.org/repo/v1/entity/{collection_id}"))
+  coll_type <- c("dataset", "dataset collection")[c(is_dataset(coll), is_dataset_collection(coll))]
+  if(!length(coll_type)) stop("Entity is not a dataset or dataset collection.")
+  
+  if(check_items) {
+    expected_type_check <- if(coll_type == "dataset") is_file else is_dataset
+    correct_item_type <- sapply(items, expected_type_check)
+    if(any(!correct_item_type)) {
+      warning("Some items not correct entity types for the collection! These will not be added:", items[!correct_item_type])
+      items <- items[correct_item_type]
+    }
+  }
+  
+  current_items <- sapply(coll$items, function(x) x$entityId)
+  if(any(items %in% current_items) && !force) {
+    stop("Some items to be added are already in collection. Use `force = TRUE` to allow replacing existing versions.") 
+  } else {
+    coll$items <- update_items(coll$items, as_coll_items(items))
+  }
+  .syn$restPUT(glue::glue("https://repo-prod.prod.sagebase.org/repo/v1/entity/{collection_id}"), body = jsonlite::toJSON(coll, auto_unbox = TRUE))
+}
+
+
+# -- Datasets ------------------------------------------------------------------#
+
+#' Create new dataset with given items
 #'
-#' @inheritParams as_dataset_items
+#' @inheritParams as_coll_items
 #' @param name Name of the dataset. It should be unique within the `parent` project.
-#' @param parent Synapse id of parent project where the datasets will live.
+#' @param parent Synapse id of parent project where the dataset will live.
 #' @param items Id(s) of items to include.
 #' Usually the same parent project storing the files, but in some cases it may be a different project.
 #' @param dry_run If TRUE, don't actually store dataset, just return the data object for inspection or further modification.
 new_dataset <- function(name, parent, items, item_version = NULL, dry_run = TRUE) {
 
-  dataset_items <- as_dataset_items(items, item_version)
+  dataset_items <- as_coll_items(items, item_version)
   dataset <- synapseclient$Dataset(name = name,
                                    parent = parent,
                                    dataset_items = dataset_items)
   if(dry_run) dataset else .syn$store(dataset)
 }
+
 
 #' Create Sarek-processed datasets
 #' 
@@ -141,6 +247,9 @@ nf_star_salmon_datasets <- function(output_map,
 
 # -- Checks------------- -------------------------------------------------------#
 
+# TODO Better composition to reduce code, esp. if more will be added
+# TODO Potentially move somewhere else like basic_utils
+
 #' Check whether entity is dataset
 #' 
 #' @keywords internal
@@ -152,98 +261,37 @@ is_dataset <- function(id) {
   error = function(e) FALSE)
 }
 
-
-# -- Collections ---------------------------------------------------------------#
-
-#' Apply updates to current collection of items
+#' Check whether entity is dataset collection
 #' 
-#' A collection of items has items of the form `list(entityId = id, versionNumber = x)`.
-#' Given another collection that can represent updates of both types replace or add,
-#' this applies an update join keyed on `entityId` for the replace and 
-#' appends the new items to get the updated collection.
-#' 
-#' @param current_items List of lists representing a collection of items.
-#' @param update_items Collection of items to apply as updates to `current_items`. 
-update_items <- function(current_coll, update_coll) {
-  
-  current_coll <- data.table::rbindlist(current_coll)
-  update_coll <- data.table::rbindlist(update_coll)
-  replaced <- current_coll[update_coll, on = .(entityId), versionNumber := i.versionNumber]
-  added <- update_coll[!current_coll, on = .(entityId)]
-  updated <- rbind(replaced, added)
-  # reconversion; using pure apply as.list coerces versionNumber into char
-  updated <- apply(updated, 1, function(i) list(entityId = unname(i[1]), versionNumber = as.integer(i[2]))) 
-  updated
-} 
-
-#' Update item versions to latest in a collection
-#' 
-#' Update the collection so that all items or a subset of items reference their latest version.
-#' This should work for both datasets (collection of files) and dataset collections (collection of datasets).
-#' 
-#' @param collection_id 
-#' @param items Vector of dataset ids for which to update reference to latest version, 
-#' or "all" (default) to update all in the dataset collection.
-#' @export
-use_latest_in_collection(collection_id, items = "all") {
-  coll <- .syn$restGET(glue::glue("https://repo-prod.prod.sagebase.org/repo/v1/entity/{collection_id}"))
-  item_set <- match.arg(items)
-  current_items <- sapply(coll$items, function(i) i$entityId)
-  
-  if(item_set == "all") {
-    coll$items <- as_dataset_items(current_items)
-  } else {
-    
-    # Check subset; if no check, this becomes like `add_to_dataset_collection`
-    if(!all(items %in% current_items)) {
-      warning("Subset given includes items not actually in collection. These will be ignored:", items[!items %in% current_items])
-      items <- items[items %in% current_items]
-      updated_items <- update_items(coll$items, as_dataset_items(items))
-      coll$items <- updated_items
-    }
-  }
-  .syn$store(coll)
-  
+#' @keywords internal
+is_dataset_collection <- function(id) {
+  tryCatch({
+    entity <- .syn$get(id, downloadFile = FALSE)
+    entity$properties$concreteType == "org.sagebionetworks.repo.model.table.DatasetCollection"
+  },
+  error = function(e) FALSE)
 }
 
-#' Add to dataset collection
+#' Check whether entity is dataset collection
 #' 
-#' Add dataset(s) to an _existing_ dataset collection, using their current (latest) version.
-#' If a dataset attempting to be added happens to already be in the dataset collection,
-#' this might lead to version conflicts, so the update won't processed unless `force` is true.
+#' @keywords internal
+is_dataset_collection <- function(id) {
+  tryCatch({
+    entity <- .syn$get(id, downloadFile = FALSE)
+    entity$properties$concreteType == "org.sagebionetworks.repo.model.table.DatasetCollection"
+  },
+  error = function(e) FALSE)
+}
+
+#' Check whether entity is file
 #' 
-#' Implemented with lower-level REST API because the Python client (as of v2.7) doesn't yet 
-#' implement dataset collection methods. 
-#' 
-#' @param collection_id Id of the dataset collection.
-#' @param items Character vector of one or more dataset entity ids to add. 
-#' @param check_items Whether to check that ids are really dataset entities and remove non-dataset entities (default FALSE) 
-#' to help avoid Synapse error. This may be useful given that sometimes "datasets" can be folder or file entities. 
-#' Note that using check will be slower.
-#' @param force If some items are currently in the collection with a different version, 
-#' should these items be force added using current version? The safe default is FALSE to ensure any version changes are intentional.
-#' @export
-add_to_dataset_collection <- function(collection_id, items, check_items = FALSE, force = FALSE) {
-  
-  if(check_items) {
-    confirmed_dataset <- sapply(items, is_dataset)
-    if(any(!confirmed_dataset)) {
-      warning("Items which are not dataset entities will not be added:", items[!confirmed_dataset])
-      items <- items[confirmed_dataset]
-    }
-  }
-  dc <- .syn$restGET(glue::glue("https://repo-prod.prod.sagebase.org/repo/v1/entity/{collection_id}"))
-  
-  if(any(items %in% current_items) && !force) {
-    stop("Some datasets to be added are already in collection. Use `force = TRUE` to allow replacing existing dataset versions.") 
-  } else if (any(items %in% current_items) && force) {
-    dc$items <- update_items(dc$items, as_dataset_items(items))
-  } else {
-    dc$items <- c(dc$items, as_dataset_items(items))
-  }
-  .syn$restPUT(glue::glue("https://repo-prod.prod.sagebase.org/repo/v1/entity/{collection_id}"), body = jsonlite::toJSON(dc, auto_unbox = TRUE))
+#' @keywords internal
+is_file <- function(id) {
+  tryCatch({
+    entity <- .syn$get(id, downloadFile = FALSE)
+    entity$properties$concreteType == "org.sagebionetworks.repo.model.File"
+  },
+  error = function(e) FALSE)
 }
 
 
-
-# ------------------------------------------------------------------------------#
