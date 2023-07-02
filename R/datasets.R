@@ -155,43 +155,64 @@ is_dataset <- function(id) {
 
 # -- Dataset Collections -------------------------------------------------------#
 
+#' Apply updates to current collection of items
+#' 
+#' A collection of items has items of the form `list(entityId = id, versionNumber = x)`.
+#' Given another collection that can represent updates of both types replace or add,
+#' this applies an update join keyed on `entityId` for the replace and 
+#' appends the new items to get the updated collection.
+#' 
+#' @param current_items List of lists representing a collection of items.
+#' @param update_items Collection of items to apply as updates to `current_items`. 
+update_items <- function(current_coll, update_coll) {
+  
+  current_coll <- data.table::rbindlist(current_coll)
+  update_coll <- data.table::rbindlist(update_coll)
+  updated_coll <- rbind(
+    current_coll[update_coll, on = .(entityId), versionNumber := i.versionNumber], # replace
+    update_coll[!current_coll, on = .(entityId)]) # add
+  updated_coll <- apply(updated_coll, 1, as.list) 
+  updated_coll
+} 
+
 #' Add to dataset collection
 #' 
-#' Add dataset(s) to an _existing_ dataset collection.
-#' Implemented with lower-level REST API because the Python client (as of v2.7) doesn't yet 
-#' implement dataset collection methods.
+#' Add dataset(s) to an _existing_ dataset collection, using their current (latest) version.
+#' If a dataset attempting to be added happens to already be in the dataset collection,
+#' this might lead to version conflicts, so the update won't processed unless `force` is true.
 #' 
-#' @param items Character vector of one or more dataset entity ids to add, using their current version. 
+#' Implemented with lower-level REST API because the Python client (as of v2.7) doesn't yet 
+#' implement dataset collection methods. 
+#' 
 #' @param collection_id Id of the dataset collection.
-#' @param check_items Whether to check that ids are really dataset entities and remove non-dataset entities with warning (default FALSE). 
-#' This may be useful given that sometimes "datasets" can be folder or file entities. Note that using check will be slower.
-#' @param replace If specified items are current items in the collection, replace items with the current version?
-#' The safe default is FALSE to ensure any version changes are intentional.
+#' @param items Character vector of one or more dataset entity ids to add. 
+#' @param check_items Whether to check that ids are really dataset entities and remove non-dataset entities (default FALSE) 
+#' to help avoid Synapse error. This may be useful given that sometimes "datasets" can be folder or file entities. 
+#' Note that using check will be slower.
+#' @param force If some items are currently in the collection with a different version, 
+#' should these items be force added using current version? The safe default is FALSE to ensure any version changes are intentional.
 #' @export
-add_to_dataset_collection <- function(items, collection_id, check_items = FALSE, replace = FALSE) {
+add_to_dataset_collection <- function(collection_id, items, check_items = FALSE, force = FALSE) {
   
   if(check_items) {
     confirmed_dataset <- sapply(items, is_dataset)
     if(any(!confirmed_dataset)) {
-      warning("Items which are not dataset entities will be ignored:", items[!confirmed_dataset])
+      warning("Items which are not dataset entities will not be added:", items[!confirmed_dataset])
       items <- items[confirmed_dataset]
     }
   }
   dc <- .syn$restGET(glue::glue("https://repo-prod.prod.sagebase.org/repo/v1/entity/{collection_id}"))
-  current_items <- sapply(dc$items, function(i) i$entityId)
   
-  # Synapse will normally throw error if trying to add a dataset already in collection
-  if(any(items %in% current_items) && !replace) {
-    stop("Datasets to be added are already in collection. Use `replace = TRUE` if you want to override existing dataset versions.") 
-  } else if (any(items %in% current_items && replace)) {
-    dc$items <- as_dataset_items(union(current_items, items))
-    message("Some datasets replaced with their most current version:", items[items %in% current_items])
+  if(any(items %in% current_items) && !force) {
+    stop("Some datasets to be added are already in collection. Use `force = TRUE` to allow replacing existing dataset versions.") 
+  } else if (any(items %in% current_items) && force) {
+    dc$items <- update_items(dc$items, as_dataset_items(items))
   } else {
     dc$items <- c(dc$items, as_dataset_items(items))
   }
   .syn$restPUT(glue::glue("https://repo-prod.prod.sagebase.org/repo/v1/entity/{collection_id}"), body = jsonlite::toJSON(dc, auto_unbox = TRUE))
 }
 
-#' 
+
 
 # ------------------------------------------------------------------------------#
