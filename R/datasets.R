@@ -17,7 +17,7 @@ as_coll_items <- function(ids, item_version = NULL) {
   if(is.null(item_version)) {
     item_version <- lapply(ids, function(id) .syn$get(id, downloadFile = FALSE)$properties$versionNumber)
   }
-  items <- Map(function(id, version) list(entityId = id, versionNumber = 1L), ids, item_version)
+  items <- Map(function(id, version) list(entityId = id, versionNumber = version), ids, item_version)
   names(items) <- NULL # need to unname list for API
   items
 }
@@ -25,7 +25,7 @@ as_coll_items <- function(ids, item_version = NULL) {
 
 #' Apply updates to current collection of items
 #' 
-#' Given another collection that can represent updates of both types replace or add,
+#' Given another collection that can represent updates of both types "replace" or "add",
 #' this applies an update join keyed on `entityId` for the replace and 
 #' appends the new items to get the updated collection.
 #' 
@@ -53,24 +53,27 @@ update_items <- function(current_coll, update_coll) {
 #' @param items Vector of dataset ids for which to update reference to latest version, 
 #' or "all" (default) to update all in the dataset collection.
 #' @export
-use_latest_in_collection(collection_id, items = "all") {
+use_latest_in_collection <- function(collection_id, items = "all") {
   coll <- .syn$restGET(glue::glue("https://repo-prod.prod.sagebase.org/repo/v1/entity/{collection_id}"))
-  item_set <- match.arg(items)
   current_items <- sapply(coll$items, function(i) i$entityId)
   
-  if(item_set == "all") {
+  if((length(items) == 1) && (items  == "all")) {
     coll$items <- as_coll_items(current_items)
   } else {
     
     # Check subset; if no check, this becomes `add_to_collection`
     if(!all(items %in% current_items)) {
-      warning("Subset given includes items not actually in collection. These will be ignored:", items[!items %in% current_items])
+      warning("Subset given includes items not actually in collection: ", items[!items %in% current_items])
       items <- items[items %in% current_items]
-      updated_items <- update_items(coll$items, as_coll_items(items))
-      coll$items <- updated_items
+      if(!length(items)) {
+        warning("No qualifying items to update. No updates applied.")
+        return(coll)
+      }
     }
+    updated_items <- update_items(coll$items, as_coll_items(items))
+    coll$items <- updated_items
   }
-  .syn$store(coll)
+  .syn$restPUT(glue::glue("https://repo-prod.prod.sagebase.org/repo/v1/entity/{collection_id}"), body = jsonlite::toJSON(coll, auto_unbox = TRUE))
   
 }
 
@@ -97,21 +100,24 @@ use_latest_in_collection(collection_id, items = "all") {
 add_to_collection <- function(collection_id, items, check_items = FALSE, force = FALSE) {
   
   coll <- .syn$restGET(glue::glue("https://repo-prod.prod.sagebase.org/repo/v1/entity/{collection_id}"))
-  coll_type <- c("dataset", "dataset collection")[c(is_dataset(coll), is_dataset_collection(coll))]
-  if(!length(coll_type)) stop("Entity is not a dataset or dataset collection.")
+  coll_type <- which_coll_type(coll)
   
   if(check_items) {
-    expected_type_check <- if(coll_type == "dataset") is_file else is_dataset
-    correct_item_type <- sapply(items, expected_type_check)
+    item_type_check <- if(coll_type == "dataset") is_file else is_dataset
+    correct_item_type <- sapply(items, item_type_check)
     if(any(!correct_item_type)) {
-      warning("Some items not correct entity types for the collection! These will not be added:", items[!correct_item_type])
+      warning("Some items not correct entity types for the collection and will not be added: ", items[!correct_item_type])
       items <- items[correct_item_type]
+      if(!length(items)) {
+        warning("No qualifying items to add. No updates applied.", call. = FALSE)
+        return(coll)
+      }
     }
   }
   
   current_items <- sapply(coll$items, function(x) x$entityId)
   if(any(items %in% current_items) && !force) {
-    stop("Some items to be added are already in collection. Use `force = TRUE` to allow replacing existing versions.") 
+    stop("Some items to be added are already in collection. Use `force = TRUE` to allow replacing existing versions.")
   } else {
     coll$items <- update_items(coll$items, as_coll_items(items))
   }
@@ -272,15 +278,14 @@ is_dataset_collection <- function(id) {
   error = function(e) FALSE)
 }
 
-#' Check whether entity is dataset collection
+
+#' Which collection type
 #' 
-#' @keywords internal
-is_dataset_collection <- function(id) {
-  tryCatch({
-    entity <- .syn$get(id, downloadFile = FALSE)
-    entity$properties$concreteType == "org.sagebionetworks.repo.model.table.DatasetCollection"
-  },
-  error = function(e) FALSE)
+#' Checks for a valid collection type or returns error
+#' 
+which_coll_type <- function(coll) {
+  coll_type <- c("dataset", "dataset collection")[c(is_dataset(coll), is_dataset_collection(coll))]
+  if(length(coll_type)) coll_type else stop("Entity is not a dataset or dataset collection.")
 }
 
 #' Check whether entity is file
@@ -289,9 +294,8 @@ is_dataset_collection <- function(id) {
 is_file <- function(id) {
   tryCatch({
     entity <- .syn$get(id, downloadFile = FALSE)
-    entity$properties$concreteType == "org.sagebionetworks.repo.model.File"
+    entity$properties$concreteType == "org.sagebionetworks.repo.model.FileEntity"
   },
   error = function(e) FALSE)
 }
-
 
