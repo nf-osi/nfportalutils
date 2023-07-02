@@ -1,12 +1,12 @@
-test_that("Update helper for dataset collection items works with combined replace/add updates", {
+test_that("Update helper for item collection works with combined 'replace' and 'add' update types", {
   
-  current_items <- list(
+  current <- list(
     list(entityId = "syn1", versionNumber = 1L),
     list(entityId = "syn2", versionNumber = 1L),
     list(entityId = "syn3", versionNumber = 1L)
   )
   
-  update_items <- list(
+  update <- list(
     list(entityId = "syn3", versionNumber = 2L),
     list(entityId = "syn4", versionNumber = 2L),
     list(entityId = "syn5", versionNumber = 2L)
@@ -20,11 +20,8 @@ test_that("Update helper for dataset collection items works with combined replac
     list(entityId = "syn5", versionNumber = 2L)
   )
   
-  testthat::expect_equal(update_items(current_items, update_items),
+  testthat::expect_identical(update_items(current, update),
                          expected)
   
 })
-
-
-
 

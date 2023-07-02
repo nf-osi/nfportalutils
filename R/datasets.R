@@ -168,11 +168,12 @@ update_items <- function(current_coll, update_coll) {
   
   current_coll <- data.table::rbindlist(current_coll)
   update_coll <- data.table::rbindlist(update_coll)
-  updated_coll <- rbind(
-    current_coll[update_coll, on = .(entityId), versionNumber := i.versionNumber], # replace
-    update_coll[!current_coll, on = .(entityId)]) # add
-  updated_coll <- apply(updated_coll, 1, as.list) 
-  updated_coll
+  replaced <- current_coll[update_coll, on = .(entityId), versionNumber := i.versionNumber]
+  added <- update_coll[!current_coll, on = .(entityId)]
+  updated <- rbind(replaced, added)
+  # reconversion; using pure apply as.list coerces versionNumber into char
+  updated <- apply(updated, 1, function(i) list(entityId = unname(i[1]), versionNumber = as.integer(i[2]))) 
+  updated
 } 
 
 #' Add to dataset collection
