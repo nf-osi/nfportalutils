@@ -153,7 +153,7 @@ is_dataset <- function(id) {
 }
 
 
-# -- Dataset Collections -------------------------------------------------------#
+# -- Collections ---------------------------------------------------------------#
 
 #' Apply updates to current collection of items
 #' 
@@ -175,6 +175,36 @@ update_items <- function(current_coll, update_coll) {
   updated <- apply(updated, 1, function(i) list(entityId = unname(i[1]), versionNumber = as.integer(i[2]))) 
   updated
 } 
+
+#' Update item versions to latest in a collection
+#' 
+#' Update the collection so that all items or a subset of items reference their latest version.
+#' This should work for both datasets (collection of files) and dataset collections (collection of datasets).
+#' 
+#' @param collection_id 
+#' @param items Vector of dataset ids for which to update reference to latest version, 
+#' or "all" (default) to update all in the dataset collection.
+#' @export
+use_latest_in_collection(collection_id, items = "all") {
+  coll <- .syn$restGET(glue::glue("https://repo-prod.prod.sagebase.org/repo/v1/entity/{collection_id}"))
+  item_set <- match.arg(items)
+  current_items <- sapply(coll$items, function(i) i$entityId)
+  
+  if(item_set == "all") {
+    coll$items <- as_dataset_items(current_items)
+  } else {
+    
+    # Check subset; if no check, this becomes like `add_to_dataset_collection`
+    if(!all(items %in% current_items)) {
+      warning("Subset given includes items not actually in collection. These will be ignored:", items[!items %in% current_items])
+      items <- items[items %in% current_items]
+      updated_items <- update_items(coll$items, as_dataset_items(items))
+      coll$items <- updated_items
+    }
+  }
+  .syn$store(coll)
+  
+}
 
 #' Add to dataset collection
 #' 
