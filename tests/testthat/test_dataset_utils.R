@@ -111,7 +111,7 @@ test_that("Updating a dataset collection to make a subset of datasets reference 
   new_version <- .syn$get(dataset_item_to_update, downloadFile = FALSE)$properties$versionNumber
   DC <- use_latest_in_collection(collection_id = dataset_collection_id, items = dataset_item_to_update)
   updated_item <- Filter(function(item) item$entityId == dataset_item_to_update, DC$items)
-  testthat::expect_equal(updated_item$versionNumber, new_version)
+  testthat::expect_equal(updated_item[[1]]$versionNumber, new_version)
 })
 
 
