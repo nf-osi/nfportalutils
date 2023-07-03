@@ -25,12 +25,15 @@ as_coll_items <- function(ids, item_version = NULL) {
 
 #' Apply updates to current collection of items
 #' 
-#' Given another collection that can represent updates of both types "replace" or "add",
+#' This is essentially an internal transaction helper for trying to apply a changeset to a collection,
+#' used in several higher-level collection utils. 
+#' Given the changeset that can represent updates of both types "replace" or "add",
 #' this applies an update join keyed on `entityId` for the replace and 
 #' appends the new items to get the updated collection.
 #' 
 #' @param current_items List of lists representing a collection of items.
 #' @param update_items Collection of items to apply as updates to `current_items`. 
+#' @keywords internal
 update_items <- function(current_coll, update_coll) {
   
   current_coll <- data.table::rbindlist(current_coll)
@@ -135,6 +138,7 @@ add_to_collection <- function(collection_id, items, check_items = FALSE, force =
 #' @param items Id(s) of items to include.
 #' Usually the same parent project storing the files, but in some cases it may be a different project.
 #' @param dry_run If TRUE, don't actually store dataset, just return the data object for inspection or further modification.
+#' @export
 new_dataset <- function(name, parent, items, item_version = NULL, dry_run = TRUE) {
 
   dataset_items <- as_coll_items(items, item_version)
@@ -266,7 +270,7 @@ nf_star_salmon_datasets <- function(output_map,
 #' @param output Currently just markdown format. There are many ways to 
 #' generate LaTeX or HTML from markdown.
 #' @keywords internal
-dataset_citation <- function(dataset_id, format = "Scientific Data", output = c("markdown")) {
+cite_dataset <- function(dataset_id, format = "Scientific Data", output = c("markdown")) {
   if(!is_dataset(id)) stop("Not a dataset")
   meta <- .syn$get_annotations(id)
   doi <- tryCatch(meta$doi, error = function(e) NULL)
@@ -310,6 +314,7 @@ is_dataset_collection <- function(id) {
 #' 
 #' Checks for a valid collection type or returns error
 #' 
+#' @keywords internal
 which_coll_type <- function(coll) {
   coll_type <- c("dataset", "dataset collection")[c(is_dataset(coll), is_dataset_collection(coll))]
   if(length(coll_type)) coll_type else stop("Entity is not a dataset or dataset collection.")
