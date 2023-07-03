@@ -29,7 +29,13 @@ If you are a potential contributor who is not an NF-OSI member,
 request to be added to the test repo for writing/running tests.
 **If `TEST_SYNAPSE_AUTH_TOKEN` is not available, dependent tests are simply skipped.**
 
-- During tests, the `TEST_SYNAPSE_AUTH_TOKEN` is temporarily set as `SYNAPSE_AUTH_TOKEN` to create the synapseclient object.
+- During tests, the `TEST_SYNAPSE_AUTH_TOKEN` is temporarily set as `SYNAPSE_AUTH_TOKEN`.
+
+- For pkg testing during development: 
+  - Use `testthat::test_local()` in the pkg root to test all functions. Recommended.
+  - Write a `test_that` function to test a new package function and run it interactively. 
+  Note `test_local` does things like importing Python modules into the environment (i.e. all the stuff that happens during package load), 
+  so the standalone function testing is a little trickier in having check for and set up dependencies in the environment.   
 
 - Given that most tests depend on a successful login, and that tests are run
 according to the alphabetical naming of test*.R files, 
