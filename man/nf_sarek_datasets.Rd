@@ -17,6 +17,8 @@ nf_sarek_datasets(
 
 \item{parent}{Synapse id of parent project where the dataset will live.}
 
+\item{workflow}{One of workflows used.}
+
 \item{verbose}{Optional, whether to be verbose -- defaults to TRUE.}
 
 \item{dry_run}{If TRUE, don't actually store dataset, just return the data object for inspection or further modification.}

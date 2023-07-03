@@ -7,7 +7,7 @@
 add_to_collection(collection_id, items, check_items = FALSE, force = FALSE)
 }
 \arguments{
-\item{collection_id}{Id of the collection.}
+\item{collection_id}{Collection id.}
 
 \item{items}{Character vector of one or more dataset entity ids to add.}
 

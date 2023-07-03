@@ -7,7 +7,7 @@
 use_latest_in_collection(collection_id, items = "all")
 }
 \arguments{
-\item{collection_id}{}
+\item{collection_id}{Collection id.}
 
 \item{items}{Vector of dataset ids for which to update reference to latest version,
 or "all" (default) to update all in the dataset collection.}

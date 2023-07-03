@@ -52,7 +52,7 @@ update_items <- function(current_coll, update_coll) {
 #' Update an _existing_ collection so that all items or a subset of items reference their latest version.
 #' This should work for both datasets (collection of files) and dataset collections (collection of datasets).
 #' 
-#' @param collection_id 
+#' @param collection_id Collection id.
 #' @param items Vector of dataset ids for which to update reference to latest version, 
 #' or "all" (default) to update all in the dataset collection.
 #' @export
@@ -93,7 +93,7 @@ use_latest_in_collection <- function(collection_id, items = "all") {
 #' Thus, while this is generic enough to handle both datasets and dataset collections 
 #' it is expected to be used more for dataset collections given that the dataset method is provided.
 #' 
-#' @param collection_id Id of the collection.
+#' @param collection_id Collection id.
 #' @param items Character vector of one or more dataset entity ids to add.
 #' @param check_items Whether to check that ids are really appropriate item types and remove non-appropriate item types
 #' to help avoid Synapse errors (default `FALSE` because in most cases `items` are curated, and using check will be slower).
@@ -171,6 +171,7 @@ new_dataset <- function(name, parent, items, item_version = NULL, dry_run = TRUE
 #' 
 #' @inheritParams new_dataset
 #' @param output_map The `data.table` returned from `map_sample_output_sarek`. See details for alternatives.
+#' @param workflow One of workflows used.
 #' @param verbose Optional, whether to be verbose -- defaults to TRUE.
 #' @import data.table
 #' @return A list of dataset objects.
