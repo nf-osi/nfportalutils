@@ -256,32 +256,6 @@ nf_star_salmon_datasets <- function(output_map,
               dry_run = dry_run)
 }
 
-# -- Citations -----------------------------------------------------------------#
-
-# TODO Potentially move somewhere else
-
-#' Generate dataset citation
-#' 
-#' This is currently more for demo purposes, to check how well current metadata 
-#' could be formatted into citation text. Datasets within the official 
-#' Portal Collection should work well enough, while there are no guarantees for 
-#' unofficial/community-contributed datasets.
-#' @param dataset_id Dataset id.
-#' @param format Currently just "Scientific Data" format.
-#' @param output Currently just markdown format. There are many ways to 
-#' generate LaTeX or HTML from markdown.
-#' @keywords internal
-cite_dataset <- function(dataset_id, format = "Scientific Data", output = c("markdown")) {
-  if(!is_dataset(id)) stop("Not a dataset")
-  meta <- .syn$get_annotations(id)
-  doi <- tryCatch(meta$doi, error = function(e) NULL)
-  title <- meta$title
-  creator <- meta$creator
-  yearPublished <- meta$yearPublished
-  repository <- "Synapse"
-  accession <- if(length(doi)) doi else glue::glue("https://www.synapse.org/#!Synapse:{id}") 
-  glue::glue("{creator}. _{repository}_ {accession} ({yearPublished}).")
-}
 
 # -- Checks------------- -------------------------------------------------------#
 

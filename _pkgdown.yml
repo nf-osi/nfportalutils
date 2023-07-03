@@ -46,10 +46,9 @@ reference:
 
 - title: Dataset Creation and Management
 - subtitle: General dataset creation and citation
-  desc: Create datasets generally, create citation example text
+  desc: Create datasets in general
 - contents:
   - new_dataset
-  - cite_dataset
 - subtitle: Specialized dataset creation
   desc: Create specialized datasets for nextflow processed data, i.e. with some custom construction queries and title templating.
 - contents:
@@ -137,4 +136,6 @@ reference:
   - .replace_string_column_with_stringlist_column
   - .store_rows
   - missing_annotation_email
+  - get_doi_meta
+  - cite_dataset
 
