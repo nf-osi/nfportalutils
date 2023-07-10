@@ -44,6 +44,22 @@ reference:
   - annotate_reports_sarek
   - annotate_with_tool_stats
 
+- title: Dataset Creation and Management
+- subtitle: General dataset creation and citation
+  desc: Create datasets in general
+- contents:
+  - new_dataset
+- subtitle: Specialized dataset creation
+  desc: Create specialized datasets for nextflow processed data, i.e. with some custom construction queries and title templating.
+- contents:
+  - nf_sarek_datasets
+  - nf_star_salmon_datasets
+- subtitle: Working with dataset collections to manage datasets after creation
+- contents:
+  - add_to_collection
+  - use_latest_in_collection
+  - update_items
+
 - title: Data Model Utils
   desc: Talk to a JSON-LD data model important to the portal data (i.e. NF-metadata-dictionary)
 - contents:
@@ -120,4 +136,6 @@ reference:
   - .replace_string_column_with_stringlist_column
   - .store_rows
   - missing_annotation_email
+  - get_doi_meta
+  - cite_dataset
 

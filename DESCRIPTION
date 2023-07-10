@@ -1,6 +1,6 @@
 Package: nfportalutils
 Title: NF Portal Utilities
-Version: 0.0.0.9210
+Version: 0.0.0.9300
 Authors@R: c(
     person(given = "Robert", family = "Allaway", role = c("aut", "cre"),
            email = "robert.allaway@sagebionetworks.org",
