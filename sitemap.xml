@@ -58,6 +58,9 @@
     <loc>/reference/add_publications_from_file.html</loc>
   </url>
   <url>
+    <loc>/reference/add_to_collection.html</loc>
+  </url>
+  <url>
     <loc>/reference/annotate_aligned_reads.html</loc>
   </url>
   <url>
@@ -74,6 +77,9 @@
   </url>
   <url>
     <loc>/reference/annotate_with_tool_stats.html</loc>
+  </url>
+  <url>
+    <loc>/reference/as_coll_items.html</loc>
   </url>
   <url>
     <loc>/reference/as_mmd_node.html</loc>
@@ -110,6 +116,9 @@
   </url>
   <url>
     <loc>/reference/check_wiki_links.html</loc>
+  </url>
+  <url>
+    <loc>/reference/cite_dataset.html</loc>
   </url>
   <url>
     <loc>/reference/convert_to_stringlist.html</loc>
@@ -172,6 +181,9 @@
     <loc>/reference/get_dependency_from_json_schema.html</loc>
   </url>
   <url>
+    <loc>/reference/get_doi_meta.html</loc>
+  </url>
+  <url>
     <loc>/reference/get_project_wiki.html</loc>
   </url>
   <url>
@@ -185,6 +197,15 @@
   </url>
   <url>
     <loc>/reference/index.html</loc>
+  </url>
+  <url>
+    <loc>/reference/is_dataset.html</loc>
+  </url>
+  <url>
+    <loc>/reference/is_dataset_collection.html</loc>
+  </url>
+  <url>
+    <loc>/reference/is_file.html</loc>
   </url>
   <url>
     <loc>/reference/is_valid_syn_id.html</loc>
@@ -256,10 +277,19 @@
     <loc>/reference/missing_annotation_email.html</loc>
   </url>
   <url>
+    <loc>/reference/new_dataset.html</loc>
+  </url>
+  <url>
     <loc>/reference/new_project.html</loc>
   </url>
   <url>
     <loc>/reference/new_project_strict.html</loc>
+  </url>
+  <url>
+    <loc>/reference/nf_sarek_datasets.html</loc>
+  </url>
+  <url>
+    <loc>/reference/nf_star_salmon_datasets.html</loc>
   </url>
   <url>
     <loc>/reference/pipe.html</loc>
@@ -310,13 +340,22 @@
     <loc>/reference/test_passed.html</loc>
   </url>
   <url>
+    <loc>/reference/update_items.html</loc>
+  </url>
+  <url>
     <loc>/reference/update_study_annotations.html</loc>
+  </url>
+  <url>
+    <loc>/reference/use_latest_in_collection.html</loc>
   </url>
   <url>
     <loc>/reference/use_ref_map.html</loc>
   </url>
   <url>
     <loc>/reference/walk.html</loc>
+  </url>
+  <url>
+    <loc>/reference/which_coll_type.html</loc>
   </url>
   <url>
     <loc>/reference/wiki_mod.html</loc>
