@@ -60,8 +60,8 @@ sample_io <- map_sample_io(workflow = "nf-rnaseq",
 
 Add provenance for the files involved using `add_activity_batch`. 
 
-Note: Why is workflow name already available but not workflow link?
-The workflow link is a more specific reference and includes version numbers. 
+A workflow link is used (instead of just a name) because it is is a more specific reference with versions 
+and others can be follow the link to get details of the workflow. 
 
 ```{r rnaseq-add-provenance, eval=FALSE}
 
@@ -93,17 +93,19 @@ This looks like a large number of different annotations to put together (though 
 Fortunately, the utility `annotate_aligned_reads` will try to do much of the work. 
 It will look for the `.bam` files and generate annotations for those `.bam` files.
 The template and schema mentioned above are the defaults so don't have to be specified explicitly. 
-It's recommended to read the docs (`?annotate_aligned_reads`) for details on how annotations are compiled; 
-usage of `annotate_aligned_reads` does still require knowing what should be filled in manually.
+But it's recommended to read the docs (`?annotate_aligned_reads`) for details on how annotations are added, 
+to know what remains to be filled in manually.
 
-Note: Why is workflow info added as both provenance and annotations? Isn't that redundant?
-The answer is that the portal uses only annotations and not provenance/annotations are more queryable currently.
+Annotations expected to be set manually each time include `genomicReference` and `workflowLink`, which we also just set in provenance. 
+Why:
+- These are recommended to be surfaced both in provenance and annotations because only annotations are queryable in the portal currently.
+- These need to be set manually because reference and versions are likely to change between workflow runs. 
 
 ```{r rnaseq-make-annotations-bam, eval=FALSE}
 
 l2_manifest <- annotate_aligned_reads(sample_io,
                                       samtools_stats_file = "syn30841284",
-                                      update = FALSE)
+                                      dry_run = TRUE)
 
 l2_manifest[, genomicReference := "GRCh38"]
 l2_manifest[, workflowLink := "https://nf-co.re/rnaseq/3.7/output#star-and-salmon"]
@@ -117,7 +119,8 @@ This looks good, so we can go ahead and apply the annotations:
 annotate_with_manifest(l2_manifest)
 ```
 
-TO DO: Instead of submitting as above, if we prefer to submit via schematic/DCA, we can make this a schematic-compatible manifest.
+Note that instead of submitting as above, we can make this a schematic-compatible manifest to submit via DCA.
+
 
 #### Expression data files
 
@@ -125,9 +128,18 @@ Another convenience function is provided to help annotate gene expression data f
 
 ```{r rnaseq-add-annotations-l3, eval=FALSE}
 
-l3_manifest <- annotate_expression(sample_io, update = FALSE)
+l3_manifest <- annotate_expression(sample_io, dry_run = TRUE)
 l3_manifest[, workflowLink := "https://nf-co.re/rnaseq/3.7/output#star-and-salmon"]
 annotate_with_manifest(l3_manifest)
+```
+
+
+Now, to create a [Synapse dataset](https://help.synapse.org/docs/Datasets.2611281979.html) out of this set of files:
+```{r rnaseq-dataset-l2, eval=FALSE}
+
+nf_star_salmon_datasets(l3_manifest, 
+                        parent = parent_project,
+                        dry_run = FALSE)
 ```
 
 

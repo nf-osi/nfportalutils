@@ -229,30 +229,24 @@ nf_sarek_datasets <- function(output_map,
 
 #' Create NF STAR-Salmon dataset
 #' 
-#' Organize gene expression quantification files (.sf) into one dataset. 
+#' With a level-3 manifest that is created from `annotate_expression`,
+#' calls `new_dataset` to make quantification files (.sf) into dataset. 
 #' Uses latest version of the files and creates a "Draft" dataset.
-#' See also `nf_sarek_datasets`.
+#' See `nf_sarek_datasets`.
 #' 
 #' @inheritParams new_dataset
 #' @inheritParams nf_sarek_datasets
-#' @param output_map The `data.table` returned from `map_sample_output_sarek`.
+#' @param manifest A table of annotated data manifest from `annotate_expression`.
 #' @export
-#' @examples
-#'\dontrun{
-#' syn_out <- "syn30840584"
-#' m <- map_sample_output_rnaseq(syn_out) 
-#' datasets <- nf_rnaseq_dataset(m, out, parent = "syn4939902", dry_run = F)
-#'}
-nf_star_salmon_datasets <- function(output_map, 
+nf_star_salmon_datasets <- function(manifest, 
                                     parent, 
                                     verbose = TRUE, 
                                     dry_run = TRUE) { 
   
-  # Select the .sf and index files
-  output_ids <- output_map[grepl(".sf$", output_name), output_id]
+  items <- manifest$entityId
   new_dataset(name = "Gene Expression Quantification from RNA-seq",
               parent = parent,
-              items = output_ids,
+              items = items,
               dry_run = dry_run)
 }
 
