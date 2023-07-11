@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">nfportalutils</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9300</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9310</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -137,9 +137,9 @@ rna-seq workflow, the samplesheet is an output file in
 </h3>
 <p>Add provenance for the files involved using
 <code>add_activity_batch</code>.</p>
-<p>Note: Why is workflow name already available but not workflow link?
-The workflow link is a more specific reference and includes version
-numbers.</p>
+<p>A workflow link is used (instead of just a name) because it is is a
+more specific reference with versions and others can be follow the link
+to get details of the workflow.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">wf_link</span> <span class="op">&lt;-</span> <span class="st">"https://nf-co.re/rnaseq/3.7/output#star-and-salmon"</span></span>
@@ -170,20 +170,22 @@ together (though most are optional). Fortunately, the utility
 <code>annotate_aligned_reads</code> will try to do much of the work. It
 will look for the <code>.bam</code> files and generate annotations for
 those <code>.bam</code> files. The template and schema mentioned above
-are the defaults so don’t have to be specified explicitly. It’s
+are the defaults so don’t have to be specified explicitly. But it’s
 recommended to read the docs (<code><a href="../reference/annotate_aligned_reads.html">?annotate_aligned_reads</a></code>) for
-details on how annotations are compiled; usage of
-<code>annotate_aligned_reads</code> does still require knowing what
-should be filled in manually.</p>
-<p>Note: Why is workflow info added as both provenance and annotations?
-Isn’t that redundant? The answer is that the portal uses only
-annotations and not provenance/annotations are more queryable
-currently.</p>
+details on how annotations are added, to know what remains to be filled
+in manually.</p>
+<p>Annotations expected to be set manually each time include
+<code>genomicReference</code> and <code>workflowLink</code>, which we
+also just set in provenance. Why: - These are recommended to be surfaced
+both in provenance and annotations because only annotations are
+queryable in the portal currently. - These need to be set manually
+because reference and versions are likely to change between workflow
+runs.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">l2_manifest</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/annotate_aligned_reads.html">annotate_aligned_reads</a></span><span class="op">(</span><span class="va">sample_io</span>,</span>
 <span>                                      samtools_stats_file <span class="op">=</span> <span class="st">"syn30841284"</span>,</span>
-<span>                                      update <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span>                                      dry_run <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">l2_manifest</span><span class="op">[</span>, <span class="va">genomicReference</span> <span class="op">:=</span> <span class="st">"GRCh38"</span><span class="op">]</span></span>
 <span><span class="va">l2_manifest</span><span class="op">[</span>, <span class="va">workflowLink</span> <span class="op">:=</span> <span class="st">"https://nf-co.re/rnaseq/3.7/output#star-and-salmon"</span><span class="op">]</span></span></code></pre></div>
@@ -191,8 +193,8 @@ currently.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="fu"><a href="../reference/annotate_with_manifest.html">annotate_with_manifest</a></span><span class="op">(</span><span class="va">l2_manifest</span><span class="op">)</span></span></code></pre></div>
-<p>TO DO: Instead of submitting as above, if we prefer to submit via
-schematic/DCA, we can make this a schematic-compatible manifest.</p>
+<p>Note that instead of submitting as above, we can make this a
+schematic-compatible manifest to submit via DCA.</p>
 </div>
 <div class="section level4">
 <h4 id="expression-data-files">Expression data files<a class="anchor" aria-label="anchor" href="#expression-data-files"></a>
@@ -201,9 +203,16 @@ schematic/DCA, we can make this a schematic-compatible manifest.</p>
 expression data files.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
-<span><span class="va">l3_manifest</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/annotate_expression.html">annotate_expression</a></span><span class="op">(</span><span class="va">sample_io</span>, update <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="va">l3_manifest</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/annotate_expression.html">annotate_expression</a></span><span class="op">(</span><span class="va">sample_io</span>, dry_run <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="va">l3_manifest</span><span class="op">[</span>, <span class="va">workflowLink</span> <span class="op">:=</span> <span class="st">"https://nf-co.re/rnaseq/3.7/output#star-and-salmon"</span><span class="op">]</span></span>
 <span><span class="fu"><a href="../reference/annotate_with_manifest.html">annotate_with_manifest</a></span><span class="op">(</span><span class="va">l3_manifest</span><span class="op">)</span></span></code></pre></div>
+<p>Now, to create a <a href="https://help.synapse.org/docs/Datasets.2611281979.html" class="external-link">Synapse
+dataset</a> out of this set of files:</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
+<span><span class="fu"><a href="../reference/nf_star_salmon_datasets.html">nf_star_salmon_datasets</a></span><span class="op">(</span><span class="va">l3_manifest</span>, </span>
+<span>                        parent <span class="op">=</span> <span class="va">parent_project</span>,</span>
+<span>                        dry_run <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 </div>
 </div>
 </div>
@@ -216,7 +225,7 @@ somewhat slower.</p>
 <div class="section level3">
 <h3 id="creating-helper-resource-files-1">Creating helper resource files<a class="anchor" aria-label="anchor" href="#creating-helper-resource-files-1"></a>
 </h3>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">sample_io</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/map_sample_io.html">map_sample_io</a></span><span class="op">(</span>workflow <span class="op">=</span> <span class="st">"nf-sarek"</span>,</span>
 <span>                           samplesheet <span class="op">=</span> <span class="st">"PilotBatch-WES-samplesheet.txt"</span>, <span class="co"># local file</span></span>
@@ -228,7 +237,7 @@ somewhat slower.</p>
 <h3 id="add-provenance-1">Add provenance<a class="anchor" aria-label="anchor" href="#add-provenance-1"></a>
 </h3>
 <p>Use the manifest to add provenance.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">wf_link</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>FreeBayes <span class="op">=</span> <span class="st">"https://nf-co.re/sarek/2.7.1/output#freebayes"</span>,</span>
 <span>             Mutect2 <span class="op">=</span> <span class="st">"https://nf-co.re/sarek/2.7.1/output#gatk-mutect2"</span>,</span>
@@ -247,13 +256,13 @@ somatic and germline results, and will automatically try to fill in the
 right values. However, you can set these in the parameters directly –
 see <code><a href="../reference/annotate_called_variants.html">?annotate_called_variants</a></code>. This returns a manifest for
 examination and correction has needed.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">manifest</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/annotate_called_variants.html">annotate_called_variants</a></span><span class="op">(</span><span class="va">sample_io</span><span class="op">)</span></span></code></pre></div>
 <p>For example, if you used a slightly different version/fork, you
 should update it manually in the manifest. Otherwise, apply the
 annotations:</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="fu"><a href="../reference/annotate_with_manifest.html">annotate_with_manifest</a></span><span class="op">(</span><span class="va">manifest</span><span class="op">)</span></span></code></pre></div>
 </div>
