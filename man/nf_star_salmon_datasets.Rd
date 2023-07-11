@@ -4,10 +4,10 @@
 \alias{nf_star_salmon_datasets}
 \title{Create NF STAR-Salmon dataset}
 \usage{
-nf_star_salmon_datasets(output_map, parent, verbose = TRUE, dry_run = TRUE)
+nf_star_salmon_datasets(manifest, parent, verbose = TRUE, dry_run = TRUE)
 }
 \arguments{
-\item{output_map}{The \code{data.table} returned from \code{map_sample_output_sarek}.}
+\item{manifest}{A table of annotated data manifest from \code{annotate_expression}.}
 
 \item{parent}{Synapse id of parent project where the dataset will live.}
 
@@ -16,14 +16,8 @@ nf_star_salmon_datasets(output_map, parent, verbose = TRUE, dry_run = TRUE)
 \item{dry_run}{If TRUE, don't actually store dataset, just return the data object for inspection or further modification.}
 }
 \description{
-Organize gene expression quantification files (.sf) into one dataset.
+With a level-3 manifest that is created from \code{annotate_expression},
+calls \code{new_dataset} to make quantification files (.sf) into dataset.
 Uses latest version of the files and creates a "Draft" dataset.
-See also \code{nf_sarek_datasets}.
-}
-\examples{
-\dontrun{
-syn_out <- "syn30840584"
-m <- map_sample_output_rnaseq(syn_out) 
-datasets <- nf_rnaseq_dataset(m, out, parent = "syn4939902", dry_run = F)
-}
+See \code{nf_sarek_datasets}.
 }
