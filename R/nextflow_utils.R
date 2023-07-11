@@ -12,8 +12,15 @@ map_sample_input_ss <- function(samplesheet,
                                 parse_fun = function(x) gsub("_T[0-9]$", "", x)) {
   
   ss <- dt_read(samplesheet)
-  # Annoyingly, headers are not standard and can use fastq1 instead of fastq_1
-  if("fastq1" %in% names(ss)) setnames(ss, c("fastq1", "fastq2"), c("fastq_1", "fastq_2"))
+  # Annoyingly, headers are not standard and can use fastq or fastq1 instead of fastq_1
+  if("fastq1" %in% names(ss)) {
+    setnames(ss, c("fastq1", "fastq2"), c("fastq_1", "fastq_2"))
+    message("In this samplesheet version, looks like we have 'fastq1' and 'fastq2' -- reading as 'fastq_1' and 'fastq_2")
+  }
+  if("fastq" %in% names(ss)) {
+    setnames(ss, "fastq", "fastq_1")
+    message("In this samplesheet version, looks like we have 'fastq' -- reading as 'fastq_1'")
+  }
   
   ss[, input_syn_1 := bare_syn_id(fastq_1)] # Get synId from URI
   ss[, input_syn_2 := bare_syn_id(fastq_2)] 
