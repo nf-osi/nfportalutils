@@ -259,16 +259,16 @@ make_meta_genomic_generic <- function(cancer_study_identifier,
 #' 
 #' @inheritParams make_meta_genomic_generic
 #' @inheritParams write_meta
-#' @param data_filename Name of the data file. Defaults to "data_mutations_extended.txt".
+#' @param data_filename Name of the data file. Defaults to "data_mutations.txt".
 #' @param write Whether to write the meta file for the data file.
 #' @keywords internal
 make_meta_maf <- function(cancer_study_identifier, 
-                          data_filename = "data_mutations_extended.txt",
+                          data_filename = "data_mutations.txt",
                           publish_dir = ".",
                           write = TRUE,
                           verbose = TRUE) {
   
-  meta_filename <- "meta_mutations_extended.txt"
+  meta_filename <- "meta_mutations.txt"
   df_file <- make_meta_genomic_generic(cancer_study_identifier = cancer_study_identifier, 
                                        genetic_alteration_type = "MUTATION_EXTENDED", 
                                        datatype = "MAF", 

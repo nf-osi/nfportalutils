@@ -85,17 +85,19 @@ as_mmd_node <- function(entity,
 
 #' Wrapper to create data-driven flowchart with pretty processing provenance mermaid template
 #' 
-#' @param year Year to determine subset of data for which to generate flowchart. 
+#' This generates a mermaid file, which can be rendered live/further edited in 
+#' 
+#' @param report Which report to determine subset of data for which to generate flowchart fig. 
 #' @examples
 #' \dontrun{
-#' flowchart <- processing_flowchart(year = 1)
+#' flowchart <- processing_flowchart(report = "2023-MY")
 #' cat(flowchart, file = "flowchart.mmd")
 #'}
 #' @export
-processing_flowchart <- function(year = 1) {
+processing_flowchart <- function(report) {
   
   # Get data
-  data <- .syn$tableQuery(glue::glue('SELECT projectId,inputDataset,inputDataType,workflow,publishDir,processedDatasets FROM syn34627613 WHERE "year"={year}'))
+  data <- .syn$tableQuery(glue::glue("SELECT projectId,inputDataset,inputDataType,workflow,publishDir,processedDatasets FROM syn34627613 WHERE report='{report}'"))
   data <- data$asDataFrame()
   
   # Replace NaN with blank nodes

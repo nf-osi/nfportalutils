@@ -4,17 +4,17 @@
 \alias{processing_flowchart}
 \title{Wrapper to create data-driven flowchart with pretty processing provenance mermaid template}
 \usage{
-processing_flowchart(year = 1)
+processing_flowchart(report)
 }
 \arguments{
-\item{year}{Year to determine subset of data for which to generate flowchart.}
+\item{report}{Which report to determine subset of data for which to generate flowchart fig.}
 }
 \description{
-Wrapper to create data-driven flowchart with pretty processing provenance mermaid template
+This generates a mermaid file, which can be rendered live/further edited in
 }
 \examples{
 \dontrun{
-flowchart <- processing_flowchart(year = 1)
+flowchart <- processing_flowchart(report = "2023-MY")
 cat(flowchart, file = "flowchart.mmd")
 }
 }
