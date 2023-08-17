@@ -15,7 +15,7 @@ new_dataset(name, parent, items, item_version = NULL, dry_run = TRUE)
 Usually the same parent project storing the files, but in some cases it may be a different project.}
 
 \item{item_version}{Integer for version that will be used for all items, e.g. 1.
-If NULL, this will look up the latest version for each id and use that.}
+Otherwise, "latest" or "stable_latest". See details.}
 
 \item{dry_run}{If TRUE, don't actually store dataset, just return the data object for inspection or further modification.}
 }
