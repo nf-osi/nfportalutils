@@ -4,19 +4,27 @@
 # and dataset collections (collection of datasets).
 
 
-#' As collection items
+#' Structure as collection items
 #' 
-#' Helper taking entity ids to create records used for dataset items or dataset collection items.
+#' Helper taking entity ids to create records used for dataset items *or* dataset collection items.
 #' Collection items have the form `list(entityId = id, versionNumber = x)`.
+#'
+#' Note: For item version, dataset items allow two meanings of literal or absolute "latest" 
+#' vs. "stable_latest", but with files either one can be used to mean the same thing
+#' since there will be correct interpretation done under the hood.
+#' See implementation in `latest_version`.
 #'
 #' @param ids Ids of entities to make into dataset items.
 #' @param item_version Integer for version that will be used for all items, e.g. 1. 
-#' If NULL, this will look up the latest version for each id and use that.
+#' Otherwise, "latest" or "stable_latest". See details.
 #' @keywords internal
-as_coll_items <- function(ids, item_version = NULL) {
-  if(is.null(item_version)) {
-    item_version <- lapply(ids, function(id) .syn$get(id, downloadFile = FALSE)$properties$versionNumber)
+as_coll_items <- function(ids, item_version = c("abs", "stable")) {
+
+  if(!is.integer(item_version)) {
+    version_semantics <- match.arg(item_version)
+    item_version <- lapply(ids, function(id) latest_version(id, version_semantics))
   }
+
   items <- Map(function(id, version) list(entityId = id, versionNumber = version), ids, item_version)
   names(items) <- NULL # need to unname list for API
   items
@@ -44,24 +52,25 @@ update_items <- function(current_coll, update_coll) {
   # reconversion; using pure apply as.list coerces versionNumber into char
   updated <- apply(updated, 1, function(i) list(entityId = unname(i[1]), versionNumber = as.integer(i[2]))) 
   updated
-} 
+}
 
 
 #' Update item versions to "latest" in a collection
 #' 
 #' Update an _existing_ collection so that all items or a subset of items reference their latest version.
-#' This should work for both datasets (collection of files) and dataset collections (collection of datasets).
+#' Should work for both datasets (collection of files) and dataset collections (collection of datasets).
 #' 
+#' @inheritParams latest_version
 #' @param collection_id Collection id.
-#' @param items Vector of dataset ids for which to update reference to latest version, 
-#' or "all" (default) to update all in the dataset collection.
+#' @param items Vector of dataset ids for which to update reference to latest version, or "all" (default) to update all.
 #' @export
-use_latest_in_collection <- function(collection_id, items = "all") {
+use_latest_in_collection <- function(collection_id, items = "all", version_semantics = "abs") {
+
   coll <- .syn$restGET(glue::glue("https://repo-prod.prod.sagebase.org/repo/v1/entity/{collection_id}"))
   current_items <- sapply(coll$items, function(i) i$entityId)
-  
+
   if((length(items) == 1) && (items  == "all")) {
-    coll$items <- as_coll_items(current_items)
+    coll$items <- as_coll_items(current_items, item_version = version_semantics)
   } else {
     
     # Check subset; if no check, this becomes `add_to_collection`
@@ -73,7 +82,7 @@ use_latest_in_collection <- function(collection_id, items = "all") {
         return(coll)
       }
     }
-    updated_items <- update_items(coll$items, as_coll_items(items))
+    updated_items <- update_items(coll$items, as_coll_items(items, item_version = version_semantics))
     coll$items <- updated_items
   }
   .syn$restPUT(glue::glue("https://repo-prod.prod.sagebase.org/repo/v1/entity/{collection_id}"), body = jsonlite::toJSON(coll, auto_unbox = TRUE))
@@ -146,6 +155,36 @@ new_dataset <- function(name, parent, items, item_version = NULL, dry_run = TRUE
                                    parent = parent,
                                    dataset_items = dataset_items)
   if(dry_run) dataset else .syn$store(dataset)
+}
+
+
+#' Get the latest version
+#'
+#' Get latest version, with special handling for semantics of "latest" regarding new collection types.
+#' Datasets and dataset collections always start out as draft so unlike other entities
+#' there is a concept of a stable version which is the "real" latest, but which might not always exist.
+#' For datasets/dataset collections the latest version refers to a DRAFT, so latest stable version is `versionNumber` - 1
+#' under the condition that the `versionNumber` is greater or equal to 2.
+#' When `versionNumber` = 1 and `isLatestVersion` is TRUE, this means there is not yet a stable version.
+#' When using stable version semantics, if a stable version does not exist an error will be thrown.
+#'
+#' The parameter `version_semantics` allows user to specify "what type of *latest* do you mean?".
+#'
+#' Note: Do not use with versioned ids of the form "syn12345678.3"
+#'
+#' @param id Dataset id. See details.
+#' @param version_type Use "abs" for absolute latest version or "stable". Only used for collection entities. See details.
+latest_version <- function(id, version_semantics = c("abs", "stable")) {
+
+  entity <- .syn$get(id, downloadFile = FALSE)
+  version <- entity$properties$versionNumber
+  if(entity$properties$concreteType %in% c("org.sagebionetworks.repo.model.table.Dataset", "org.sagebionetworks.repo.model.table.DatasetCollection")
+     && version_semantics == "stable_latest") {
+     version <- version - 1
+     if(!version) stop("No stable version exists for ", id)
+  }
+
+  version
 }
 
 
