@@ -1,3 +1,10 @@
+#' TO DO enhancements
+#' 
+#' When a dataset has already been created, one might want to only add or update a 
+#' data type (bc clinical data is the same). Having an `add_*` or `update_*` 
+#' type util might be useful, e.g. to add expression data to mutations data.
+
+
 #' Make cBioPortal mutations dataset from Synapse assets
 #' 
 #' The NF-OSI workflow produces a single merged maf file that represents a filtered subset of the `maf`s,
@@ -189,13 +196,4 @@ match_maf_sample_id <- function(clinical_data, merged_maf = NULL) {
   return(clinical_data)
 }
 
-#' TO DO enhancements
-#' 
-#' When a dataset has already been created, one might want to only add or update a 
-#' data type (where clinical data is the same). Having an `add_*` or `update_*` 
-#' type util might be useful, e.g. to add expression data to mutation data.
-#'
-#' Additionally, while meta files can be easily edited by hand after they are created, 
-#' some fields such as `cancer_study_identifier` will need to be changed across multiple files,
-#' so if someone can't use something like `sed` it might be helpful to have an R util for this.
 
