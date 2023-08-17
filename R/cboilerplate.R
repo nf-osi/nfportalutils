@@ -1,11 +1,10 @@
 # ------------------------------------------------------------------------------ #
-# Attribution: The following utils to make cBioPortal files are adapted from some code written by the awesome @hhunterzinck
+# Attribution: Following utils for packaging to cBioPortal are adapted from some code written by the awesome @hhunterzinck
 # in the repo https://github.com/Sage-Bionetworks/genie-erbb2-cbio/
 
 # TO DO / DEV NOTES: 
-# 1. Many of functions for making meta files according to the data type might
-# benefit from implementation using S3 classes esp. if will be using more different types in the future,
-# but that is currently not worth the rewrite.
+# 1. Many of functions for making meta files according to the data type might benefit 
+# from reimplementation using S3 classes esp. if different types explode, but currently not worth the rewrite.
 
 # 2. It may make sense to write meta files automatically whenever writing a 
 # data file is called. This might be mainly updating the main wrapper or creating more wrappers.
@@ -279,6 +278,31 @@ make_meta_maf <- function(cancer_study_identifier,
   
   if(write) write_meta(df_file, meta_filename, publish_dir, verbose)
   invisible(df_file)
+}
+
+
+#' Make meta file for seg (copy number variation) data
+#' 
+#' See https://docs.cbioportal.org/file-formats/#segmented-data
+#' @keywords internal
+make_meta_seg <- function(cancer_study_identifier, 
+                          data_filename = "data_cna.seg",
+                          reference_genome = "hg19",
+                          publish_dir = ".",
+                          write = TRUE,
+                          verbose = TRUE) {
+    
+  meta_filename <- "meta_seg.txt"
+  df_file <- make_meta_genomic_generic(cancer_study_identifier = cancer_study_identifier,
+                                       genetic_alteration_type = "COPY_NUMBER_ALTERATION",
+                                       datatype = "SEG",
+                                       reference_genome_id = reference_genome_id,
+                                       description = "Somatic CNA from NF-OSI processing.",
+                                       data_filename = data_filename)
+  
+  if(write) write_meta(df_file, meta_filename, publish_dir, verbose)
+  invisible(df_file)
+
 }
 
 # --- Meta study --------------------------------------------------------------- #
