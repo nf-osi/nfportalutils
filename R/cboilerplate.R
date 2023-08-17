@@ -281,11 +281,13 @@ make_meta_maf <- function(cancer_study_identifier,
 }
 
 
-#' Make meta file for seg (copy number variation) data
+#' Make meta file for cBioPortal copy number alteration data
+#' 
+#' Currently assumes seg data and should be extended later.
 #' 
 #' See https://docs.cbioportal.org/file-formats/#segmented-data
 #' @keywords internal
-make_meta_seg <- function(cancer_study_identifier, 
+make_meta_cna <- function(cancer_study_identifier,
                           data_filename = "data_cna.seg",
                           reference_genome = "hg19",
                           publish_dir = ".",
