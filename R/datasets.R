@@ -173,7 +173,7 @@ new_dataset <- function(name, parent, items, item_version = NULL, dry_run = TRUE
 #' Note: Do not use with versioned ids of the form "syn12345678.3"
 #'
 #' @param id Dataset id. See details.
-#' @param version_type Use "abs" for absolute latest version or "stable". Only used for collection entities. See details.
+#' @param version_semantics Use "abs" for absolute latest version or "stable". Only used for collection entities. See details.
 latest_version <- function(id, version_semantics = c("abs", "stable")) {
 
   entity <- .syn$get(id, downloadFile = FALSE)
