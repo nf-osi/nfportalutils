@@ -4,15 +4,20 @@
 \alias{use_latest_in_collection}
 \title{Update item versions to "latest" in a collection}
 \usage{
-use_latest_in_collection(collection_id, items = "all")
+use_latest_in_collection(
+  collection_id,
+  items = "all",
+  version_semantics = "abs"
+)
 }
 \arguments{
 \item{collection_id}{Collection id.}
 
-\item{items}{Vector of dataset ids for which to update reference to latest version,
-or "all" (default) to update all in the dataset collection.}
+\item{items}{Vector of dataset ids for which to update reference to latest version, or "all" (default) to update all.}
+
+\item{version_semantics}{Use "abs" for absolute latest version or "stable". Only used for collection entities. See details.}
 }
 \description{
 Update an \emph{existing} collection so that all items or a subset of items reference their latest version.
-This should work for both datasets (collection of files) and dataset collections (collection of datasets).
+Should work for both datasets (collection of files) and dataset collections (collection of datasets).
 }

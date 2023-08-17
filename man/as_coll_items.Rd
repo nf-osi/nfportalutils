@@ -2,18 +2,24 @@
 % Please edit documentation in R/datasets.R
 \name{as_coll_items}
 \alias{as_coll_items}
-\title{As collection items}
+\title{Structure as collection items}
 \usage{
-as_coll_items(ids, item_version = NULL)
+as_coll_items(ids, item_version = c("abs", "stable"))
 }
 \arguments{
 \item{ids}{Ids of entities to make into dataset items.}
 
 \item{item_version}{Integer for version that will be used for all items, e.g. 1.
-If NULL, this will look up the latest version for each id and use that.}
+Otherwise, "latest" or "stable_latest". See details.}
 }
 \description{
-Helper taking entity ids to create records used for dataset items or dataset collection items.
+Helper taking entity ids to create records used for dataset items \emph{or} dataset collection items.
 Collection items have the form \code{list(entityId = id, versionNumber = x)}.
+}
+\details{
+Note: For item version, dataset items allow two meanings of literal or absolute "latest"
+vs. "stable_latest", but with files either one can be used to mean the same thing
+since there will be correct interpretation done under the hood.
+See implementation in \code{latest_version}.
 }
 \keyword{internal}
