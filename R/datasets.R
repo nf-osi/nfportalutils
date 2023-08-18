@@ -188,7 +188,7 @@ latest_version <- function(id, version_semantics = c("abs", "stable")) {
 }
 
 
-#' Create Sarek-processed datasets
+#' Create datasets for Sarek-called somatic or germline variants results
 #' 
 #' Organize variant call files from Nextflow Sarek into 3-4 datasets, 
 #' grouping files by variant type and workflow with titles having the format: 
@@ -266,7 +266,7 @@ nf_sarek_datasets <- function(output_map,
 }
 
 
-#' Create NF STAR-Salmon dataset
+#' Create dataset for STAR-Salmon expression quantification results
 #' 
 #' With a level-3 manifest that is created from `annotate_expression`,
 #' calls `new_dataset` to make quantification files (.sf) into dataset. 
@@ -278,12 +278,33 @@ nf_sarek_datasets <- function(output_map,
 #' @param manifest A table of annotated data manifest from `annotate_expression`.
 #' @export
 nf_star_salmon_datasets <- function(manifest, 
-                                    parent, 
-                                    verbose = TRUE, 
+                                    parent,
                                     dry_run = TRUE) { 
   
   items <- manifest$entityId
   new_dataset(name = "Gene Expression Quantification from RNA-seq",
+              parent = parent,
+              items = items,
+              dry_run = dry_run)
+}
+
+#' Create dataset for CNVKit results
+#'
+#' Create dataset from all files in CNVKit output
+#'
+#' @inheritParams new_dataset
+#' @param syn_out Output folder called 'cnvkit'
+nf_cnv_dataset <- function(syn_out,
+                           parent,
+                           dry_run = TRUE) {
+
+  files <- walk(syn_out)
+  files <- unlist(files)
+  df <- as.data.frame(matrix(files, ncol = 2, byrow = TRUE))
+  names(df) <- c("Filename", "id")
+  df <- df[grepl("cnr$|cns$|cnn$|bed$|pdf$|png$", df$Filename), ]
+  items <- df$id
+  new_dataset(name = "Copy Number Variant - CNVkit",
               parent = parent,
               items = items,
               dry_run = dry_run)
