@@ -372,11 +372,9 @@ annotate_called_variants <- function(sample_io,
 #'
 #' @param output_dataset Id of dataset, which should be created first via `nf_cnv_dataset`.
 #' @param input_dataset Input dataset used in the workflow.
-#' @param samplesheet Samplesheet.
 #' @param dry_run Whether to return a version submit manifest.
 annotate_cnv <- function(output_dataset,
                          input_dataset,
-                         samplesheet,
                          workflow = "CNVkit",
                          workflowLink = "https://nf-co.re/sarek/3.1/docs/output#cnvkit",
                          dry_run = TRUE) {
@@ -400,8 +398,6 @@ annotate_cnv <- function(output_dataset,
   manifest <- merge(manifest, specimen_lookup, by = "parentId")
 
   # Bring assay and clinical data over from what's on input_dataset
-  #ss <- dt_read(samplesheet)
-  #ss[, input_id := gsub("syn://", "", fastq_1)]
   meta <- table_query(input_dataset,
                       c("assay", "individualID", "specimenID", "age", "sex",
                         "species", "diagnosis", "tumorType", "nf1Genotype", "nf2Genotype"))
