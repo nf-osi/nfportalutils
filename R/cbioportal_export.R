@@ -1,9 +1,12 @@
-# These are mainly wrappers. See `cboilerplate.R` for lower-level formatting.
-# Think of this as making a new R package using `devtools`, except making a new package for cBioPortal.
+# Export data from Synapse as a cBioPortal dataset.
+# This tries to have the spirit of making a new R package with `devtools`, so dataset is a "package" for cBioPortal.
+# This file contain the higher-level wrappers. See `cboilerplate.R` for the true lower-level utils.
 
 #' Enumerate combinations of valid cBP data types
 #' 
 #' https://docs.cbioportal.org/file-formats/
+#' 
+#' @keywords internal
 cbp_data_types <- function() {
   
   list(c("CLINICAL", "SAMPLE_ATTRIBUTES"),
@@ -19,16 +22,39 @@ cbp_data_types <- function() {
        c("METHYLATION", "CONTINUOUS"),
        c("PROTEIN_LEVEL", "LOG2-VALUE"),
        c("STRUCTURAL_VARIANT", "SV"))
-  
 }
 
-#' Create cBioPortal study
+#' Create a cBioPortal study
+#' 
+#' See specifications for a study at https://docs.cbioportal.org/file-formats/#meta-file.
 #' 
 #' @param cancer_study_identifier Cancer study identifier. See cBioPortal standards for ids.
 #' @param name of the cancer study, e.g. something following convention is "Malignant Peripheral Nerve Sheath Tumor (NF-OSI, 2022)".
+#' @param type_of_cancer Type of cancer, defaults to "mixed". See also http://oncotree.mskcc.org/#/home.
+#' @param name Name of the study.
+#' @param description Description of the study. A default generic description is provided.
+#' @param citation (Optional) A relevant citation, e.g. "TCGA, Nature 2012".
+#' @param pmid (Optional) One or more relevant pubmed ids (comma separated without whitespace); if used, citation cannot be `NULL`.
+#' @param groups (Optional) Defaults to "PUBLIC" for use with public cBioPortal; 
+#' otherwise, use group names that make sense for your instance.
+#' @param add_global_case_list (Optional) Use `NULL` to ignore, but default is `TRUE` for an "All samples" case list to be generated automatically.
+#' @param short_name (Optional) Short name for the study.
 #' @param publish_dir Directory to create for study if doesn't exist, same as `cancer_study_identifier` by default.
-#' @inheritParams make_meta_study
-cbp_new_study <- function(...) {
+#' @param verbose Verbosity level.
+#' 
+#' @export
+cbp_new_study <- function(cancer_study_identifier,
+                          name,
+                          type_of_cancer = "mixed",
+                          description = "The data are contributed by researchers funded by the Neurofibromatosis Therapeutic Acceleration Program (NTAP). 
+                          The reprocessing of the raw data is managed by the NF Open Science Initiative (https://nf.synapse.org/).",
+                          citation = NULL,
+                          pmid = NULL,
+                          groups = "PUBLIC",
+                          short_name = NULL,
+                          add_global_case_list = TRUE,
+                          publish_dir = cancer_study_identifier,
+                          verbose = TRUE) {
   
   if(!dir.exists(publish_dir)) {
     if(verbose) message(glue::glue("Creating {publish_dir} dataset directory"))
@@ -38,24 +64,18 @@ cbp_new_study <- function(...) {
   message("Setting new dataset directory as working directory.")
   setwd(publish_dir)
   
-  # If a single value in tumorType, use that, otherwise "mixed" as the catch-all
-  type_of_cancer <- unique(df$tumorType)
-  type_of_cancer <- type_of_cancer[type_of_cancer != ""]
-  if(length(type_of_cancer) != 1) {
-    type_of_cancer <- "mixed" 
-    if(verbose) message("More than one cancer type detected in data, using `mixed` for study.")
-  }
+  df_file <- make_meta_study_generic(cancer_study_identifier = cancer_study_identifier,
+                                     type_of_cancer = type_of_cancer, 
+                                     name = name, 
+                                     description = description, 
+                                     citation = citation,
+                                     pmid = pmid,
+                                     groups = groups, 
+                                     short_name = short_name,
+                                     add_global_case_list = add_global_case_list)
   
-  # Uses defaults for `groups` and `global_case_list`
-  make_meta_study(cancer_study_identifier = cancer_study_identifier,
-                  type_of_cancer = type_of_cancer,
-                  name = name,
-                  description = "The data are contributed by researchers funded by the Neurofibromatosis Therapeutic Acceleration Program (NTAP). 
-                    The reprocessing of the raw data is managed by the NF Open Science Initiative (https://nf.synapse.org/).", 
-                  citation = citation,
-                  pmid = pmid,
-                  short_name = short_name,
-                  verbose = verbose)
+  write_meta(df_file, "meta_study.txt", verbose = verbose)
+  if(verbose) message("--- Study meta added ---")
 }
 
 # ------------------------------------------------------------------------------- #
@@ -69,16 +89,13 @@ cbp_new_study <- function(...) {
 cbp_add_clinical <- function(ref_map,
                              ref_view) {
   
-  if(verbose) message("--- Pulling the clinical data ---")
-  df <- get_data_for_releasable(ss, 
-                                ref_view, 
-                                verbose = verbose)
-  write_cbio_clinical(df, 
-                      ref_map = ref_map, 
-                      verbose = verbose)
+  if(verbose) message("--- Pulling the clinical data from Synapse ---")
+  df <- get_clinical_data_for_cbp_study(ref_view)
+  
+  write_cbio_clinical(df, ref_map = ref_map, verbose = verbose)
   
   if(verbose) message("--- Making clinical meta file ---")
-  # before making meta, check that data file was actually written 
+  # before making meta, check that data file was actually written, since patient data is optional 
   if(file.exists("data_clinical_patient.txt")) {
     make_meta_patient(cancer_study_identifier, verbose = verbose)
   }
@@ -129,8 +146,8 @@ cbp_add_maf <- function(merged_maf,
   file <- .syn$get(merged_maf, downloadLocation = ".")
   
   if(verbose) message("--- Standardizing `maf` release data file name ---")
-  data_mutations_extended <- sub(file$name, "data_mutations_extended.txt", file$path)
-  file.rename(file$path, data_mutations_extended)
+  data_mutations <- sub(file$name, "data_mutations.txt", file$path)
+  file.rename(file$path, data_mutations)
   
   if(verbose) message("--- Checking the `maf` release file against samplesheet ---")
   mm <- dt_read(data_mutations_extended)
@@ -144,35 +161,6 @@ cbp_add_maf <- function(merged_maf,
   
   if(verbose) message("Maf data added.")
   
-}
-
-
-#' Download data from a view for releasable samples in samplesheet 
-#' 
-#' This tries to check that complete data could be retrieved from said view. 
-#' Note: Since the view is typically denormalized, not all data might be clinical. 
-#' A downstream step will do some of the additional processing/subsetting needed.
-#'  
-#' @param samplesheet Samplesheet `data.table`.
-#' @param ref_view View to get data from. 
-#' @param verbose Output details.
-#' @keywords internal
-get_data_for_releasable <- function(samplesheet, 
-                                    ref_view, 
-                                    verbose = TRUE) {
-  
-  # bc specimen ids in samplesheet are different than actual ids on the files to avoid spaces, use file ids
-  # ids <- samplesheet[is_releasable == TRUE, biospecimen_id]
-  ss_key <- "synapse_id"
-  rv_key <- "id"
-  ids <- samplesheet[is_releasable == TRUE, get(ss_key)]
-  ls <- glue::glue_collapse(glue::single_quote(ids), sep = ",")
-  n <- length(ids)
-  if(verbose) message(glue::glue("Retrieving from {ref_view} data for {n} releasable ids"))
-  ref_view <- .syn$tableQuery(glue::glue("SELECT * FROM {ref_view} WHERE {rv_key} in ({ls})"))
-  df <- ref_view$asDataFrame()
-  if(nrow(df) != n) stop(glue::glue("Data retrieved for {nrow(df)} of {n} release ids. Is this right `ref_view`?"))
-  return(df)
 }
 
 
