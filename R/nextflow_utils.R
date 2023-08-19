@@ -400,13 +400,13 @@ annotate_cnv <- function(output_dataset,
   # Bring assay and clinical data over from what's on input_dataset
   meta <- table_query(input_dataset,
                       c("assay", "individualID", "specimenID", "age", "sex",
-                        "species", "diagnosis", "tumorType", "nf1Genotype", "nf2Genotype"))
+                        "species", "diagnosis", "tumorType"))
   manifest <- merge(manifest, meta, by = "specimenID")
   manifest$parentId <- NULL
   if(!dry_run) {
     annotate_with_manifest(manifest)
     message("Manifest applied.")
   }
-  manifest
+  return(manifest)
 }
 
