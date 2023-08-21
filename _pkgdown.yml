@@ -41,6 +41,7 @@ reference:
   - annotate_aligned_reads
   - annotate_called_variants
   - annotate_expression
+  - annotate_cnv
   - annotate_reports_sarek
   - annotate_with_tool_stats
 
@@ -54,6 +55,7 @@ reference:
 - contents:
   - nf_sarek_datasets
   - nf_star_salmon_datasets
+  - nf_cnv_dataset
 - subtitle: Working with dataset collections to manage datasets after creation
 - contents:
   - add_to_collection
@@ -113,13 +115,14 @@ reference:
   - test_failed
   - test_passed
   
-- title: Miscellaneous Low-level Utils
+- title: Basic Utils
   desc: Low-level functions
 - contents:
   - syn_login
   - table_query
   - as_table_schema
   - make_folder
+  - latest_version
   - walk
   - copy
   - convert_to_stringlist
