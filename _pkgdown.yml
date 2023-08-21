@@ -122,6 +122,7 @@ reference:
   - table_query
   - as_table_schema
   - make_folder
+  - new_view
   - latest_version
   - walk
   - copy
