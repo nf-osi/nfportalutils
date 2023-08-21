@@ -21,7 +21,7 @@ new_view <- function(scope,
     columns = list(),
     parent = project,
     scopes = scope,
-    includeEntityTypes = list(synapseclient$EntityViewType),
+    includeEntityTypes = list(include),
     add_default_columns = TRUE)
   view <- .syn$store(view)
   invisible(view)

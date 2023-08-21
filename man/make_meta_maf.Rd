@@ -6,7 +6,7 @@
 \usage{
 make_meta_maf(
   cancer_study_identifier,
-  data_filename = "data_mutations_extended.txt",
+  data_filename = "data_mutations.txt",
   publish_dir = ".",
   write = TRUE,
   verbose = TRUE
@@ -15,7 +15,7 @@ make_meta_maf(
 \arguments{
 \item{cancer_study_identifier}{The study identifier.}
 
-\item{data_filename}{Name of the data file. Defaults to "data_mutations_extended.txt".}
+\item{data_filename}{Name of the data file. Defaults to "data_mutations.txt".}
 
 \item{publish_dir}{Directory path to write to, defaults to current.}
 
