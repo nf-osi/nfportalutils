@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">nfportalutils</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9310</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9320</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -225,6 +225,11 @@
         <dd>Annotate processed expression output</dd>
       </dl><dl><dt>
           
+          <code><a href="annotate_cnv.html">annotate_cnv()</a></code> 
+        </dt>
+        <dd>Annotate CNV outputs from CNVKit</dd>
+      </dl><dl><dt>
+          
           <code><a href="annotate_reports_sarek.html">annotate_reports_sarek()</a></code> 
         </dt>
         <dd>Annotate Sarek reports</dd>
@@ -270,12 +275,17 @@
           
           <code><a href="nf_sarek_datasets.html">nf_sarek_datasets()</a></code> 
         </dt>
-        <dd>Create Sarek-processed datasets</dd>
+        <dd>Create datasets for Sarek-called somatic or germline variants results</dd>
       </dl><dl><dt>
           
           <code><a href="nf_star_salmon_datasets.html">nf_star_salmon_datasets()</a></code> 
         </dt>
-        <dd>Create NF STAR-Salmon dataset</dd>
+        <dd>Create dataset for STAR-Salmon expression quantification results</dd>
+      </dl><dl><dt>
+          
+          <code><a href="nf_cnv_dataset.html">nf_cnv_dataset()</a></code> 
+        </dt>
+        <dd>Create dataset for CNVKit results</dd>
       </dl></div><div class="section level2">
       
       <h3 id="working-with-dataset-collections-to-manage-datasets-after-creation">Working with dataset collections to manage datasets after creation<a class="anchor" aria-label="anchor" href="#working-with-dataset-collections-to-manage-datasets-after-creation"></a></h3>
@@ -515,7 +525,7 @@
         </dt>
         <dd>Format a test passed message.</dd>
       </dl></div><div class="section level2">
-      <h2 id="miscellaneous-low-level-utils">Miscellaneous Low-level Utils<a class="anchor" aria-label="anchor" href="#miscellaneous-low-level-utils"></a></h2>
+      <h2 id="basic-utils">Basic Utils<a class="anchor" aria-label="anchor" href="#basic-utils"></a></h2>
       
       <p class="section-desc"></p><p>Low-level functions</p>
 
@@ -545,6 +555,16 @@
           <code><a href="make_folder.html">make_folder()</a></code> 
         </dt>
         <dd>Create project folders</dd>
+      </dl><dl><dt>
+          
+          <code><a href="new_view.html">new_view()</a></code> 
+        </dt>
+        <dd>Create a view</dd>
+      </dl><dl><dt>
+          
+          <code><a href="latest_version.html">latest_version()</a></code> 
+        </dt>
+        <dd>Get the latest version</dd>
       </dl><dl><dt>
           
           <code><a href="walk.html">walk()</a></code> 

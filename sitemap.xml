@@ -67,6 +67,9 @@
     <loc>/reference/annotate_called_variants.html</loc>
   </url>
   <url>
+    <loc>/reference/annotate_cnv.html</loc>
+  </url>
+  <url>
     <loc>/reference/annotate_expression.html</loc>
   </url>
   <url>
@@ -220,6 +223,9 @@
     <loc>/reference/key_label_to_id.html</loc>
   </url>
   <url>
+    <loc>/reference/latest_version.html</loc>
+  </url>
+  <url>
     <loc>/reference/make_admin.html</loc>
   </url>
   <url>
@@ -284,6 +290,12 @@
   </url>
   <url>
     <loc>/reference/new_project_strict.html</loc>
+  </url>
+  <url>
+    <loc>/reference/new_view.html</loc>
+  </url>
+  <url>
+    <loc>/reference/nf_cnv_dataset.html</loc>
   </url>
   <url>
     <loc>/reference/nf_sarek_datasets.html</loc>
