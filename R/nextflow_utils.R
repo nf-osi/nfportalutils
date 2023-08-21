@@ -368,3 +368,48 @@ annotate_called_variants <- function(sample_io,
   return(annotations)
 }
 
+#' Annotate CNV outputs from CNVKit
+#'
+#' @param output_dataset Id of dataset, which should be created first via `nf_cnv_dataset`.
+#' @param input_dataset Input dataset used in the workflow.
+#' @param dry_run Whether to return a version submit manifest.
+#' @param workflow Optional name for workflow, defaults to CNVkit.
+#' @param workflowLink Optional corresponding link to workflow, defaults to known used version.
+#' @export
+annotate_cnv <- function(output_dataset,
+                         input_dataset,
+                         workflow = "CNVkit",
+                         workflowLink = "https://nf-co.re/sarek/3.1/docs/output#cnvkit",
+                         dry_run = TRUE) {
+
+  # Set up manifest using output_dataset
+  manifest <- table_query(output_dataset, c("id", "name", "parentId"))
+  names(manifest) <- c("entityId", "Filename", "parentId")
+  manifest <- data.table(manifest)
+  manifest[, resourceType := "experimentalData"]
+  manifest[, fileFormat := gsub("^.*[.]", "", Filename)]
+  manifest[, dataType := "Copy Number Variants"]
+  manifest[!fileFormat %in% "bed", dataSubtype := "Copy Number Segments"]
+  manifest[fileFormat %in% "bed", dataType := "Reference Data"]
+  manifest[, dataType := "Copy Number Variants"]
+  manifest[, workflow := workflow]
+  manifest[, workflowLink := workflowLink]
+
+  # Create lookup for specimenID given that files are organized by specimenID
+  specimenID <- sapply(unique(manifest$parentId), function(x) .syn$get(x, downloadFile = F)$properties$name)
+  specimen_lookup <- data.table(parentId = names(specimenID), specimenID = specimenID)
+  manifest <- merge(manifest, specimen_lookup, by = "parentId")
+
+  # Bring assay and clinical data over from what's on input_dataset
+  meta <- table_query(input_dataset,
+                      c("assay", "individualID", "specimenID", "age", "sex",
+                        "species", "diagnosis", "tumorType"))
+  manifest <- merge(manifest, meta, by = "specimenID")
+  manifest$parentId <- NULL
+  if(!dry_run) {
+    annotate_with_manifest(manifest)
+    message("Manifest applied.")
+  }
+  return(manifest)
+}
+

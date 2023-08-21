@@ -2,7 +2,7 @@
 % Please edit documentation in R/datasets.R
 \name{nf_sarek_datasets}
 \alias{nf_sarek_datasets}
-\title{Create Sarek-processed datasets}
+\title{Create datasets for Sarek-called somatic or germline variants results}
 \usage{
 nf_sarek_datasets(
   output_map,
