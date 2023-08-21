@@ -294,6 +294,7 @@ nf_star_salmon_datasets <- function(manifest,
 #'
 #' @inheritParams new_dataset
 #' @param syn_out Output folder called 'cnvkit'
+#' @export
 nf_cnv_dataset <- function(syn_out,
                            parent,
                            dry_run = TRUE) {

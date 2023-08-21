@@ -2,16 +2,14 @@
 % Please edit documentation in R/datasets.R
 \name{nf_star_salmon_datasets}
 \alias{nf_star_salmon_datasets}
-\title{Create NF STAR-Salmon dataset}
+\title{Create dataset for STAR-Salmon expression quantification results}
 \usage{
-nf_star_salmon_datasets(manifest, parent, verbose = TRUE, dry_run = TRUE)
+nf_star_salmon_datasets(manifest, parent, dry_run = TRUE)
 }
 \arguments{
 \item{manifest}{A table of annotated data manifest from \code{annotate_expression}.}
 
 \item{parent}{Synapse id of parent project where the dataset will live.}
-
-\item{verbose}{Optional, whether to be verbose -- defaults to TRUE.}
 
 \item{dry_run}{If TRUE, don't actually store dataset, just return the data object for inspection or further modification.}
 }

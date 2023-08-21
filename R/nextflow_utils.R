@@ -373,6 +373,9 @@ annotate_called_variants <- function(sample_io,
 #' @param output_dataset Id of dataset, which should be created first via `nf_cnv_dataset`.
 #' @param input_dataset Input dataset used in the workflow.
 #' @param dry_run Whether to return a version submit manifest.
+#' @param workflow Optional name for workflow, defaults to CNVkit.
+#' @param workflowLink Optional corresponding link to workflow, defaults to known used version.
+#' @export
 annotate_cnv <- function(output_dataset,
                          input_dataset,
                          workflow = "CNVkit",
