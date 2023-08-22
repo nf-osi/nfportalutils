@@ -150,12 +150,11 @@ cbp_add_clinical <- function(ref_view,
 #' 3. Make meta files. Meta files are needed for describing the study, mutations data file, clinical data files.
 #' 
 #' @param maf_data Synapse id of `merged maf` file for public release.
-#' @param samplesheet Synapse id or local path to samplesheet with release info.
-#' @param cancer_study_identifier Study identifier, convention is `{tumorType}_{institution}_{year}`, so for example "mpnst_nfosi_2022".
+#' @param samplesheet Optional Synapse id or local path to samplesheet with release info for cross-ref check.
 #' @param verbose Whether to provide informative messages throughout.
 #' @export
 cbp_add_maf <- function(maf_data,
-                        samplesheet,
+                        samplesheet = NULL,
                         verbose = TRUE) {
   
   .check_login()
@@ -166,12 +165,14 @@ cbp_add_maf <- function(maf_data,
   data_mutations <- sub(file$name, "data_mutations.txt", file$path)
   file.rename(file$path, data_mutations)
   
-  if(verbose) message("✔ Checking the `maf` release file against samplesheet")
-  mm <- dt_read(data_mutations_extended)
-  ss <- dt_read(samplesheet)
-  check_result <- check_maf_release(mm, ss)
+  if(!is.null(samplesheet)) {
+    if(verbose) message("✔ Checking the `maf` release file against samplesheet")
+    mm <- dt_read(data_mutations_extended)
+    ss <- dt_read(samplesheet)
+    check_result <- check_maf_release(mm, ss)
   
-  if(!is.null(check_result)) stop("Unfortunately, check of `maf` release failed so will not continue. Please update data and retry.")
+    if(!is.null(check_result)) stop("Unfortunately, check of `maf` release failed so will not continue. Please update data and retry.")
+  }
   
   if(verbose) message("✔ Making maf meta file")
   make_meta_maf(cancer_study_identifier, verbose = verbose)
@@ -248,20 +249,20 @@ cbp_add_cna <- function(cna_data) {
 #' 
 #' @export
 #' 
-#' @param mrna_data Syn id of gene expression data.
-cbp_add_mrna <- function(mrna_data) {
+#' @param expression_data Syn id of gene expression data.
+cbp_add_expression <- function(expression_data) {
   
   cancer_study_identifier <- check_cbp_study_id()
   
   if(verbose) message("✔ Getting the mRNA expression data file from Synapse")
-  file <- .syn$get(cna_release, downloadLocation = ".")
-  data_cna <- sub(file$name, "data_cna.seg", file$path)
-  file.rename(file$path, data_cna)
+  file <- .syn$get(expression_data, downloadLocation = ".")
+  data_expression <- sub(file$name, "data_expression.txt", file$path)
+  file.rename(file$path, data_expression)
   
   if(verbose) message("✔ Making the meta file")
-  make_meta_cna(cancer_study_identifier)
+  make_meta_expression(cancer_study_identifier)
   
-  if(verbose) message("✔ Done with adding CNA data")
+  if(verbose) message("✔ Done with adding expression data")
   
 } 
 
