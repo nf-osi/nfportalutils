@@ -1,5 +1,5 @@
 # ------------------------------------------------------------------------------ #
-# Attribution: Following utils for packaging to cBioPortal are adapted from some code written by the awesome @hhunterzinck
+# Attribution: Many utils for cBioPortal below are adapted from code written by the awesome @hhunterzinck
 # in the repo https://github.com/Sage-Bionetworks/genie-erbb2-cbio/
 
 # TO DO / DEV NOTES: 
@@ -8,6 +8,23 @@
 
 # 2. It may make sense to write meta files automatically whenever writing a 
 # data file is called. This might be mainly updating the main wrapper or creating more wrappers.
+
+
+#' Check that in valid cBioPortal study dataset root
+#' 
+#' The `cbp_add*` functions need to be run while in the study package root.  
+#' This checks in valid study directory and returns the `cancer_study_id`.
+#' 
+#' @keywords internal
+#' @return `cancer_study_id` for the current cBioPortal cancer study.
+check_cbp_study_id <- function() {
+  
+  tryCatch({
+    study <- yaml::read_yaml("meta_study.txt")
+    study$cancer_study_identifier
+  }, 
+  error = function(e) stop(getwd(), "does not appear to be a valid cBioPortal study."))
+}
 
 # -- DATA FILES ---------------------------------------------------------------- #
 # Data files store data... cBioPortal has format specifications specific to the data type. 
@@ -185,13 +202,12 @@ make_meta_patient <- function(cancer_study_identifier,
                               publish_dir = ".",
                               verbose = TRUE) {
   
-  meta_filename <- "meta_clinical_patient.txt"
   df_file <- make_meta_clinical_generic(cancer_study_identifier = cancer_study_identifier,
                                         genetic_alteration_type = "CLINICAL",
                                         datatype = "PATIENT_ATTRIBUTES",
                                         data_filename = data_filename)
   
-  if(write) write_meta(df_file, meta_filename, publish_dir, verbose)
+  if(write) write_meta(df_file, "meta_clinical_patient.txt", publish_dir, verbose)
   invisible(df_file)
 }
 
@@ -208,13 +224,12 @@ make_meta_sample <- function(cancer_study_identifier,
                              write = TRUE,
                              verbose = TRUE) {
   
-  meta_filename <- "meta_clinical_sample.txt"
   df_file <- make_meta_clinical_generic(cancer_study_identifier = cancer_study_identifier, 
                                         genetic_alteration_type = "CLINICAL",
                                         datatype = "SAMPLE_ATTRIBUTES", 
                                         data_filename = data_filename)
   
-  if(write) write_meta(df_file, meta_filename, publish_dir, verbose)
+  if(write) write_meta(df_file, "meta_clinical_sample.txt", publish_dir, verbose)
   invisible(df_file)
 }
 
@@ -267,7 +282,6 @@ make_meta_maf <- function(cancer_study_identifier,
                           write = TRUE,
                           verbose = TRUE) {
   
-  meta_filename <- "meta_mutations.txt"
   df_file <- make_meta_genomic_generic(cancer_study_identifier = cancer_study_identifier, 
                                        genetic_alteration_type = "MUTATION_EXTENDED", 
                                        datatype = "MAF", 
@@ -276,7 +290,7 @@ make_meta_maf <- function(cancer_study_identifier,
                                        profile_description = "Mutation data from NF-OSI processing.",
                                        data_filename = data_filename)
   
-  if(write) write_meta(df_file, meta_filename, publish_dir, verbose)
+  if(write) write_meta(df_file, "meta_mutations.txt", publish_dir, verbose)
   invisible(df_file)
 }
 
@@ -293,8 +307,7 @@ make_meta_cna <- function(cancer_study_identifier,
                           publish_dir = ".",
                           write = TRUE,
                           verbose = TRUE) {
-    
-  meta_filename <- "meta_seg.txt"
+  
   df_file <- make_meta_genomic_generic(cancer_study_identifier = cancer_study_identifier,
                                        genetic_alteration_type = "COPY_NUMBER_ALTERATION",
                                        datatype = "SEG",
@@ -302,10 +315,34 @@ make_meta_cna <- function(cancer_study_identifier,
                                        description = "Somatic CNA from NF-OSI processing.",
                                        data_filename = data_filename)
   
-  if(write) write_meta(df_file, meta_filename, publish_dir, verbose)
+  if(write) write_meta(df_file, "meta_seg.txt", publish_dir, verbose)
   invisible(df_file)
 
 }
+
+
+#' Make meta file for cBioPortal expression data
+#' 
+#' https://docs.cbioportal.org/file-formats/#expression-data
+#' @keywords internal
+make_meta_expression <- function(cancer_study_identifier,
+                                 data_filename = "data_expression.txt",
+                                 publish_dir = ".",
+                                 write = TRUE,
+                                 verbose = TRUE) {
+  
+  df_file <- make_meta_genomic_generic(cancer_study_identifier = cancer_study_identifier,
+                                       genetic_alteration_type = "MRNA_EXPRESSION",
+                                       datatype = "CONTINUOUS",
+                                       stable_id = "rna_seq_mrna",
+                                       description = "Expression levels",
+                                       data_filename = data_filename)
+  
+  if(write) write_meta(df_file, "meta_expression.txt", publish_dir, verbose)
+  invisible(df_file)
+  
+}
+
 
 # --- Meta study --------------------------------------------------------------- #
 
@@ -368,6 +405,7 @@ make_meta_study_generic <- function(type_of_cancer,
 #' or a `data.table` representation.
 #' @keywords internal
 use_ref_map <- function(ref_map, as_dt = TRUE) {
+  
   ref_map_ls <- yaml::read_yaml(ref_map) # this can read JSON
   mapping <- ref_map_ls$mapping
   
