@@ -134,20 +134,10 @@ cbp_add_clinical <- function(ref_view,
 #' This needs to be packaged with other files like this
 #' [example of a public mutations dataset](https://github.com/cBioPortal/datahub/tree/1e03ea6ab5e0ddd497ecf349cbee7d50aeebcd5e/public/msk_ch_2020).
 #' 
-#' 1. Sanity check that this is the version of the maf release file that we want, based on the samplesheet.
+#' There is an optional cross-check with samplesheet to confirm that this is the version of the maf release file that we want.
 #' Sometimes a later version retracts a sample (`is_releasable`=FALSE) so merged maf being exported should match samplesheet.  
 #' Latest versions of the samplesheets tied to each release are currently stored in `syn38793855`.
 #' (Note: Please file issue to update this doc if this changes.)
-#' 
-#' 2. Make the clinical data files. 
-#' For NF, the clinical metadata are annotations on the files/surfaced in a view and are pretty basic. 
-#' In the future, it would be preferable to store clinical metadata in a real normalized table.
-#' For now, this clinical data is pulled in from the view. To map NF clinical variables to the 
-#' [cBioPortal dictionary](https://github.com/cBioPortal/clinical-data-dictionary/blob/e9ec08f48bd57aabf193da70cdb5b88bdef5d01d/docs/resource_uri_to_clinical_attribute_mapping.txt)
-#' [as recommended](https://docs.cbioportal.org/file-formats/#custom-columns-in-clinical-data), 
-#' this step requires a `ref_map`, which is a YAML file.
-#' 
-#' 3. Make meta files. Meta files are needed for describing the study, mutations data file, clinical data files.
 #' 
 #' @param maf_data Synapse id of `merged maf` file for public release.
 #' @param samplesheet Optional Synapse id or local path to samplesheet with release info for cross-ref check.
