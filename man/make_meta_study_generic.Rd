@@ -5,15 +5,15 @@
 \title{Template for meta study file}
 \usage{
 make_meta_study_generic(
-  type_of_cancer,
   cancer_study_identifier,
+  type_of_cancer,
   name,
   description,
   citation = NULL,
   pmid = NULL,
   groups = NULL,
   short_name = NULL,
-  add_global_case_list = NULL
+  add_global_case_list = TRUE
 )
 }
 \description{

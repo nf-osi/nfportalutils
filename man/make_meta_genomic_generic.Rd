@@ -8,6 +8,7 @@ make_meta_genomic_generic(
   cancer_study_identifier,
   genetic_alteration_type,
   datatype,
+  reference_genome_id,
   stable_id,
   profile_name,
   profile_description,
@@ -21,6 +22,8 @@ make_meta_genomic_generic(
 
 \item{datatype}{The cBioPortal data type of \code{data_filename}.}
 
+\item{reference_genome_id}{Reference genome id, e.g. 'hg19'.}
+
 \item{stable_id}{Stable id.}
 
 \item{profile_name}{Name of the genomic profiling. This is set by the more specific \code{make_meta} utility.
@@ -32,6 +35,8 @@ This is set by the more specific \code{make_meta} utility.}
 \item{data_filename}{Name of the data file that this meta file describes.}
 }
 \description{
-Reused from https://github.com/Sage-Bionetworks/genie-erbb2-cbio/blob/develop/make_meta.R#L65
+Adapted from https://github.com/Sage-Bionetworks/genie-erbb2-cbio/blob/develop/make_meta.R#L65
+Internal workhorse union of \emph{all} the properties used for a genomic-type data file --
+the sensible defaults/specific combination should be passed in by a higher-level fun, e.g. \code{make_meta_maf}.
 }
 \keyword{internal}
