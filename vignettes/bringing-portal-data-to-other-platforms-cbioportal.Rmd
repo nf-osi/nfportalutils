@@ -58,8 +58,8 @@ cbp_new_study(cancer_study_identifier = "npst_nfosi_ntap_2022",
 ## Add data types to study
 
 Data types can be most easily added _in any order_ using the `cbp_add*` functions.
-These download data and create the meta for them, relying on **defaults that apply to NF-OSI processed data**. 
-Sometimes if these defaults don't match what you want, use the lower-level utils or edit the files manually after creation.
+These download data files and create the meta for them, using **defaults for NF-OSI processed data**. 
+Sometimes if these defaults don't match what you want, take a look at the lower-level utils `make_meta_*` or edit the files manually after.
 
 Important: user is expected to be in a valid cBioPortal study directory as set up in the previous step.
 
@@ -103,7 +103,7 @@ cbp_add_expression(mrna_data)
 
 ### Add clinical data
 
-- `ref_view` is a fileview that contains clinical data for the data released.
+- `ref_view` is a fileview that contains clinical data for the data released in the study.
 - `ref_map` maps clinical variables from the NF-OSI data dictionary to cBioPortal's
 
 ```{r add_clinical, eval=FALSE}
