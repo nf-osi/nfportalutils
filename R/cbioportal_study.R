@@ -13,7 +13,7 @@ cbp_datatypes <- function() {
   types <- data.table::rbindlist(list(
     list("CLINICAL", "SAMPLE_ATTRIBUTES", "cbp_add_clinical", ""),
     list("CLINICAL", "PATIENT_ATTRIBUTES", "cbp_add_clinical", ""),
-    list("COPY_NUMBER_ALTERATION", "SEG", "cbp_add_cna", ""),
+    list("COPY_NUMBER_ALTERATION", "SEG", "cbp_add_cna", "default"),
     list("COPY_NUMBER_ALTERATION", "DISCRETE", "", ""),
     list("COPY_NUMBER_ALTERATION", "DISCRETE_LONG", "", ""),
     list("COPY_NUMBER_ALTERATION", "CONTINUOUS", "", ""),
@@ -25,9 +25,9 @@ cbp_datatypes <- function() {
     list("PROTEIN_LEVEL", "LOG2-VALUE", "", ""),
     list("STRUCTURAL_VARIANT", "SV", "", "")))
   
-  setnames(types, c("dataType", "dataSubtype", "fun", "note"))
+  setnames(types, c("dataType", "dataSubtype", "util", "note"))
   return(types)
-  }
+}
 
 #' Initialize a new cBioPortal study dataset
 #' 
