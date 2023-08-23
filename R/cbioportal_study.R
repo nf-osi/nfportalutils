@@ -1,6 +1,7 @@
 # Export data from Synapse as a cBioPortal dataset, where different data types can be added to the package one-by-one,
 # much in the spirit of https://github.com/r-lib/usethis.
-# This file contains the higher-level wrappers that are exported; see `cboilerplate.R` for the non-exported lower-level utils.
+# This file contains the higher-level wrappers that are user-facing.
+# See `cboilerplate.R` for the lower-level utils, which allows more control.
 # All functions should start with `cbp_*` so that it's clear this is cBioPortal-relevant functionality.
 
 #' Enumerate combinations of valid cBP data types and data subtypes and helper utils if available
@@ -52,8 +53,7 @@ cbp_datatypes <- function() {
 cbp_new_study <- function(cancer_study_identifier,
                           name,
                           type_of_cancer,
-                          description = "The data are contributed by researchers funded by the Neurofibromatosis Therapeutic Acceleration Program (NTAP). 
-                          The reprocessing of the raw data is managed by the NF Open Science Initiative (https://nf.synapse.org/).",
+                          description = "The data are contributed by researchers funded by the Neurofibromatosis Therapeutic Acceleration Program (NTAP). The reprocessing of the raw data is managed by the NF Open Science Initiative (https://nf.synapse.org/).",
                           short_name = NULL,
                           citation = NULL,
                           pmid = NULL,
