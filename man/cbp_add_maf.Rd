@@ -9,7 +9,7 @@ cbp_add_maf(maf_data, verbose = TRUE)
 \arguments{
 \item{maf_data}{Synapse id of \verb{merged maf} file for public release.}
 
-\item{verbose}{Whether to provide informative messages throughout.}
+\item{verbose}{Whether to be chatty.}
 }
 \description{
 This should be run in an existing dataset package root.

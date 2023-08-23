@@ -4,10 +4,12 @@
 \alias{cbp_add_cna}
 \title{Export and add CNA (seg) data to cBioPortal dataset}
 \usage{
-cbp_add_cna(cna_data)
+cbp_add_cna(cna_data, verbose = TRUE)
 }
 \arguments{
 \item{cna_data}{Synapse id of CNA data file, currently only handles \code{.seg} file.}
+
+\item{verbose}{Whether to be chatty.}
 }
 \description{
 This should be run in an existing dataset package root.

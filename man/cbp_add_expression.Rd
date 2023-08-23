@@ -4,7 +4,7 @@
 \alias{cbp_add_expression}
 \title{Export and add expression data to cBioPortal dataset}
 \usage{
-cbp_add_expression(expression_data)
+cbp_add_expression(expression_data, verbose = TRUE)
 }
 \arguments{
 \item{expression_data}{Syn id of gene expression data.}

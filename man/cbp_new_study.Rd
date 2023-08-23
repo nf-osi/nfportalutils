@@ -42,7 +42,7 @@ otherwise, use group names that makes sense with the configuration of your cBioP
 \item{validate}{Validate against public cBioPortal configuration. Default \code{TRUE},
 but might want to set to \code{FALSE} especially if using a custom cBioPortal instance with different configuration.}
 
-\item{verbose}{Verbosity level.}
+\item{verbose}{Whether to be chatty.}
 }
 \description{
 Create a new directory with a basic required \href{https://docs.cbioportal.org/file-formats/#meta-file}{study meta file},
