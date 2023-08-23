@@ -1,14 +1,14 @@
 # ------------------------------------------------------------------------------ #
-# Attribution: The following utils to make cBioPortal files are adapted from some code written by the awesome @hhunterzinck
+# Attribution: Many utils for cBioPortal below are adapted from code written by the awesome @hhunterzinck
 # in the repo https://github.com/Sage-Bionetworks/genie-erbb2-cbio/
 
 # TO DO / DEV NOTES: 
-# 1. Many of functions for making meta files according to the data type might
-# benefit from implementation using S3 classes esp. if will be using more different types in the future,
-# but that is currently not worth the rewrite.
+# 1. Many of functions for making meta files according to the data type might benefit 
+# from reimplementation using S3 classes esp. if different types explode, but currently not worth the rewrite.
 
 # 2. It may make sense to write meta files automatically whenever writing a 
 # data file is called. This might be mainly updating the main wrapper or creating more wrappers.
+
 
 # -- DATA FILES ---------------------------------------------------------------- #
 # Data files store data... cBioPortal has format specifications specific to the data type. 
@@ -146,7 +146,7 @@ write_meta <- function(data,
   
   path <- glue::glue("{publish_dir}/{filename}")
   writeLines(data, con = path)
-  if(verbose) message(glue::glue("Meta file written to: {path}"))
+  if(verbose) checked_message(glue::glue("Meta file written to: {path}"))
 }
 
 # -- Clinical meta files ------------------------------------------------------- #
@@ -165,12 +165,12 @@ make_meta_clinical_generic <- function(cancer_study_identifier,
                                        datatype, 
                                        data_filename) {
   
-  rows <- rep("", 4)
-  rows[1] <- c(glue::glue("cancer_study_identifier: {cancer_study_identifier}"))
-  rows[2] <- c(glue::glue("genetic_alteration_type: {genetic_alteration_type}"))
-  rows[3] <- c(glue::glue("datatype: {datatype}"))
-  rows[4] <- c(glue::glue("data_filename: {data_filename}"))
-  return(rows)
+  meta <- glue::glue("cancer_study_identifier: {cancer_study_identifier}") %>%
+    append_kv("genetic_alteration_type", genetic_alteration_type) %>%
+    append_kv("datatype", datatype) %>%
+    append_kv("data_filename", data_filename) %>%
+  
+    return(meta)
 }
 
 #' Make patient meta file
@@ -186,13 +186,12 @@ make_meta_patient <- function(cancer_study_identifier,
                               publish_dir = ".",
                               verbose = TRUE) {
   
-  meta_filename <- "meta_clinical_patient.txt"
   df_file <- make_meta_clinical_generic(cancer_study_identifier = cancer_study_identifier,
                                         genetic_alteration_type = "CLINICAL",
                                         datatype = "PATIENT_ATTRIBUTES",
                                         data_filename = data_filename)
   
-  if(write) write_meta(df_file, meta_filename, publish_dir, verbose)
+  if(write) write_meta(df_file, "meta_clinical_patient.txt", publish_dir, verbose)
   invisible(df_file)
 }
 
@@ -209,24 +208,34 @@ make_meta_sample <- function(cancer_study_identifier,
                              write = TRUE,
                              verbose = TRUE) {
   
-  meta_filename <- "meta_clinical_sample.txt"
   df_file <- make_meta_clinical_generic(cancer_study_identifier = cancer_study_identifier, 
                                         genetic_alteration_type = "CLINICAL",
                                         datatype = "SAMPLE_ATTRIBUTES", 
                                         data_filename = data_filename)
   
-  if(write) write_meta(df_file, meta_filename, publish_dir, verbose)
+  if(write) write_meta(df_file, "meta_clinical_sample.txt", publish_dir, verbose)
   invisible(df_file)
 }
 
 # -- Data meta files ---------------------------------------------------------- #
 
+#' Append key-value pair dependent on value being given
+#' 
+#' @keywords internal
+append_kv <- function(x, key, value) {
+ 
+  if(!is.null(value)) append(x, glue::glue("{key}: {value}")) else x
+}
+
 #' Generic template for genomic-type data file
 #'
-#' Reused from https://github.com/Sage-Bionetworks/genie-erbb2-cbio/blob/develop/make_meta.R#L65
-#' 
+#' Adapted from https://github.com/Sage-Bionetworks/genie-erbb2-cbio/blob/develop/make_meta.R#L65
+#' Internal workhorse union of _all_ the properties used for a genomic-type data file -- 
+#' the sensible defaults/specific combination should be passed in by a higher-level fun, e.g. `make_meta_maf`. 
+#'  
 #' @inheritParams make_meta_clinical_generic
 #' @param stable_id Stable id.
+#' @param reference_genome_id Reference genome id, e.g. 'hg19'.
 #' @param profile_name Name of the genomic profiling. This is set by the more specific `make_meta` utility. 
 #' For example, "Mutations" for `make_*_maf` and "Copy-number alterations" for `make_*_cna`.  
 #' @param profile_description Brief description for the genomic profiling. 
@@ -235,21 +244,24 @@ make_meta_sample <- function(cancer_study_identifier,
 make_meta_genomic_generic <- function(cancer_study_identifier,
                                       genetic_alteration_type, 
                                       datatype, 
-                                      stable_id, 
-                                      profile_name, 
-                                      profile_description, 
+                                      stable_id = NULL, 
+                                      reference_genome_id = NULL,
+                                      profile_name = NULL, 
+                                      profile_description = NULL, 
                                       data_filename) {
   
-  rows <- rep(NA, 8)
-  rows[1] <- glue::glue("cancer_study_identifier: {cancer_study_identifier}")
-  rows[2] <- glue::glue("genetic_alteration_type: {genetic_alteration_type}")
-  rows[3] <- glue::glue("datatype: {datatype}")
-  rows[4] <- glue::glue("stable_id: {stable_id}")
-  rows[5] <- glue::glue("show_profile_in_analysis_tab: true")
-  rows[6] <- glue::glue("profile_name: {profile_name}")
-  rows[7] <- glue::glue("profile_description: {profile_description}")
-  rows[8] <- glue::glue("data_filename: {data_filename}")
-  return(rows)
+  
+  meta <- glue::glue("cancer_study_identifier: {cancer_study_identifier}") %>%
+    append_kv("genetic_alteration_type", genetic_alteration_type) %>%
+    append_kv("datatype", datatype) %>%
+    append_kv("reference_genome_id", reference_genome_id) %>%
+    append_kv("stable_id", stable_id) %>% 
+    append_kv("show_profile_in_analysis_tab", "true") %>% 
+    append_kv("profile_name", profile_name) %>%
+    append_kv("profile_description", profile_description) %>%
+    append_kv("data_filename", data_filename)
+  
+  return(meta)
 }
 
 
@@ -268,7 +280,6 @@ make_meta_maf <- function(cancer_study_identifier,
                           write = TRUE,
                           verbose = TRUE) {
   
-  meta_filename <- "meta_mutations.txt"
   df_file <- make_meta_genomic_generic(cancer_study_identifier = cancer_study_identifier, 
                                        genetic_alteration_type = "MUTATION_EXTENDED", 
                                        datatype = "MAF", 
@@ -277,9 +288,60 @@ make_meta_maf <- function(cancer_study_identifier,
                                        profile_description = "Mutation data from NF-OSI processing.",
                                        data_filename = data_filename)
   
-  if(write) write_meta(df_file, meta_filename, publish_dir, verbose)
+  if(write) write_meta(df_file, "meta_mutations.txt", publish_dir, verbose)
   invisible(df_file)
 }
+
+
+#' Make meta file for cBioPortal copy number alteration data
+#' 
+#' Currently assumes seg data and should be extended later.
+#' 
+#' See https://docs.cbioportal.org/file-formats/#segmented-data
+#' @keywords internal
+make_meta_cna <- function(cancer_study_identifier,
+                          data_filename = "data_cna.seg",
+                          reference_genome_id = "hg19",
+                          publish_dir = ".",
+                          write = TRUE,
+                          verbose = TRUE) {
+  
+  df_file <- make_meta_genomic_generic(cancer_study_identifier = cancer_study_identifier,
+                                       genetic_alteration_type = "COPY_NUMBER_ALTERATION",
+                                       datatype = "SEG",
+                                       reference_genome_id = reference_genome_id,
+                                       profile_description = "Somatic CNA from NF-OSI processing.",
+                                       data_filename = data_filename)
+  
+  if(write) write_meta(df_file, "meta_seg.txt", publish_dir, verbose)
+  invisible(df_file)
+
+}
+
+
+#' Make meta file for cBioPortal expression data
+#' 
+#' https://docs.cbioportal.org/file-formats/#expression-data
+#' @keywords internal
+make_meta_expression <- function(cancer_study_identifier,
+                                 data_filename = "data_expression.txt",
+                                 publish_dir = ".",
+                                 write = TRUE,
+                                 verbose = TRUE) {
+  
+  df_file <- make_meta_genomic_generic(cancer_study_identifier = cancer_study_identifier,
+                                       genetic_alteration_type = "MRNA_EXPRESSION",
+                                       datatype = "CONTINUOUS",
+                                       stable_id = "rna_seq_mrna",
+                                       profile_name = " mRNA expression",
+                                       profile_description = "Expression levels",
+                                       data_filename = data_filename)
+  
+  if(write) write_meta(df_file, "meta_expression.txt", publish_dir, verbose)
+  invisible(df_file)
+  
+}
+
 
 # --- Meta study --------------------------------------------------------------- #
 
@@ -289,84 +351,31 @@ make_meta_maf <- function(cancer_study_identifier,
 #' Low-level internal function for the tedious templating. 
 #' 
 #' @keywords internal
-make_meta_study_generic <- function(type_of_cancer,
-                                    cancer_study_identifier,
+make_meta_study_generic <- function(cancer_study_identifier,
+                                    type_of_cancer,
                                     name,
                                     description,
                                     citation = NULL,
                                     pmid = NULL,
                                     groups = NULL,
                                     short_name = NULL,
-                                    add_global_case_list = NULL) {
+                                    add_global_case_list = TRUE) {
   
   # Check meta params -- there probably should just be JSON schemas for all of these meta configs  
   if(!is.null(pmid) && is.null(citation)) stop("If `pmid` is used, `citation` has to be filled in.")
   if(!is.null(add_global_case_list) && !is.logical(add_global_case_list)) stop("Nonsensical value used for `add_global_case_list`.")
   
-  # TO DO: If type of cancer does not match the ONCOTREE vocab, it will fail validation later on
-  # This check can be done in a more upfront manner here, though will need to download the data from GitHub 
+  meta <- glue::glue("cancer_study_identifier: {cancer_study_identifier}") %>%
+    append_kv("type_of_cancer", type_of_cancer) %>%
+    append_kv("name", name) %>%
+    append_kv("description", description) %>%
+    append_kv("citation", citation) %>%
+    append_kv("pmid", pmid) %>%
+    append_kv("groups", groups) %>%
+    append_kv("short_name", short_name) %>%
+    append_kv("add_global_case_list", tolower(as.character(add_global_case_list)))
   
-  rows <- c()
-  rows <- append(rows, glue::glue("cancer_study_identifier: {cancer_study_identifier}"))
-  rows <- append(rows, glue::glue("type_of_cancer: {type_of_cancer}"))
-  rows <- append(rows, glue::glue("name: {name}"))
-  rows <- append(rows, glue::glue("description: {description}"))
-  if(!is.null(citation)) rows <- append(rows, glue::glue("citation: {citation}"))
-  if(!is.null(pmid)) rows <- append(rows, glue::glue("pmid: {pmid}"))
-  if(!is.null(groups)) rows <- append(rows, glue::glue("groups: {groups}"))
-  if(!is.null(short_name)) rows <- append(rows, glue::glue("short_name: {short_name}"))
-  if(!is.null(add_global_case_list)) {
-    add_global_case_list <- tolower(as.character(add_global_case_list)) 
-    rows <- append(rows, glue::glue("add_global_case_list: {add_global_case_list}"))
-  }
-  return(rows)
-}
-
-#' Make meta study file
-#' 
-#' Adapted from https://github.com/Sage-Bionetworks/genie-erbb2-cbio/blob/develop/create_meta.R#L179
-#' See specifications at https://docs.cbioportal.org/file-formats/#meta-file.
-#' 
-#' @inheritParams make_meta_genomic_generic
-#' @inheritParams write_meta
-#' @inheritParams make_meta_patient
-#' @param type_of_cancer Type of cancer, defaults to "mixed". See also http://oncotree.mskcc.org/#/home.
-#' @param name Name of the study.
-#' @param description Description of the study.
-#' @param citation (Optional) A relevant citation, e.g. "TCGA, Nature 2012".
-#' @param pmid (Optional) One or more relevant pubmed ids (comma separated without whitespace); if used, citation cannot be `NULL`.
-#' @param groups (Optional) Defaults to "PUBLIC" for use with public cBioPortal; 
-#' otherwise, use group names that make sense for your instance.
-#' @param add_global_case_list (Optional) Use `NULL` to ignore, but default is `TRUE` for an "All samples" case list to be generated automatically.
-#' @param short_name (Optional) Short name for the study.
-#' @export
-make_meta_study <- function(cancer_study_identifier,
-                            type_of_cancer = "mixed",
-                            name, 
-                            description, 
-                            citation = NULL,
-                            pmid = NULL,
-                            groups = "PUBLIC",
-                            short_name = NULL,
-                            add_global_case_list = TRUE,
-                            publish_dir = ".",
-                            write = TRUE,
-                            verbose = TRUE) {
-  
-  meta_filename <- "meta_study.txt"
-
-  df_file <- make_meta_study_generic(cancer_study_identifier = cancer_study_identifier,
-                                     type_of_cancer = type_of_cancer, 
-                                     name = name, 
-                                     description = description, 
-                                     citation = citation,
-                                     pmid = pmid,
-                                     groups = groups, 
-                                     short_name = short_name,
-                                     add_global_case_list = add_global_case_list)
-  
-  if(write) write_meta(df_file, meta_filename, publish_dir, verbose)
-  invisible(df_file)
+  return(meta)
 }
 
 
@@ -384,11 +393,12 @@ make_meta_study <- function(cancer_study_identifier,
 #'
 #' @param ref_map YAML or JSON mapping. See details.
 #' @param as_dt Return as `data.table`, the default, 
-#' otherwise do checking but just return the list representation, which retains some metadata. 
+#' otherwise do checking but just return the list representation, which retains some metadata.
 #' @return Either a list of lists storing `source`, `label`, `description`, `data_type`, `attribute_type`
 #' or a `data.table` representation.
 #' @keywords internal
 use_ref_map <- function(ref_map, as_dt = TRUE) {
+  
   ref_map_ls <- yaml::read_yaml(ref_map) # this can read JSON
   mapping <- ref_map_ls$mapping
   

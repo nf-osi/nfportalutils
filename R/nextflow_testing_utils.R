@@ -88,3 +88,13 @@ test_passed <- function(display_string){
   message(glue::glue("{emoji::emoji('green_heart')} {crayon::bold(crayon::green('Test passed:'))} {crayon::green(display_string)}"))
 }
 
+#' Format checked message notification
+#' 
+#' For nicely displaying that some step was successfully completed. 
+#' 
+#' @param string Character string with check prepended.
+#' @keywords internal
+#' 
+checked_message <- function(string) {
+  message(glue::glue("{crayon::green(emoji::emoji('check_mark'))} {crayon::green(string)}"))
+}
