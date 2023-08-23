@@ -57,8 +57,11 @@ cbp_new_study(cancer_study_identifier = "npst_nfosi_ntap_2022",
 
 ## Add data types to study
 
-Data types can be added _in any order_ using the `cbp_add*` functions.
-It is expected that the user is currently in a valid cBioPortal study directory as set up in the previous step.
+Data types can be most easily added _in any order_ using the `cbp_add*` functions.
+These download data and create the meta for them, relying on **defaults that apply to NF-OSI processed data**. 
+Sometimes if these defaults don't match what you want, use the lower-level utils or edit the files manually after creation.
+
+Important: user is expected to be in a valid cBioPortal study directory as set up in the previous step.
 
 ### Add mutations data
 
@@ -67,7 +70,7 @@ No further modifications are done except renaming it.
 
 ```{r add_maf, eval=FALSE}
 
-maf_data <- "syn36553188"
+maf_data <- "syn36553188"t
 
 add_cbp_maf(maf_data)
 ```
