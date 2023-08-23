@@ -10,22 +10,6 @@
 # data file is called. This might be mainly updating the main wrapper or creating more wrappers.
 
 
-#' Check that in valid cBioPortal study dataset root
-#' 
-#' The `cbp_add*` functions need to be run while in the study package root.  
-#' This checks in valid study directory and returns the `cancer_study_id`.
-#' 
-#' @keywords internal
-#' @return `cancer_study_id` for the current cBioPortal cancer study.
-check_cbp_study_id <- function() {
-  
-  tryCatch({
-    study <- yaml::read_yaml("meta_study.txt")
-    study$cancer_study_identifier
-  }, 
-  error = function(e) stop(getwd(), "does not appear to be a valid cBioPortal study."))
-}
-
 # -- DATA FILES ---------------------------------------------------------------- #
 # Data files store data... cBioPortal has format specifications specific to the data type. 
 # The only data type that we need to script for is the clinical data type, 
@@ -260,10 +244,10 @@ append_kv <- function(x, key, value) {
 make_meta_genomic_generic <- function(cancer_study_identifier,
                                       genetic_alteration_type, 
                                       datatype, 
-                                      reference_genome_id,
-                                      stable_id, 
-                                      profile_name, 
-                                      profile_description, 
+                                      stable_id = NULL, 
+                                      reference_genome_id = NULL,
+                                      profile_name = NULL, 
+                                      profile_description = NULL, 
                                       data_filename) {
   
   
@@ -349,6 +333,7 @@ make_meta_expression <- function(cancer_study_identifier,
                                        genetic_alteration_type = "MRNA_EXPRESSION",
                                        datatype = "CONTINUOUS",
                                        stable_id = "rna_seq_mrna",
+                                       profile_name = " mRNA expression",
                                        profile_description = "Expression levels",
                                        data_filename = data_filename)
   

@@ -47,7 +47,7 @@ cbp_datatypes <- function() {
 #' @param add_global_case_list (Optional) Use `NULL` to ignore, default is `TRUE` for an "All samples" case list( to be generated automatically.
 #' @param validate Validate against public cBioPortal configuration. Default `TRUE`, 
 #' but might want to set to `FALSE` especially if using a custom cBioPortal instance with different configuration. 
-#' @param verbose Verbosity level.
+#' @param verbose Whether to be chatty.
 #' 
 #' @export
 cbp_new_study <- function(cancer_study_identifier,
@@ -139,6 +139,27 @@ cbp_add_clinical <- function(ref_view,
   
 }
 
+#' Check that in valid cBioPortal study dataset root
+#' 
+#' The `cbp_add*` functions need to be run while in the study package root.  
+#' This checks in valid study directory and returns the `cancer_study_id`.
+#' 
+#' @keywords internal
+#' @return `cancer_study_id` for the current cBioPortal cancer study.
+check_cbp_study_id <- function() {
+  
+  tryCatch({
+    
+    suppressWarnings({
+      study <- yaml::read_yaml("meta_study.txt")
+      study$cancer_study_identifier
+    })
+    
+  }, error = function(e) stop("The path ", getwd(), 
+                              " does not appear to be a valid cBioPortal study.", 
+                              call. = FALSE))
+}
+
 # ------------------------------------------------------------------------------- #
 
 #' Export and add mutations data to cBioPortal dataset
@@ -149,11 +170,10 @@ cbp_add_clinical <- function(ref_view,
 #' This needs to be packaged with other files like this
 #' [example of a public mutations dataset](https://github.com/cBioPortal/datahub/tree/1e03ea6ab5e0ddd497ecf349cbee7d50aeebcd5e/public/msk_ch_2020).
 #' 
+#' @inheritParams cbp_new_study
 #' @param maf_data Synapse id of `merged maf` file for public release.
-#' @param verbose Whether to provide informative messages throughout.
 #' @export
-cbp_add_maf <- function(maf_data,
-                        verbose = TRUE) {
+cbp_add_maf <- function(maf_data, verbose = TRUE) {
   
   .check_login()
   cancer_study_identifier <- check_cbp_study_id()
@@ -177,9 +197,10 @@ cbp_add_maf <- function(maf_data,
 #' 
 #' This should be run in an existing dataset package root.
 #' 
+#' @inheritParams cbp_new_study
 #' @param cna_data Synapse id of CNA data file, currently only handles `.seg` file.
 #' @export
-cbp_add_cna <- function(cna_data) {
+cbp_add_cna <- function(cna_data, verbose = TRUE) {
   
   cancer_study_identifier <- check_cbp_study_id()
   
@@ -200,10 +221,10 @@ cbp_add_cna <- function(cna_data) {
 #' 
 #' This should be run in an existing dataset package root.
 #' 
-#' @export
-#' 
+#' @inheritParams cbp_new_study
 #' @param expression_data Syn id of gene expression data.
-cbp_add_expression <- function(expression_data) {
+#' @export
+cbp_add_expression <- function(expression_data, verbose = TRUE) {
   
   cancer_study_identifier <- check_cbp_study_id()
   
