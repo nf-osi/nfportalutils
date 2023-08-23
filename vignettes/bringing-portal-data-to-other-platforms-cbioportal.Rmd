@@ -70,7 +70,7 @@ No further modifications are done except renaming it.
 
 ```{r add_maf, eval=FALSE}
 
-maf_data <- "syn36553188"t
+maf_data <- "syn36553188"
 
 add_cbp_maf(maf_data)
 ```
