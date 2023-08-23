@@ -1,8 +1,8 @@
 ---
-title: "Bringing Portal Data to Other Platforms (cBioPortal)"
+title: "Bringing Portal Data to Other Platforms: cBioPortal"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Bringing Portal Data to Other Platforms (cBioPortal)}
+  %\VignetteIndexEntry{Bringing Portal Data to Other Platforms: cBioPortal}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -15,7 +15,7 @@ knitr::opts_chunk$set(
 ```
 
 **Document Status:** Draft  
-**Estimated Reading Time:** 5 min
+**Estimated Reading Time:** 8 min
 
 ## Special acknowledgments 
 
@@ -23,50 +23,93 @@ Functionality demonstrated in this vignette benefited greatly from code original
 
 ## Intro
 
-This briefly describes usage for bringing data from NF-OSI (mainly NF-OSI processed data) is brought to other platforms (mainly cBioPortal). 
+This describes how to package some Synapse processed data as a cBioPortal study dataset.
+A cBioPortal study contains one or more data types, see [cBioPortal docs](https://docs.cbioportal.org/file-formats/). 
+The current API covers creating a cBioPortal study with a subset of data types relevant to the NF workflow (so not all data types). 
+The design has been inspired by and should feel somewhat like working with the R package [usethis](https://github.com/r-lib/usethis), 
+and data types can be added to the study package interactively.
+
+Though there is some checking depending on the data type, final validation with the official cBioPortal validation tools/scripts should still be run (see last section).
+
+Breaking changes are possible as the API is still in development.
 
 ## Set up
 
 First load the `nfportalutils` package and log in. 
 The recommended default usage of `syn_login` is to use it without directly passing in credentials. 
 Instead, have available the `SYNAPSE_AUTH_TOKEN` environment variable with your token stored therein. 
+
 ```{r setup, eval=FALSE}
 library(nfportalutils)
 syn_login()
 ```
 
-## Creating a mutations dataset
+## Create a new study dataset
 
-Compilation of a cBioPortal dataset does require putting together a number of assets on Synapse and elsewhere, but the package should make it seem as straightforward as possible.
+First create the study before we can put together the data.
 
-- `merged_maf` references a final output file from the NF-OSI processing pipeline that is directly ready for public release. No modifications are needed for this file (except renaming it).
-- `ref_view` is a fileview that contains annotations for the files released.
-- `samplesheet` is a the samplesheet used for the data processing and ultimately creating `merged_maf`
+```{r cbp_new_study, eval=FALSE}
+
+cbp_new_study(cancer_study_identifier = "npst_nfosi_ntap_2022",
+              name = "Plexiform Neurofibroma and Neurofibroma (Pratilas 2022)",
+              citation = "TBD")
+```
+
+## Add data types to study
+
+Data types can be added _in any order_ using the `cbp_add*` functions.
+It is expected that the user is currently in a valid cBioPortal study directory as set up in the previous step.
+
+### Add mutations data
+
+- `maf_data` references a final merged maf output file from the NF-OSI processing pipeline OK for public release. 
+No further modifications are done except renaming it.
+
+```{r add_maf, eval=FALSE}
+
+maf_data <- "syn36553188"
+
+add_cbp_maf(maf_data)
+```
+
+### Add copy number alterations (CNA) data
+
+- `cna_data` is expected to be a `.seg` file on Synapse.
+
+```{r add_cna, eval=FALSE}
+
+cna_data <- "syn********"
+
+cbp_add_cna(cna_data)
+```
+
+### Add expression data
+
+- `expression_data` is expected to be a `.txt` file on Synapse. 
+
+Defaults are set for mRNA expression, use `?cbp_add_expression` for how to specify microRNA expression. 
+This will try to infer whether it is e.g. continuous or discrete expression data and update data properties appropriately.
+
+```{r add_expression, eval=FALSE}
+
+mrna_data <- "syn********"
+
+cbp_add_expression(mrna_data)
+```
+
+
+### Add clinical data
+
+- `ref_view` is a fileview that contains clinical data for the data released.
 - `ref_map` maps clinical variables from the NF-OSI data dictionary to cBioPortal's
 
-```{r files}
-merged_maf <- "syn36553188"
+```{r add_clinical, eval=FALSE}
+
 ref_view <- "syn43278088"
-samplesheet <- "syn41830510"
 ref_map <- "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/mappings/cBioPortal.yaml"
+
+cbp_add_clinical(ref_view, ref_map)
 ```
-
-
-This will create a folder with the set of files needed.
-```{r syncBP_maf, eval=FALSE}
-
-syncBP_maf(merged_maf,
-           samplesheet,
-           ref_map,
-           ref_view,
-           cancer_study_identifier = "mixed_nfosi_2022",
-           name = "Plexiform Neurofibroma and Neurofibroma (Pratilas 2022)",
-           citation = "TBD")
-```
-
-## Updating or adding to a dataset
-
-This is a TO-DO section.
 
 ## Validation
 
@@ -74,7 +117,8 @@ There are additional steps such as generating case lists and validation that hav
 See the [general docs for dataset validation](https://docs.cbioportal.org/using-the-dataset-validator/).
 
 For the _public_ portal, the suggested step using the public server is given below.  
-Assuming your present working directory is `~/datahub/public` and a study folder called `mixed_nfosi_2022` has been placed into it, mount the dataset into the container and run validation like so:
+
+Assuming your present working directory is `~/datahub/public` and a study folder called `mixed_nfosi_2022` has been placed into it, mount the dataset into the container and run validation with:  
 `docker run --rm -v $(pwd):/datahub cbioportal/cbioportal:4.1.13 validateStudies.py -d /datahub -l mixed_nfosi_2022 -u http://cbioportal.org -html /datahub/mixed_nfosi_2022/html_report`
 
  
