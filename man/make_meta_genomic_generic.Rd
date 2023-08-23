@@ -8,10 +8,10 @@ make_meta_genomic_generic(
   cancer_study_identifier,
   genetic_alteration_type,
   datatype,
-  reference_genome_id,
-  stable_id,
-  profile_name,
-  profile_description,
+  stable_id = NULL,
+  reference_genome_id = NULL,
+  profile_name = NULL,
+  profile_description = NULL,
   data_filename
 )
 }
@@ -22,9 +22,9 @@ make_meta_genomic_generic(
 
 \item{datatype}{The cBioPortal data type of \code{data_filename}.}
 
-\item{reference_genome_id}{Reference genome id, e.g. 'hg19'.}
-
 \item{stable_id}{Stable id.}
+
+\item{reference_genome_id}{Reference genome id, e.g. 'hg19'.}
 
 \item{profile_name}{Name of the genomic profiling. This is set by the more specific \code{make_meta} utility.
 For example, "Mutations" for \verb{make_*_maf} and "Copy-number alterations" for \verb{make_*_cna}.}

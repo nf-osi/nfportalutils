@@ -8,6 +8,8 @@ cbp_add_expression(expression_data, verbose = TRUE)
 }
 \arguments{
 \item{expression_data}{Syn id of gene expression data.}
+
+\item{verbose}{Whether to be chatty.}
 }
 \description{
 This should be run in an existing dataset package root.
