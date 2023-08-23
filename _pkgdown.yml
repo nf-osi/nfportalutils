@@ -98,14 +98,16 @@ reference:
   - remove_button
   - processing_flowchart
   
-- title: Export Data to Other Portals
-  desc: Helpers to export/release NF data to other portal/database formats
+- title: Export Data to Other Platforms
+  desc: Helpers to export/release NF data to other platforms/databases. 
 - subtitle: cBioPortal
-  desc: Export data to cBioPortal format files
+  desc: Export data as a cBioPortal study
 - contents:
-  - syncBP_maf
-  - check_maf_release
-  - make_meta_study
+  - cbp_new_study
+  - cbp_add_maf
+  - cbp_add_clinical
+  - cbp_add_expression
+  - cbp_add_cna
 
 - title: Quality Control and Testing Utils
   desc: QC data
