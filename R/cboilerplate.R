@@ -162,7 +162,7 @@ write_meta <- function(data,
   
   path <- glue::glue("{publish_dir}/{filename}")
   writeLines(data, con = path)
-  if(verbose) message(glue::glue("Meta file written to: {path}"))
+  if(verbose) checked_message("Meta file written to: {path}")
 }
 
 # -- Clinical meta files ------------------------------------------------------- #
@@ -181,12 +181,12 @@ make_meta_clinical_generic <- function(cancer_study_identifier,
                                        datatype, 
                                        data_filename) {
   
-  rows <- rep("", 4)
-  rows[1] <- c(glue::glue("cancer_study_identifier: {cancer_study_identifier}"))
-  rows[2] <- c(glue::glue("genetic_alteration_type: {genetic_alteration_type}"))
-  rows[3] <- c(glue::glue("datatype: {datatype}"))
-  rows[4] <- c(glue::glue("data_filename: {data_filename}"))
-  return(rows)
+  meta <- glue::glue("cancer_study_identifier: {cancer_study_identifier}") %>%
+    append_kv("genetic_alteration_type", genetic_alteration_type) %>%
+    append_kv("datatype", datatype) %>%
+    append_kv("data_filename", data_filename) %>%
+  
+    return(meta)
 }
 
 #' Make patient meta file
@@ -388,7 +388,7 @@ make_meta_study_generic <- function(cancer_study_identifier,
     append_kv("pmid", pmid) %>%
     append_kv("groups", groups) %>%
     append_kv("short_name", short_name) %>%
-    append_kv("add_global_case_list", to.lower(as.character(add_global_case_list)))
+    append_kv("add_global_case_list", tolower(as.character(add_global_case_list)))
   
   return(meta)
 }
