@@ -162,7 +162,7 @@ write_meta <- function(data,
   
   path <- glue::glue("{publish_dir}/{filename}")
   writeLines(data, con = path)
-  if(verbose) checked_message("Meta file written to: {path}")
+  if(verbose) checked_message(glue::glue("Meta file written to: {path}"))
 }
 
 # -- Clinical meta files ------------------------------------------------------- #
@@ -408,7 +408,7 @@ make_meta_study_generic <- function(cancer_study_identifier,
 #'
 #' @param ref_map YAML or JSON mapping. See details.
 #' @param as_dt Return as `data.table`, the default, 
-#' otherwise do checking but just return the list representation, which retains some metadata. 
+#' otherwise do checking but just return the list representation, which retains some metadata.
 #' @return Either a list of lists storing `source`, `label`, `description`, `data_type`, `attribute_type`
 #' or a `data.table` representation.
 #' @keywords internal
