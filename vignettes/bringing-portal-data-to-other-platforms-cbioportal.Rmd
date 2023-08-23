@@ -88,10 +88,7 @@ cbp_add_cna(cna_data)
 
 ### Add expression data
 
-- `expression_data` is expected to be a `.txt` file on Synapse. 
-
-Defaults are set for mRNA expression, use `?cbp_add_expression` for how to specify microRNA expression. 
-This will try to infer whether it is e.g. continuous or discrete expression data and update data properties appropriately.
+- `expression_data` is expected to be a `.txt` file on Synapse.
 
 ```{r add_expression, eval=FALSE}
 
