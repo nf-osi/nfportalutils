@@ -9,7 +9,7 @@ cbp_new_study(
   name,
   type_of_cancer,
   description =
-    "The data are contributed by researchers funded by the Neurofibromatosis Therapeutic Acceleration Program (NTAP). \\n                          The reprocessing of the raw data is managed by the NF Open Science Initiative (https://nf.synapse.org/).",
+    "The data are contributed by researchers funded by the Neurofibromatosis Therapeutic Acceleration Program (NTAP). The reprocessing of the raw data is managed by the NF Open Science Initiative (https://nf.synapse.org/).",
   short_name = NULL,
   citation = NULL,
   pmid = NULL,
