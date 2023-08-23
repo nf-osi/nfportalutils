@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">nfportalutils</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9320</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9400</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -25,7 +25,7 @@
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
     <a class="dropdown-item" href="../articles/annotate-nf-processed-data.html">Annotating nextflow processed data</a>
-    <a class="dropdown-item" href="../articles/bringing-portal-data-to-other-platforms-cbioportal.html">Bringing Portal Data to Other Platforms (cBioPortal)</a>
+    <a class="dropdown-item" href="../articles/bringing-portal-data-to-other-platforms-cbioportal.html">Bringing Portal Data to Other Platforms: cBioPortal</a>
     <a class="dropdown-item" href="../articles/survey-public-files.html">Surveying public files in the portal</a>
   </div>
 </li>
@@ -462,15 +462,15 @@
         </dt>
         <dd>Wrapper to create data-driven flowchart with pretty processing provenance mermaid template</dd>
       </dl></div><div class="section level2">
-      <h2 id="export-data-to-other-portals">Export Data to Other Portals<a class="anchor" aria-label="anchor" href="#export-data-to-other-portals"></a></h2>
+      <h2 id="export-data-to-other-platforms">Export Data to Other Platforms<a class="anchor" aria-label="anchor" href="#export-data-to-other-platforms"></a></h2>
       
-      <p class="section-desc"></p><p>Helpers to export/release NF data to other portal/database formats</p>
+      <p class="section-desc"></p><p>Helpers to export/release NF data to other platforms/databases.</p>
 
       
     </div><div class="section level2">
       
       <h3 id="cbioportal">cBioPortal<a class="anchor" aria-label="anchor" href="#cbioportal"></a></h3>
-      <p class="section-desc"></p><p>Export data to cBioPortal format files</p>
+      <p class="section-desc"></p><p>Export data as a cBioPortal study</p>
 
       
     </div><div id="" class="section level2">
@@ -480,19 +480,29 @@
 
       <dl><dt>
           
-          <code><a href="syncBP_maf.html">syncBP_maf()</a></code> 
+          <code><a href="cbp_new_study.html">cbp_new_study()</a></code> 
         </dt>
-        <dd>Make cBioPortal mutations dataset from Synapse assets</dd>
+        <dd>Initialize a new cBioPortal study dataset</dd>
       </dl><dl><dt>
           
-          <code><a href="check_maf_release.html">check_maf_release()</a></code> 
+          <code><a href="cbp_add_maf.html">cbp_add_maf()</a></code> 
         </dt>
-        <dd>Check maf file for release</dd>
+        <dd>Export and add mutations data to cBioPortal dataset</dd>
       </dl><dl><dt>
           
-          <code><a href="make_meta_study.html">make_meta_study()</a></code> 
+          <code><a href="cbp_add_clinical.html">cbp_add_clinical()</a></code> 
         </dt>
-        <dd>Make meta study file</dd>
+        <dd>Export and add clinical data to cBioPortal dataset</dd>
+      </dl><dl><dt>
+          
+          <code><a href="cbp_add_expression.html">cbp_add_expression()</a></code> 
+        </dt>
+        <dd>Export and add expression data to cBioPortal dataset</dd>
+      </dl><dl><dt>
+          
+          <code><a href="cbp_add_cna.html">cbp_add_cna()</a></code> 
+        </dt>
+        <dd>Export and add CNA (seg) data to cBioPortal dataset</dd>
       </dl></div><div class="section level2">
       <h2 id="quality-control-and-testing-utils">Quality Control and Testing Utils<a class="anchor" aria-label="anchor" href="#quality-control-and-testing-utils"></a></h2>
       

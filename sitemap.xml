@@ -82,6 +82,9 @@
     <loc>/reference/annotate_with_tool_stats.html</loc>
   </url>
   <url>
+    <loc>/reference/append_kv.html</loc>
+  </url>
+  <url>
     <loc>/reference/as_coll_items.html</loc>
   </url>
   <url>
@@ -109,16 +112,37 @@
     <loc>/reference/calculate_related_studies.html</loc>
   </url>
   <url>
+    <loc>/reference/cbp_add_clinical.html</loc>
+  </url>
+  <url>
+    <loc>/reference/cbp_add_cna.html</loc>
+  </url>
+  <url>
+    <loc>/reference/cbp_add_expression.html</loc>
+  </url>
+  <url>
+    <loc>/reference/cbp_add_maf.html</loc>
+  </url>
+  <url>
+    <loc>/reference/cbp_datatypes.html</loc>
+  </url>
+  <url>
+    <loc>/reference/cbp_new_study.html</loc>
+  </url>
+  <url>
     <loc>/reference/check_access.html</loc>
   </url>
   <url>
-    <loc>/reference/check_maf_release.html</loc>
+    <loc>/reference/check_cbp_study_id.html</loc>
   </url>
   <url>
     <loc>/reference/check_readpair_validity.html</loc>
   </url>
   <url>
     <loc>/reference/check_wiki_links.html</loc>
+  </url>
+  <url>
+    <loc>/reference/checked_message.html</loc>
   </url>
   <url>
     <loc>/reference/cite_dataset.html</loc>
@@ -178,9 +202,6 @@
     <loc>/reference/get_cbio_filename.html</loc>
   </url>
   <url>
-    <loc>/reference/get_data_for_releasable.html</loc>
-  </url>
-  <url>
     <loc>/reference/get_dependency_from_json_schema.html</loc>
   </url>
   <url>
@@ -238,6 +259,12 @@
     <loc>/reference/make_meta_clinical_generic.html</loc>
   </url>
   <url>
+    <loc>/reference/make_meta_cna.html</loc>
+  </url>
+  <url>
+    <loc>/reference/make_meta_expression.html</loc>
+  </url>
+  <url>
     <loc>/reference/make_meta_genomic_generic.html</loc>
   </url>
   <url>
@@ -248,9 +275,6 @@
   </url>
   <url>
     <loc>/reference/make_meta_sample.html</loc>
-  </url>
-  <url>
-    <loc>/reference/make_meta_study.html</loc>
   </url>
   <url>
     <loc>/reference/make_meta_study_generic.html</loc>
@@ -275,9 +299,6 @@
   </url>
   <url>
     <loc>/reference/map_sample_output_sarek.html</loc>
-  </url>
-  <url>
-    <loc>/reference/match_maf_sample_id.html</loc>
   </url>
   <url>
     <loc>/reference/missing_annotation_email.html</loc>
@@ -338,9 +359,6 @@
   </url>
   <url>
     <loc>/reference/syn_login.html</loc>
-  </url>
-  <url>
-    <loc>/reference/syncBP_maf.html</loc>
   </url>
   <url>
     <loc>/reference/table_query.html</loc>
