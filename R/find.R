@@ -75,6 +75,7 @@ nf_find_asset <- function(syn_out,
 
 #' Return workflow version according to workflow meta
 #' 
+#' @inheritParams nf_find_asset
 #' @returns Version string. 
 #' @export
 nf_workflow_version <- function(syn_out) {
