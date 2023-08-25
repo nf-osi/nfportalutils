@@ -7,6 +7,7 @@
 #' 
 #' @param scope Id of the container (project or folder) to begin search.
 #' @param path Path string in format "subdir1/subdir2/file.txt", where the last-level element will be the id returned.
+#' @export
 find_in <- function(scope, path) {
   
   path_list <- strsplit(path, split = "/", fixed = TRUE)[[1]]
@@ -25,6 +26,7 @@ find_in <- function(scope, path) {
 #'
 #' @param parent Parent container (project or folder).
 #' @param child_name Name of child entity.
+#' @export
 find_child <- function(child_name, parent) {
   
   q <- .syn$getChildren(parent)
