@@ -44,6 +44,7 @@ reference:
   - annotate_cnv
   - annotate_reports_sarek
   - annotate_with_tool_stats
+  - nf_workflow_version
 
 - title: Dataset Creation and Management
 - subtitle: General dataset creation and citation
@@ -79,6 +80,12 @@ reference:
   - check_access
   - summarize_file_access
   - grant_specific_file_access
+
+- title: Search Utils
+  desc: Help locate Synapse accessions, etc.
+- contents: 
+  - contains("find")
+  - nf_find_asset
 
 - title: Provenance Utils
   desc: Manage provenance metadata
