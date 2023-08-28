@@ -193,6 +193,12 @@
     <loc>/reference/dt_read.html</loc>
   </url>
   <url>
+    <loc>/reference/find_child.html</loc>
+  </url>
+  <url>
+    <loc>/reference/find_in.html</loc>
+  </url>
+  <url>
     <loc>/reference/from_pubmed.html</loc>
   </url>
   <url>
@@ -319,10 +325,16 @@
     <loc>/reference/nf_cnv_dataset.html</loc>
   </url>
   <url>
+    <loc>/reference/nf_find_asset.html</loc>
+  </url>
+  <url>
     <loc>/reference/nf_sarek_datasets.html</loc>
   </url>
   <url>
     <loc>/reference/nf_star_salmon_datasets.html</loc>
+  </url>
+  <url>
+    <loc>/reference/nf_workflow_version.html</loc>
   </url>
   <url>
     <loc>/reference/pipe.html</loc>
