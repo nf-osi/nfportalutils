@@ -30,6 +30,7 @@ reference:
   - copy_annotations 
   - .modify_annotation
   - meta_qc_dataset
+  - meta_qc_project
   - manifest_generate
   - manifest_validate
   - infer_data_type
