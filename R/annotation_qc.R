@@ -11,6 +11,7 @@
 #' @param use_annotations Use annotations if filling out manifest for existing dataset. Defaults to TRUE for NF.
 #' @param service Service endpoint to use. Defaults to the schematic production endpoint.
 #' @returns For excel, path to local file; for google_sheet, URL to sheet; for dataframe, JSON string of dataframe data.
+#' @export
 manifest_generate <- function(data_type,
                               dataset_id = NULL,
                               title = data_type,
@@ -69,6 +70,7 @@ manifest_generate <- function(data_type,
 #' @inheritParams manifest_generate
 #' @param json_str JSON string representing metadata.
 #' @param restrict_rules Use only basic schematic validation instead of extended validation with Great Expectations, default `FALSE`.
+#' @export
 manifest_validate <- function(data_type,
                               json_str = NULL,
                               restrict_rules = FALSE,
@@ -181,6 +183,7 @@ meta_qc_dataset <- function(dataset_id,
 #' 
 #' @param project_id Synapse project id.
 #' @return A table of with rows for the datasets QC'd, with dataset id, name, TRUE/FALSE pass result, and summary from validation result.
+#' @export
 meta_qc_project <- function(project_id) {
   
   data_root <- find_data_root(project_id)
