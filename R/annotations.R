@@ -62,29 +62,3 @@ copy_annotations <- function(entity_from,
   }
 }
 
-
-#' QC a derived manifest
-#' 
-#' Check missing annotations, usually because input files are missing values so nothing could be copied.
-#' It might also be helpful to visualize the manifest via a package like `naniar::vis_miss(manifest)`.
-#' 
-#' @param manifest A manifest, usually from one of the `annotate_*` functions.
-#' @param sample_io Input/output mapping used; only used if missing annotations detected.
-#' @return NULL if no problems, otherwise a table of entity ids affected, the attributes missing, and inputs used. 
-#' @export
-qc_manifest <- function(manifest, sample_io) {
-  missing <- apply(manifest, 2, function(x) sum(is.na(x)))
-  if(all(missing == 0)) {
-    message("All values are present in manifest")
-    return()
-  } else {
-    message("Some values not present in manifest...")
-    na_attrs <- apply(manifest, 1, function(x) names(x[is.na(x)]))
-    na_subset <- manifest[lengths(na_attrs) > 0, .(entityId)]
-    na_subset[, attributes := sapply(na_attrs[lengths(na_attrs) > 0], paste, collapse = ",")]
-    na_subset <- merge(na_subset, sample_io[, .(output_id, output_name, input_id, sample)], by.x = "entityId", by.y = "output_id")
-    return(na_subset)
-  }
-}
-
-
