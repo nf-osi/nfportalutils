@@ -41,6 +41,20 @@ find_child <- function(child_name, parent) {
   child_id
 }
 
+#' Find data folder
+#' 
+#' Convenience function to find data folder, which can have slight name variations, in a project.
+#' 
+#' @param project_id Synapse project id.
+#' @export
+find_data_root <- function(project_id) {
+  
+  data_root <- find_child("Data", parent = project_id)
+  if(is.null(data_root)) data_root <- find_child("Raw Data", parent = project_id)
+  data_root
+} 
+
+
 # Find nextflow assets --------------------------------------------------------- #
 
 # Convenience functions for getting Synapse ids of nextflow assets
@@ -56,7 +70,7 @@ find_child <- function(child_name, parent) {
 #' @param asset Name of asset to find.
 #' @returns Id of samplesheet. 
 #' @export
-nf_find_asset <- function(syn_out, 
+find_nf_asset <- function(syn_out, 
                           asset = c("software_versions", "multiqc_report", "samplesheet", "samtools_stats")) {
   
   asset <- match.arg(asset)
@@ -75,7 +89,7 @@ nf_find_asset <- function(syn_out,
 
 #' Return workflow version according to workflow meta
 #' 
-#' @inheritParams nf_find_asset
+#' @inheritParams find_nf_asset
 #' @returns Version string. 
 #' @export
 nf_workflow_version <- function(syn_out) {
