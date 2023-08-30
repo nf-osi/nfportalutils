@@ -230,7 +230,7 @@ meta_qc_project <- function(project_id) {
   
   data_root <- find_data_root(project_id)
   if(is.null(data_root)) {
-    messsage("Data root could not be located. Project structure may require custom assessment and dropping down to `meta_qc_dataset`.")
+    message("Data root could not be located. Project structure may require custom assessment and dropping down to `meta_qc_dataset`.")
     return(NA)
   }
   in_data <- .syn$getChildren(data_root)
