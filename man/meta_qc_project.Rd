@@ -10,7 +10,8 @@ meta_qc_project(project_id)
 \item{project_id}{Synapse project id.}
 }
 \value{
-A table of with rows for the datasets QC'd, with dataset id, name, TRUE/FALSE pass result, and summary from validation result.
+A table of with rows for the datasets QC'd, with dataset id, name, TRUE/FALSE pass result, and summary;
+otherwise \code{NA}.
 }
 \description{
 For projects with a relatively standard structure that also corresponds to what the DCA expects,

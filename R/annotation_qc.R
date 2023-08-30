@@ -190,7 +190,8 @@ infer_data_type <- function(dataset_id) {
 #' @param asset_view A reference view, defaults to the main NF portal fileview.
 #' @param schema_url Schema URL, points by default to 'latest' main NF schema, can change to use a specific released version.
 #' @param cleanup Whether to automatically remove reconstituted manifests once done. Default `TRUE`.
-#' @returns List of structure `list(result = result, notes = notes)`, where `result` indicates passing or `NA` if no data.
+#' @returns List of structure `list(result = result, notes = notes)`, 
+#' where `result` indicates passing or `NA` if no data or if couldn't be validated for other reasons.
 #' @export
 meta_qc_dataset <- function(dataset_id, 
                             data_type = NULL,
@@ -206,14 +207,18 @@ meta_qc_dataset <- function(dataset_id,
     if(is.na(data_type)) return(list(result = FALSE, notes = "Metadata quality insufficient to even infer data type"))
   }
   
-  # Reconstitute metadata manifest -- using excel as the safest option for now 
-  xl <- manifest_generate(data_type, dataset_id, output_format = "excel")
-  csv <- readxl::read_excel(xl, sheet = 1)
-  write.csv(csv, file = "manifest.csv")
-  # Validate
-  results <- manifest_validate(data_type = data_type, file_name = "manifest.csv")
-  if(cleanup) file.remove(xl, "manifest.csv")
-  manifest_passed(results)
+  # Reconstitute metadata manifest -- using excel as the safest option for now
+  tryCatch({
+    xl <- manifest_generate(data_type, dataset_id, output_format = "excel")
+    csv <- readxl::read_excel(xl, sheet = 1)
+    write.csv(csv, file = "manifest.csv")
+    # Validate
+    results <- manifest_validate(data_type = data_type, file_name = "manifest.csv")
+    if(cleanup) file.remove(xl, "manifest.csv")
+    manifest_passed(results)
+  }, error = function(e) {
+    list(result = NA, notes = e$message)
+  })
 }
 
 
@@ -224,7 +229,8 @@ meta_qc_dataset <- function(dataset_id,
 #' For selective validation or other (e.g. milestone-based or ad hoc) structures, look at `meta_qc_dataset`.
 #' 
 #' @param project_id Synapse project id.
-#' @return A table of with rows for the datasets QC'd, with dataset id, name, TRUE/FALSE pass result, and summary from validation result.
+#' @return A table of with rows for the datasets QC'd, with dataset id, name, TRUE/FALSE pass result, and summary;
+#' otherwise `NA`.
 #' @export
 meta_qc_project <- function(project_id) {
   
@@ -247,7 +253,7 @@ meta_qc_project <- function(project_id) {
     report$dataset_id <- dataset_ids
     report
   } else {
-    messsage("No datasets found under data root. They may be somewhere else?")
+    message("No datasets found under data root.")
     return(NA)
   }
 }

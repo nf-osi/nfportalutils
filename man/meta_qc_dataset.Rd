@@ -25,7 +25,8 @@ meta_qc_dataset(
 \item{cleanup}{Whether to automatically remove reconstituted manifests once done. Default \code{TRUE}.}
 }
 \value{
-List of structure \code{list(result = result, notes = notes)}, where \code{result} indicates passing or \code{NA} if no data.
+List of structure \code{list(result = result, notes = notes)},
+where \code{result} indicates passing or \code{NA} if no data or if couldn't be validated for other reasons.
 }
 \description{
 R wrapper for validation workflow with schematic. Because there is no validation-only service endpoint,
