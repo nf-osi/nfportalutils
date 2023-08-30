@@ -190,7 +190,7 @@ infer_data_type <- function(dataset_id) {
 #' @param asset_view A reference view, defaults to the main NF portal fileview.
 #' @param schema_url Schema URL, points by default to 'latest' main NF schema, can change to use a specific released version.
 #' @param cleanup Whether to automatically remove reconstituted manifests once done. Default `TRUE`.
-#' @returns List of structure `list(result = result, notes = notes)`, where `result` indicates whether the dataset passed.
+#' @returns List of structure `list(result = result, notes = notes)`, where `result` indicates passing or `NA` if no data.
 #' @export
 meta_qc_dataset <- function(dataset_id, 
                             data_type = NULL,
@@ -198,9 +198,12 @@ meta_qc_dataset <- function(dataset_id,
                             schema_url = "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld",
                             cleanup = TRUE) {
   
+  files <- reticulate::iterate(.syn$getChildren(dataset_id))
+  if(!length(files)) return(list(result = NA, notes = "Empty dataset"))
+  
   if(is.null(data_type)) {
     data_type <- infer_data_type(dataset_id)$result
-    if(is.na(data_type)) return(list(result = FALSE, notes = "Metadata quality insufficient to even infer data type."))
+    if(is.na(data_type)) return(list(result = FALSE, notes = "Metadata quality insufficient to even infer data type"))
   }
   
   # Reconstitute metadata manifest -- using excel as the safest option for now 
@@ -242,7 +245,7 @@ meta_qc_project <- function(project_id) {
     report <- rbindlist(results)
     report$dataset_name <- dataset_names
     report$dataset_id <- dataset_ids
-  
+    report
   } else {
     messsage("No datasets found under data root. They may be somewhere else?")
     return(NA)
