@@ -9,7 +9,8 @@ meta_qc_dataset(
   data_type = NULL,
   asset_view = "syn16787123",
   schema_url =
-    "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld"
+    "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld",
+  cleanup = TRUE
 )
 }
 \arguments{
@@ -20,14 +21,17 @@ meta_qc_dataset(
 \item{asset_view}{A reference view, defaults to the main NF portal fileview.}
 
 \item{schema_url}{Schema URL, points by default to 'latest' main NF schema, can change to use a specific released version.}
+
+\item{cleanup}{Whether to automatically remove reconstituted manifests once done. Default \code{TRUE}.}
 }
 \value{
 List of structure \code{list(result = result, notes = notes)}, where \code{result} indicates whether the dataset passed.
 }
 \description{
-For use in R programmatic workflows, this wraps \code{schematic} for simple validation.
+R wrapper for validation workflow with schematic. Because there is no validation-only service endpoint,
+we move metadata around twice (generating manifest from server and submitting back to server),
+so once schematic has a validation-only service endpoint that would be much more efficient.
 A dataset in this context is a folder, usually tagged with \code{contentType} = "dataset".
-This is considered alpha and is likely to change based on changes in \code{schematic}.
 }
 \details{
 Note that we prefer to wrap the schematic web API over a local installation because:
@@ -37,4 +41,6 @@ Note that we prefer to wrap the schematic web API over a local installation beca
 }
 
 When \code{data_type} can't be inferred based on annotations, this is treated as a fail.
+
+Status: alpha and likely to change based on changes in \code{schematic}.
 }

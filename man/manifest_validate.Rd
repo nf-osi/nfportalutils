@@ -7,6 +7,7 @@
 manifest_validate(
   data_type,
   json_str = NULL,
+  file_name = NULL,
   restrict_rules = FALSE,
   schema_url =
     "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld",
@@ -18,6 +19,8 @@ manifest_validate(
 
 \item{json_str}{JSON string representing metadata.}
 
+\item{file_name}{Path to file, has to be \code{.csv}. Ignored if \code{json_str} is given.}
+
 \item{restrict_rules}{Use only basic schematic validation instead of extended validation with Great Expectations, default \code{FALSE}.}
 
 \item{schema_url}{Optional, defaults to main NF 'latest' data model.}
@@ -25,6 +28,6 @@ manifest_validate(
 \item{service}{Service endpoint to use. Defaults to the schematic production endpoint.}
 }
 \description{
-Get validation results from schematic service. Some downstream utils consume these results for custom display or summary.
-NOTE: This doesn't support files, though the endpoint supports uploading \code{.csv}.
+See \href{https://schematic.api.sagebionetworks.org/v1/ui/#/Model\%20Operations/schematic_api.api.routes.validate_manifest_route}{schematic validation}.
+Get validation results from schematic service. Downstream utils can consume these results for custom display/report.
 }

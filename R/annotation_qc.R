@@ -1,5 +1,6 @@
 #' Generate manifest via schematic service
 #' 
+#' See [schematic manifest generation](https://schematic.api.sagebionetworks.org/v1/ui/#/Manifest%20Operations/schematic_api.api.routes.get_manifest_route).
 #' Note that this uses the access token of user that should already by logged in with `syn_login`.
 #' 
 #' @param data_type Data type of the manifest to generate (aka Component).
@@ -10,7 +11,7 @@
 #' @param output_format Format of 'excel', 'google_sheet', or 'dataframe'. Defaults to 'excel'.
 #' @param use_annotations Use annotations if filling out manifest for existing dataset. Defaults to TRUE for NF.
 #' @param service Service endpoint to use. Defaults to the schematic production endpoint.
-#' @returns For excel, path to local file; for google_sheet, URL to sheet; for dataframe, JSON string of dataframe data.
+#' @returns For excel, path to local file; for google_sheet, URL to sheet; for dataframe, JSON string of data.
 #' @export
 manifest_generate <- function(data_type,
                               dataset_id = NULL,
@@ -57,39 +58,71 @@ manifest_generate <- function(data_type,
   
   if(output_format == "dataframe") {
     message("Manifest(s) generated as JSON doc")
-    json_str <- jsonlite::minify(httr::content(req, "text", encoding = "UTF-8"))
+    json_str <- httr::content(req, "text", encoding = "UTF-8")
+    # json_str <- jsonlite::minify(json_str)
     return(json_str)
   }
 }
 
+
 #' Validate manifest via schematic service
 #' 
-#' Get validation results from schematic service. Some downstream utils consume these results for custom display or summary. 
-#' NOTE: This doesn't support files, though the endpoint supports uploading `.csv`. 
+#' See [schematic validation](https://schematic.api.sagebionetworks.org/v1/ui/#/Model%20Operations/schematic_api.api.routes.validate_manifest_route).
+#' Get validation results from schematic service. Downstream utils can consume these results for custom display/report.
 #'
 #' @inheritParams manifest_generate
 #' @param json_str JSON string representing metadata.
+#' @param file_name Path to file, has to be `.csv`. Ignored if `json_str` is given.
 #' @param restrict_rules Use only basic schematic validation instead of extended validation with Great Expectations, default `FALSE`.
 #' @export
 manifest_validate <- function(data_type,
                               json_str = NULL,
+                              file_name = NULL,
                               restrict_rules = FALSE,
                               schema_url = "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld",
                               service = "https://schematic.api.sagebionetworks.org/v1/model/validate") {
   
   restrict_rules <- tolower(as.character(restrict_rules))
-  req <- httr::POST(service,
-                    query = list(
-                     schema_url = schema_url,
-                     data_type = data_type,
-                     restrict_rules = restrict_rules,
-                     json_str = json_str
-                   ))
+  
+  # json_str can't be more than 4-8 KiB (nginx server typical limits), otherwise header overflow error
+  if(!is.null(json_str)) {
+    if(object.size(json_str) > 40000) stop("Data of this size shoud be submitted as a file instead of JSON string") 
+    req <- httr::POST(service,
+                      query = list(
+                        json_str = json_str,
+                        schema_url = schema_url,
+                        data_type = data_type,
+                        restrict_rules = restrict_rules))
+  } else if(!is.null(file_name)) {
+    if(!file.exists(file_name)) stop("Trying to validate ", file_name, " that can't be found.")
+    req <- httr::POST(service,
+                      query = list(
+                        schema_url = schema_url,
+                        data_type = data_type,
+                        restrict_rules = restrict_rules),
+                      body = list(file_name = httr::upload_file(file_name), type = "text/csv"))
+  } else {
+    stop("Must provide manifest data as either JSON or local file path.")
+  }
   
   status <- httr::status_code(req)
   if(status != 200L) stop("Unsuccessful request, received status code: ", status)
   result <- httr::content(req)
   result
+}
+
+#' Terse error messages please
+#' 
+#' @param error An error object from schematic.  
+#' @keywords internal
+tersely <- function(error) {
+  row <- error[[1]]
+  column <- error[[2]]
+  message <- error[[3]]
+  value <- error[[4]]
+  
+  wording <- if(grepl("is not one of", message)) paste(shQuote(value), "is not a valid value for", column) else message
+  wording
 }
 
 #' Provide a pass/fail summary result
@@ -102,7 +135,7 @@ manifest_passed <- function(result) {
   
   errors <- length(result$errors)
   if(errors) {
-    messages <- unique(sapply(result$errors, function(x) x[[3]]))
+    messages <- unique(sapply(result$errors, tersely))
     notes <- paste(messages, collapse = ", ")
     return(list(result = FALSE, notes = notes))
   } else {
@@ -139,9 +172,10 @@ infer_data_type <- function(dataset_id) {
 
 #' QC dataset metadata with pass/fail result
 #' 
-#' For use in R programmatic workflows, this wraps `schematic` for simple validation.
+#' R wrapper for validation workflow with schematic. Because there is no validation-only service endpoint,
+#' we move metadata around twice (generating manifest from server and submitting back to server),
+#' so once schematic has a validation-only service endpoint that would be much more efficient.
 #' A dataset in this context is a folder, usually tagged with `contentType` = "dataset".
-#' This is considered alpha and is likely to change based on changes in `schematic`. 
 #' 
 #' Note that we prefer to wrap the schematic web API over a local installation because:
 #' - Will not require user to go through local schematic setup for this to be functional
@@ -149,29 +183,34 @@ infer_data_type <- function(dataset_id) {
 #' 
 #' When `data_type` can't be inferred based on annotations, this is treated as a fail.
 #' 
+#' Status: alpha and likely to change based on changes in `schematic`. 
+#'
 #' @param dataset_id Id of folder that represents a dataset, not actual Synapse dataset entity -- see details.
 #' @param data_type A specific data type to validate against, otherwise tries to infer based on annotations. See details.
 #' @param asset_view A reference view, defaults to the main NF portal fileview.
 #' @param schema_url Schema URL, points by default to 'latest' main NF schema, can change to use a specific released version.
+#' @param cleanup Whether to automatically remove reconstituted manifests once done. Default `TRUE`.
 #' @returns List of structure `list(result = result, notes = notes)`, where `result` indicates whether the dataset passed.
 #' @export
 meta_qc_dataset <- function(dataset_id, 
                             data_type = NULL,
                             asset_view = "syn16787123",
-                            schema_url = "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld") {
+                            schema_url = "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld",
+                            cleanup = TRUE) {
   
   if(is.null(data_type)) {
     data_type <- infer_data_type(dataset_id)$result
     if(is.na(data_type)) return(list(result = FALSE, notes = "Metadata quality insufficient to even infer data type."))
   }
   
-  # Reconstitute metadata manifest as JSON doc
-  json_str <- manifest_generate(data_type, dataset_id, output_format = "dataframe")
-  
+  # Reconstitute metadata manifest -- using excel as the safest option for now 
+  xl <- manifest_generate(data_type, dataset_id, output_format = "excel")
+  csv <- readxl::read_excel(xl, sheet = 1)
+  write.csv(csv, file = "manifest.csv")
   # Validate
-  results <- manifest_validate(data_type = data_type, json_str = json_str)
-  manifest_passed(results) 
-  
+  results <- manifest_validate(data_type = data_type, file_name = "manifest.csv")
+  if(cleanup) file.remove(xl, "manifest.csv")
+  manifest_passed(results)
 }
 
 
