@@ -86,7 +86,7 @@ manifest_validate <- function(data_type,
   
   # json_str can't be more than 4-8 KiB (nginx server typical limits), otherwise header overflow error
   if(!is.null(json_str)) {
-    if(object.size(json_str) > 40000) stop("Data of this size shoud be submitted as a file instead of JSON string") 
+    if(object.size(json_str) > 40000) stop("Data of this size should be submitted as a file instead of JSON string") 
     req <- httr::POST(service,
                       query = list(
                         json_str = json_str,
