@@ -21,15 +21,19 @@ reference:
   - add_default_folders
   - make_admin
 
-- title: Annotation Utils
-- subtitle: General annotation
+- title: Metadata Utils
+- subtitle: General annotations
   desc: Add and manage annotations on Synapse entities
 - contents:
   - update_study_annotations
   - annotate_with_manifest
   - copy_annotations 
   - .modify_annotation
-  - qc_manifest
+  - meta_qc_dataset
+  - meta_qc_project
+  - manifest_generate
+  - manifest_validate
+  - infer_data_type
 - subtitle: Special annotation of nextflow processed data 
   desc: Special annotation of nextflow processed data 
 - contents:
@@ -85,7 +89,6 @@ reference:
   desc: Help locate Synapse accessions, etc.
 - contents: 
   - contains("find")
-  - nf_find_asset
 
 - title: Provenance Utils
   desc: Manage provenance metadata

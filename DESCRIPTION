@@ -39,6 +39,7 @@ Imports:
     crayon,
     emoji,
     plyr,
+    readxl,
     yaml
 URL: https://github.com/nf-osi/nfportalutils
 BugReports: https://github.com/nf-osi/nfportalutils/issues
