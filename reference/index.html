@@ -131,14 +131,14 @@
         </dt>
         <dd>Make a user or group full admin of a Synapse entity</dd>
       </dl></div><div class="section level2">
-      <h2 id="annotation-utils">Annotation Utils<a class="anchor" aria-label="anchor" href="#annotation-utils"></a></h2>
+      <h2 id="metadata-utils">Metadata Utils<a class="anchor" aria-label="anchor" href="#metadata-utils"></a></h2>
       
       
 
       
     </div><div class="section level2">
       
-      <h3 id="general-annotation">General annotation<a class="anchor" aria-label="anchor" href="#general-annotation"></a></h3>
+      <h3 id="general-annotations">General annotations<a class="anchor" aria-label="anchor" href="#general-annotations"></a></h3>
       <p class="section-desc"></p><p>Add and manage annotations on Synapse entities</p>
 
       
@@ -169,9 +169,29 @@
         <dd>Modify a single annotation on a single file</dd>
       </dl><dl><dt>
           
-          <code><a href="qc_manifest.html">qc_manifest()</a></code> 
+          <code><a href="meta_qc_dataset.html">meta_qc_dataset()</a></code> 
         </dt>
-        <dd>QC a derived manifest</dd>
+        <dd>QC dataset metadata with pass/fail result</dd>
+      </dl><dl><dt>
+          
+          <code><a href="meta_qc_project.html">meta_qc_project()</a></code> 
+        </dt>
+        <dd>QC metadata at the project level with pass/fail result</dd>
+      </dl><dl><dt>
+          
+          <code><a href="manifest_generate.html">manifest_generate()</a></code> 
+        </dt>
+        <dd>Generate manifest via schematic service</dd>
+      </dl><dl><dt>
+          
+          <code><a href="manifest_validate.html">manifest_validate()</a></code> 
+        </dt>
+        <dd>Validate manifest via schematic service</dd>
+      </dl><dl><dt>
+          
+          <code><a href="infer_data_type.html">infer_data_type()</a></code> 
+        </dt>
+        <dd>Infer data type of a dataset folder</dd>
       </dl></div><div class="section level2">
       
       <h3 id="special-annotation-of-nextflow-processed-data">Special annotation of nextflow processed data<a class="anchor" aria-label="anchor" href="#special-annotation-of-nextflow-processed-data"></a></h3>
@@ -407,12 +427,17 @@
         <dd>Find id of a child entity in a container</dd>
       </dl><dl><dt>
           
+          <code><a href="find_data_root.html">find_data_root()</a></code> 
+        </dt>
+        <dd>Find data folder</dd>
+      </dl><dl><dt>
+          
           <code><a href="find_in.html">find_in()</a></code> 
         </dt>
         <dd>Find in path</dd>
       </dl><dl><dt>
           
-          <code><a href="nf_find_asset.html">nf_find_asset()</a></code> 
+          <code><a href="find_nf_asset.html">find_nf_asset()</a></code> 
         </dt>
         <dd>Find a standard nextflow workflow output asset</dd>
       </dl></div><div class="section level2">

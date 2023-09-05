@@ -196,7 +196,13 @@
     <loc>/reference/find_child.html</loc>
   </url>
   <url>
+    <loc>/reference/find_data_root.html</loc>
+  </url>
+  <url>
     <loc>/reference/find_in.html</loc>
+  </url>
+  <url>
+    <loc>/reference/find_nf_asset.html</loc>
   </url>
   <url>
     <loc>/reference/from_pubmed.html</loc>
@@ -227,6 +233,9 @@
   </url>
   <url>
     <loc>/reference/index.html</loc>
+  </url>
+  <url>
+    <loc>/reference/infer_data_type.html</loc>
   </url>
   <url>
     <loc>/reference/is_dataset.html</loc>
@@ -292,6 +301,15 @@
     <loc>/reference/make_public_viewable.html</loc>
   </url>
   <url>
+    <loc>/reference/manifest_generate.html</loc>
+  </url>
+  <url>
+    <loc>/reference/manifest_passed.html</loc>
+  </url>
+  <url>
+    <loc>/reference/manifest_validate.html</loc>
+  </url>
+  <url>
     <loc>/reference/map_reports_sarek.html</loc>
   </url>
   <url>
@@ -305,6 +323,12 @@
   </url>
   <url>
     <loc>/reference/map_sample_output_sarek.html</loc>
+  </url>
+  <url>
+    <loc>/reference/meta_qc_dataset.html</loc>
+  </url>
+  <url>
+    <loc>/reference/meta_qc_project.html</loc>
   </url>
   <url>
     <loc>/reference/missing_annotation_email.html</loc>
@@ -325,9 +349,6 @@
     <loc>/reference/nf_cnv_dataset.html</loc>
   </url>
   <url>
-    <loc>/reference/nf_find_asset.html</loc>
-  </url>
-  <url>
     <loc>/reference/nf_sarek_datasets.html</loc>
   </url>
   <url>
@@ -344,9 +365,6 @@
   </url>
   <url>
     <loc>/reference/processing_flowchart.html</loc>
-  </url>
-  <url>
-    <loc>/reference/qc_manifest.html</loc>
   </url>
   <url>
     <loc>/reference/register_study.html</loc>
@@ -374,6 +392,9 @@
   </url>
   <url>
     <loc>/reference/table_query.html</loc>
+  </url>
+  <url>
+    <loc>/reference/tersely.html</loc>
   </url>
   <url>
     <loc>/reference/test_failed.html</loc>
