@@ -65,18 +65,23 @@ map_sample_output_rnaseq <- function(syn_out) {
 
 #' Map sample to output from nf-sarek
 #' 
-#' See https://nf-co.re/sarek. Processed outputs are nested by sample and variant callers, i.e. 
-#' `*VariantCalling/<TUMOR_vs_NORMAL>/<CALLER>`. This walks through the output destination (URI of `*VariantCalling`)
+#' See https://nf-co.re/sarek. Most processed outputs are nested by sample and variant callers, i.e. 
+#' `*VariantCalling/<TUMOR_vs_NORMAL>/<CALLER>`. Other times the data is organized as
+#'  `*VariantCalling/<CALLER>/<TUMOR_vs_NORMAL>`.
+#' This walks through the output destination (URI of `*VariantCalling`)
 #' with similar intention to \code{\link{map_sample_output_rnaseq}}, but for Sarek outputs.
 #' 
 #' Note: And additional step post-Sarek will create MAFs in the output subdirectory DeepVariant. 
 #' If this is run _after_ the MAF creation step, this will return file indexes with those .maf files.
 #' 
 #' @param syn_out Syn id of syn output destination with files of interest. 
+#' @param sample_level If caller is organized by sample, use 2 (default), if samples organized by caller, use 3. See details. 
 #' @import data.table
 #' @return A `data.table` with cols `caller` `caller_path` `caller_syn` `output_name` `output_id` `sample` `workflow`
 #' @export
-map_sample_output_sarek <- function(syn_out) {
+map_sample_output_sarek <- function(syn_out, sample_level = 2) {
+  
+  workflow_level <- if(sample_level == 2) 3 else 2
   
   # `walk` can be very slow
   ls <- walk(syn_out)
@@ -93,9 +98,9 @@ map_sample_output_sarek <- function(syn_out) {
     })
   )
   paths <- strsplit(outputs$caller_path, "/", fixed = TRUE)
-  outputs[, sample := sapply(paths, `[[`, 2)]
+  outputs[, sample := sapply(paths, `[[`, sample_level)]
   outputs[, sample := strsplit(sample, "_vs_")]
-  outputs[, workflow := sapply(paths, `[[`, 3)]
+  outputs[, workflow := sapply(paths, `[[`, workflow_level)]
   return(outputs)
 }
 
@@ -106,12 +111,14 @@ map_sample_output_sarek <- function(syn_out) {
 #' 
 #' @inheritParams map_sample_input_ss
 #' @inheritParams map_sample_output_rnaseq
+#' @inheritParams map_sample_output_sarek
 #' @param workflow Workflow. 
 #' @return A table with `sample` `level` `output_id` `output_name` `input_id`.
 #' @export
 map_sample_io <- function(workflow = c("nf-rnaseq", "nf-sarek"),
                           samplesheet,
-                          syn_out) {
+                          syn_out,
+                          sample_level = 2) {
   
   workflow <- match.arg(workflow)
   sample_inputs <- map_sample_input_ss(samplesheet)
@@ -119,7 +126,7 @@ map_sample_io <- function(workflow = c("nf-rnaseq", "nf-sarek"),
   if(workflow == "nf-rnaseq") {
     sample_outputs <- map_sample_output_rnaseq(syn_out)
   } else if(workflow == "nf-sarek") {
-    sample_outputs <- map_sample_output_sarek(syn_out)
+    sample_outputs <- map_sample_output_sarek(syn_out, sample_level = sample_level)
     # sample can contain 2 samples (tumor vs normal from same indiv) -> take first
     sample_outputs[, sample := sapply(sample, first)]
   }
@@ -187,9 +194,15 @@ annotate_with_tool_stats <- function(samtools_stats_file = NULL,
 
 #' Derive annotations for processed output data
 #' 
-#' Build annotations through inheritance from inputs. If multiple inputs, inherit props from the FIRST input. 
-#' Files that pass through this naturally have `dataSubtype` set to "processed" and `fileFormat` set 
-#' to the actual new file format. In the future, `template` itself may define `format` so we don't need to specify explicitly.
+#' A processed or derived file can inherit annotations from the input file(s).
+#' Currently, this generously facilitates inheritance of many properties except ones that 
+#' "obviously" shouldn't be inherited, such as "fileFormat" or "comments". 
+#' These rules are hard-coded and might need to be expanded as the data model changes, 
+#' and the manifest generated should still be reviewed.
+#' 
+#' If multiple inputs given, this will inherit annotations from the FIRST input. 
+#' Files that pass through this naturally have `dataSubtype` automatically set to "processed" and `fileFormat` set 
+#' to the actual new file format. In the future, `template` itself may define default `format` so we don't need to specify explicitly.
 #' 
 #' @param format File format of the processed data, e.g. "vcf".
 #' @keywords internal
@@ -206,7 +219,7 @@ derive_annotations <- function(sample_io,
   if(verbose) message(glue::glue("Creating annotations for ", n, " {format} files"))
   
   props <- get_dependency_from_json_schema(id = template, schema = schema)
-  props <- props[!props %in% c("comments", "entityId", "fileFormat", "dataType", "dataSubtype", "progressReportNumber")]
+  props <- props[!props %in% c("comments", "entityId", "fileFormat", "dataType", "dataSubtype", "progressReportNumber", "Component")]
   
   from <- sapply(x$input_id, `[`, 1)
   to <- x$output_id
@@ -311,10 +324,12 @@ annotate_expression <- function(sample_io,
 #' 
 #' @inheritParams annotate_aligned_reads
 #' @param sample_io Table mapping input to outputs, which reference output `.vcf.gz` or `maf` files.
+#' @param workflow_ref Character vector with names for workflow and values as version-specific links.
 #' @param format Variant format, "auto" to handle any "vcf" or "maf" files present automatically, or specify one explicitly. See details.
 #' @param data_type Variant type, use "auto" to infer from naming scheme and current NF processing SOP, or specify more explicitly.
 #' @export
 annotate_called_variants <- function(sample_io,
+                                     workflow_ref,
                                      format = c("auto", "vcf", "maf"),
                                      template = "bts:ProcessedVariantCallsTemplate",
                                      schema = "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld",
@@ -350,13 +365,10 @@ annotate_called_variants <- function(sample_io,
   } else {
     data_type_assign <- function(name, format) { data_type }
   }
-  annotations[, data_type := data_type_assign(Filename, fileFormat), by = entityId]
+  annotations[, dataType := data_type_assign(Filename, fileFormat), by = entityId]
   
-  annotations[fileFormat == "vcf" & workflow == "Strelka", workflowLink := "https://nf-co.re/sarek/2.7.1/output#strelka2"]
   annotations[fileFormat == "vcf" & workflow == "Strelka", workflow := "Strelka2"]
-  annotations[fileFormat == "vcf" & workflow == "Mutect2", workflowLink := "https://nf-co.re/sarek/2.7.1/output#gatk-mutect2"]
-  annotations[fileFormat == "vcf" & workflow == "FreeBayes", workflowLink := "https://nf-co.re/sarek/2.7.1/output#freebayes"]
-  annotations[fileFormat == "vcf" & workflow == "DeepVariant", workflowLink := "https://github.com/google/deepvariant/tree/r1.1"]
+  annotations[fileFormat == "vcf", workflowLink := workflow_ref[workflow]]
   
   annotations[fileFormat == "maf", workflow := "nf-vcf2maf"] 
   annotations[fileFormat == "maf", workflowLink := "https://github.com/Sage-Bionetworks-Workflows/nf-vcf2maf/tree/1.0.1"] 
@@ -365,6 +377,7 @@ annotate_called_variants <- function(sample_io,
     annotate_with_manifest(annotations)
     if(verbose) message("Applied annotations.")
   }
+  
   return(annotations)
 }
 
