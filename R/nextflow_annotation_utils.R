@@ -111,6 +111,7 @@ map_sample_output_sarek <- function(syn_out, sample_level = 2) {
 #' 
 #' @inheritParams map_sample_input_ss
 #' @inheritParams map_sample_output_rnaseq
+#' @inheritParams map_sample_output_sarek
 #' @param workflow Workflow. 
 #' @return A table with `sample` `level` `output_id` `output_name` `input_id`.
 #' @export

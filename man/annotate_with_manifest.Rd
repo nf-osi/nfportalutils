@@ -4,7 +4,12 @@
 \alias{annotate_with_manifest}
 \title{Set annotations from a manifest}
 \usage{
-annotate_with_manifest(manifest, ignore_na = TRUE, ignore_blank = TRUE)
+annotate_with_manifest(
+  manifest,
+  ignore_na = TRUE,
+  ignore_blank = TRUE,
+  verbose = FALSE
+)
 }
 \arguments{
 \item{manifest}{A table manifest. Needs to contain \code{entityId}.}
@@ -12,6 +17,8 @@ annotate_with_manifest(manifest, ignore_na = TRUE, ignore_blank = TRUE)
 \item{ignore_na}{Whether to ignore annotations that are \code{NA}; default TRUE.}
 
 \item{ignore_blank}{Whether to ignore annotations that are that empty strings; default TRUE.}
+
+\item{verbose}{Be chatty, default FALSE.}
 }
 \description{
 The \href{https://help.synapse.org/docs/Managing-Custom-Metadata-at-Scale.2004254976.html}{Synapse docs}

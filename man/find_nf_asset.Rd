@@ -6,13 +6,16 @@
 \usage{
 find_nf_asset(
   syn_out,
-  asset = c("software_versions", "multiqc_report", "samplesheet", "samtools_stats")
+  asset = c("software_versions", "multiqc_report", "samplesheet", "samtools_stats"),
+  workflow = "rna-seq"
 )
 }
 \arguments{
 \item{syn_out}{Id of top-level folder that corresponds to \code{publishDir} in a nextflow workflow.}
 
 \item{asset}{Name of asset to find.}
+
+\item{workflow}{Specify workflow, "rna-seq" or "sarek"; defaults to "rna-seq"}
 }
 \value{
 Id of samplesheet.
