@@ -9,8 +9,9 @@
 #' @param manifest A table manifest. Needs to contain `entityId`.
 #' @param ignore_na Whether to ignore annotations that are `NA`; default TRUE.
 #' @param ignore_blank Whether to ignore annotations that are that empty strings; default TRUE.
+#' @param verbose Be chatty, default FALSE.
 #' @export   
-annotate_with_manifest <- function(manifest, ignore_na = TRUE, ignore_blank = TRUE) {
+annotate_with_manifest <- function(manifest, ignore_na = TRUE, ignore_blank = TRUE, verbose = FALSE) {
   # Split by `entityId`
   annotations <- as.data.table(manifest)
   if("Filename" %in% names(annotations)) annotations[, Filename := NULL]
@@ -22,6 +23,7 @@ annotate_with_manifest <- function(manifest, ignore_na = TRUE, ignore_blank = TR
   for(entity in names(annotations)) {
     .syn$setAnnotations(entity = entity, annotations = as.list(annotations[[entity]]))
   }
+  if (verbose) message("Annotations submitted")
 }
 
 
