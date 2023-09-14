@@ -110,6 +110,6 @@ nf_workflow_version <- function(syn_out) {
   version_meta <- find_nf_asset(syn_out, asset = "software_versions")
   file <- .syn$get(version_meta, downloadFile = TRUE)
   yml <- yaml::read_yaml(file$path)
-  list(workflow = names(yml$Workflow[2]), version = yml$Workflow[[2]]))
+  list(workflow = names(yml$Workflow[2]), version = yml$Workflow[[2]])
 }
 
