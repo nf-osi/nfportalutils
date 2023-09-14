@@ -107,7 +107,7 @@ find_nf_asset <- function(syn_out,
 #' @export
 nf_workflow_version <- function(syn_out) {
   
-  version_meta <- nf_find_asset(syn_out, asset = "software_versions")
+  version_meta <- find_nf_asset(syn_out, asset = "software_versions")
   file <- .syn$get(version_meta, downloadFile = TRUE)
   yml <- yaml::read_yaml(file$path)
   workflow <- grep("nf-core", names(yml$Workflow))
