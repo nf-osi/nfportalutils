@@ -111,7 +111,6 @@ nf_workflow_version <- function(syn_out) {
   file <- .syn$get(version_meta, downloadFile = TRUE)
   yml <- yaml::read_yaml(file$path)
   workflow <- grep("nf-core", names(yml$Workflow))
-  yaml$Workflow[[workflow]]
-  
+  yml$Workflow[[workflow]]
 }
 
