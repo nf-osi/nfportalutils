@@ -41,6 +41,25 @@ find_child <- function(child_name, parent) {
   child_id
 }
 
+
+#' Find children of type
+#' 
+#' Related to `find_child`, but instead of using a specific name, uses the type.
+#' Returns a vector of ids, with entity names set as names.
+#' 
+#' @inheritParams find_child
+#' @param child_type Type(s) as a list, even for only one type. Defaults to "file".
+#' @export
+find_child_type <- function(parent, child_type = list("file")) {
+  
+  x <- .syn$getChildren(parent, includeTypes = child_type)
+  y <- reticulate::iterate(x)
+  if(!length(y)) return()
+  z <- setNames(sapply(y, `[[`, "id"), sapply(y, `[[`, "name"))
+  return(z)
+}
+
+
 #' Find data folder
 #' 
 #' Convenience function to find data folder, which can have slight name variations, in a project.
