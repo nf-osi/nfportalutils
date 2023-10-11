@@ -6,10 +6,10 @@
 #' sizing and list length issues, until the view is functional again and the query works.
 #' However, if the issue is not one of these, this will fail because handlers for other, rarer problems are currently not implemented.
 #'
-#' *Note: We apply iterative fixes because that's just how server works currently in surfacing repair recommendations.
+#' *Note: Fixes are applied iteratively because that's how server currently surfaces repair recommendations.
 #'
 #' @param view Synapse view id.
-#' @param max_tries Number of tries. Most views should only have accumulated 1-2 mutations, so a default of 5 should be reasonable.
+#' @param max_tries Number of tries. Vast majority of views should only have accumulated 1-2 bad data mutations, so a default of 5 should be reasonable.
 #' @export
 adapt_view <- function(view, max_tries = 5L) {
 
@@ -20,26 +20,22 @@ adapt_view <- function(view, max_tries = 5L) {
     res <- tryCatch(test <- .syn$tableQuery(glue::glue("SELECT * FROM {view} LIMIT 1")), error = function(e) return(e))
     need_fix <- "synapseclient.core.exceptions.SynapseHTTPError" %in% class(res)
     if(!need_fix) {
-      message("view is in working order.")
+      message("View is in working order.")
       break
     }
 
     msg <- jsonlite::fromJSON(res$response$text)
     reason <- msg$reason
-    if(!length(reason)) stop("The server did not return a usable reason.")
+    if(!length(reason)) stop(glue::glue("Server returned unknown response: {msg}"))
 
     if(grepl("too small", reason)) {
-
       view <- adapt_size(view, hint = reason)
       attempts <- attempts + 1
-
     }
 
     if(grepl("maximumListLength", reason)) {
-
       view <- adapt_list_length(view, hint = reason)
       attempts <- attempts + 1
-
     }
   }
 }
@@ -50,34 +46,21 @@ adapt_view <- function(view, max_tries = 5L) {
 adapt_size <- function(view, hint) {
 
     # parse to extract column and resizing recommendation
-    col <- regmatches(hint, regexpr("(?<=\')(.*?)(?=\')", hint, perl = TRUE))
+    col_name <- regmatches(hint, regexpr("(?<=\')(.*?)(?=\')", hint, perl = TRUE))
     size <-  regmatches(hint, regexpr("[0-9]+(?= characters)", hint, perl = TRUE))
-    size <- tryCatch(as.integer(size), warning = function(w) stop("Unable to parse size from ", hint)) # convert warn to error if this is not a num
-    message(glue::glue("Adapting size for '{col}'..."))
+    # convert warn to error if this is not a num
+    size <- tryCatch(as.integer(size), warning = function(w) stop("Unable to parse size from ", hint))
+    message(glue::glue("Adapting size for '{col_name}'..."))
 
-    # get schema and apply changes
+    # get schema and apply changes; must create new immutable column with diff size
     schema <- .syn$get(view)
-    col_schema <- .syn$getTableColumns(schema) %>% reticulate::iterate()
-    index <- match(col, sapply(col_schema, `[[`, "name"))
-    if(is.na(index)) stop("Encountered issue finding relevant column in schema")
-    ref_col <- col_schema[[index]]
-
-    # Must create new immutable column with new size
-    new_col <- col_schema[[index]]
-    new_col <- synapseclient$Column(
-      name = ref_col$name,
-      columnType = ref_col$columnType,
-      maximumSize = size)
-
-    new_col_json <- jsonlite::toJSON(new_col, auto_unbox = TRUE)
-    new_col <- .syn$restPOST(uri = "https://repo-prod.prod.sagebase.org/repo/v1/column", body = new_col_json)
-    message(glue::glue("Created new column {new_col$id}"))
+    new_col <- match_col(schema, col_name)
+    new_col$id <- NULL
+    new_col$maximumSize <- size
+    new_col <- new_col(new_col)
 
     # then update schema
-    schema$removeColumn(ref_col$id)
-    schema$addColumn(new_col$id)
-    schema <- .syn$store(schema)
-    message(glue::glue("Updated schema to use new column {new_col$id}"))
+    schema <- swap_col(schema, old = ref_col$id, new = new_col$id)
 
     return(schema$properties$id)
 }
@@ -95,29 +78,60 @@ adapt_list_length <- function(view, hint) {
   len <- tryCatch(as.integer(len), warning = function(w) stop("Unable to parse length from ", hint))
   message(glue::glue("Adapting list length for '{col}'..."))
 
-  # get schema and apply changes
+  # get schema and apply changes; new col def with diff in maximumListLength
   schema <- .syn$get(view)
-  col_schema <- .syn$getTableColumns(schema) %>% reticulate::iterate()
-  index <- match(col, sapply(col_schema, `[[`, "name"))
-  if(is.na(index)) stop("Encountered issue finding relevant column in schema")
-  ref_col <- col_schema[[index]]
+  new_col <- match_col(schema, col_name)
+  new_col$id <- NULL
+  new_col$maximumListLength <- len
+  new_col <- new_col(new_col)
 
-  # new col def
-  new_col <- col_schema[[index]]
-  new_col <- synapseclient$Column(
-    name = ref_col$name,
-    columnType = ref_col$columnType,
-    maximumListLength = len)
-
-  new_col_json <- jsonlite::toJSON(new_col, auto_unbox = TRUE)
-  new_col <- .syn$restPOST(uri = "https://repo-prod.prod.sagebase.org/repo/v1/column", body = new_col_json)
-  message(glue::glue("Created new column {new_col$id}"))
-
-  schema$removeColumn(ref_col$id)
-  schema$addColumn(new_col$id)
-  schema <- .syn$store(schema)
-  message(glue::glue("Updated schema to use new column {new_col$id}"))
+  schema <- swap_col(schema, old = ref_col$id, new = new_col$id)
 
   return(schema$properties$id)
 
+}
+
+#- Helpers ---------------------------------------------------------------------#
+
+#' Find matching col in schema based on name
+#'
+#' Synapse doesn't allow schemas to have columns of same name,
+#' so this should never return more than one.
+#' @keywords internal
+match_col <- function(schema, col_name) {
+
+  col_schema <- .syn$getTableColumns(schema) %>% reticulate::iterate()
+  index <- match(col_name, sapply(col_schema, `[[`, "name"))
+  if(is.na(index)) stop("Encountered issue finding relevant column in schema")
+  ref_col <- col_schema[[index]]
+  ref_col
+
+}
+
+#' Create new col
+#'
+#' @param col Column definition represented as a list.
+#' @keywords internal
+new_col <- function(col) {
+
+  new_col_json <- jsonlite::toJSON(col, auto_unbox = TRUE)
+  new_col <- .syn$restPOST(uri = "https://repo-prod.prod.sagebase.org/repo/v1/column", body = new_col_json)
+  message(glue::glue("Created new column {new_col$id}"))
+  new_col
+
+}
+
+#' Swap out old column for a new column in a schema
+#'
+#' @param schema A table schema.
+#' @param old Id of old col.
+#' @param new Id of new col
+#' @keywords internal
+swap_col <- function(schema, old, new) {
+
+  schema$removeColumn(old)
+  schema$addColumn(new)
+  schema <- .syn$store(schema)
+  message(glue::glue("Updated schema to use new column {new}"))
+  schema
 }

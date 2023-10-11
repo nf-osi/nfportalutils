@@ -9,7 +9,7 @@ adapt_view(view, max_tries = 5L)
 \arguments{
 \item{view}{Synapse view id.}
 
-\item{max_tries}{Number of tries. Most views should only have accumulated 1-2 issues, so a default of 5 should be reasonable.}
+\item{max_tries}{Number of tries. Vast majority of views should only have accumulated 1-2 bad data mutations, so a default of 5 should be reasonable.}
 }
 \description{
 When a view schema and data are mismatched, the view cannot be built and therefore cannot be queried.
@@ -19,5 +19,5 @@ sizing and list length issues, until the view is functional again and the query 
 However, if the issue is not one of these, this will fail because handlers for other, rarer problems are currently not implemented.
 }
 \details{
-*Note: We apply iterative fixes because that's just how server works currently in surfacing repair recommendations.
+*Note: Fixes are applied iteratively because that's how server currently surfaces repair recommendations.
 }
