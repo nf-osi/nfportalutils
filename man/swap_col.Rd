@@ -11,7 +11,7 @@ swap_col(schema, old, new)
 
 \item{old}{Id of old col.}
 
-\item{new}{Id of new col}
+\item{new}{Id of new col.}
 }
 \description{
 Swap out old column for a new column in a schema
