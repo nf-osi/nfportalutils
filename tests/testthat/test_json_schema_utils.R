@@ -1,52 +1,9 @@
-test_that("Recursive lookup works with `get_dependency_from_json_schema`", {
-  # Note: should make test schema bc test will need to be updated if template changes
-  # Define what columns are present in schematic-generated GenomicsAssayTemplate (ignoring "eTag")
-  k <- c("age",                             
-         "ageUnit",                         
-         "aliquotID",                       
-         "assay",                           
-         "cellType",                        
-         "comments",                        
-         "Component",                      
-         "dataSubtype",                     
-         "dataType",                        
-         "diagnosis",                       
-         "dissociationMethod",              
-         "fileFormat",                      
-         "Filename",                        
-         "individualID",                   
-         "isCellLine",                      
-         "isPrimaryCell",                   
-         "isStranded",                      
-         "isXenograft",                     
-         "libraryPrep",                     
-         "libraryPreparationMethod",        
-         "modelSystemName",                
-         "nf1Genotype",                     
-         "nf2Genotype",                     
-         "nucleicAcidSource",               
-         "organ",                           
-         "parentSpecimenID",                
-         "platform",                        
-         "progressReportNumber",           
-         "readDepth",                       
-         "readLength",                      
-         "readPair",                        
-         "readPairOrientation",             
-         "readStrandOrigin",                
-         "resourceType",                    
-         "runType",                        
-         "sex",                             
-         "species",
-         "specimenID",                      
-         "specimenPreparationMethod",       
-         "tissue",                          
-         "transplantationRecipientSpecies", 
-         "transplantationRecipientTissue", 
-         "transplantationType",             
-         "tumorType")
-  
-  k_test <- get_dependency_from_json_schema(id = "bts:GenomicsAssayTemplate") 
-  testthat::expect_equal(sort(k), sort(k_test))
-  
-})
+# TODO Rewrite this test using stored .jsonld fixture
+# test_that("Recursive lookup works with `get_dependency_from_json_schema`", {
+#
+#   k <- c()
+#
+#   k_test <- get_dependency_from_json_schema(id = "bts:TestAssayTemplate")
+#   testthat::expect_equal(sort(k), sort(k_test))
+#
+# })
