@@ -15,13 +15,14 @@
 adjust_view <- function(view, max_tries = 5L, check_byte_budget = TRUE) {
 
   attempts <- 1
+  stopifnot(is_valid_syn_id(view))
 
   while(attempts < max_tries) {
 
     res <- tryCatch(test <- .syn$tableQuery(glue::glue("SELECT * FROM {view} LIMIT 1")), error = function(e) return(e))
     need_fix <- "synapseclient.core.exceptions.SynapseHTTPError" %in% class(res)
     if(!need_fix) {
-      message("View is in working order.")
+      message("No applicable error found with view.")
       break
     }
 
@@ -30,7 +31,7 @@ adjust_view <- function(view, max_tries = 5L, check_byte_budget = TRUE) {
     if(!length(reason)) stop(glue::glue("Server returned response that can't be handled: {msg}"))
 
     if(grepl("too small", reason)) {
-      view <- adjust_size(view, hint = reason)
+      view <- adjust_string_size(view, hint = reason)
       attempts <- attempts + 1
     }
 
@@ -56,7 +57,7 @@ adjust_string_size <- function(view, hint, check_byte_budget = TRUE) {
     size <-  regmatches(hint, regexpr("[0-9]+(?= characters)", hint, perl = TRUE))
     # convert warn to error if this is not a num
     size <- tryCatch(as.integer(size), warning = function(w) stop("Unable to parse size from ", hint))
-    message(glue::glue("adjusting size for '{col_name}'..."))
+    message(glue::glue("Adjusting size for '{col_name}'..."))
 
     # get schema and apply changes; must create new immutable column with diff size
     schema <- .syn$get(view)
@@ -105,8 +106,8 @@ adjust_list_length <- function(view, hint, check_byte_budget = TRUE) {
 #' @keywords internal
 check_byte_budget_col_swap <- function(schema, ref_col, new_col) {
   adj_remaining <- byte_budget(schema) + byte_budget(schema_cols = list(ref_col), result = "allocated")
-  req_allocate <- byte_budget(new_col)
-  if(req_allocate > adj_remaining) stop(glue::glue("Will have {adj_remaining} bytes in table width budget but adjustments require {req_allocate} bytes"))
+  req_allocate <- byte_budget(schema_cols = list(new_col), result = "allocated")
+  if(req_allocate > adj_remaining) stop(glue::glue("Will have {adj_remaining} bytes in table width budget but adjustment requires {req_allocate} bytes"))
 }
 
 #' Find matching col in schema based on name
@@ -143,7 +144,7 @@ new_col <- function(col) {
 #' @param schema A table schema.
 #' @param old Id of old col.
 #' @param new Id of new col.
-#' @keywords internal
+#' @export
 swap_col <- function(schema, old, new) {
 
   schema$removeColumn(old)

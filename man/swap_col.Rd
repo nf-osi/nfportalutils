@@ -16,4 +16,3 @@ swap_col(schema, old, new)
 \description{
 Swap out old column for a new column in a schema
 }
-\keyword{internal}
