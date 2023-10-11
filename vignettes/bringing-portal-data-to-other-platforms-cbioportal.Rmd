@@ -39,29 +39,39 @@ First load the `nfportalutils` package and log in.
 The recommended default usage of `syn_login` is to use it without directly passing in credentials. 
 Instead, have available the `SYNAPSE_AUTH_TOKEN` environment variable with your token stored therein. 
 
-```{r setup, eval=FALSE}
+```{r setup, eval=TRUE}
 library(nfportalutils)
 syn_login()
+
 ```
 
 ## Create a new study dataset
 
 First create the study before we can put together the data.
+In this case we set validate = `FALSE`, but if set to true it will check `type_of_cancer` against the cBioPortal public API.
 
-```{r cbp_new_study, eval=FALSE}
+```{r cbp_new_study, eval=TRUE}
 
-cbp_new_study(cancer_study_identifier = "npst_nfosi_ntap_2022",
-              name = "Plexiform Neurofibroma and Neurofibroma (Pratilas 2022)",
-              citation = "TBD")
+cbp_new_study(cancer_study_identifier = study_id,
+              name = "Plexiform Neurofibroma (Smith 2022)",
+              type_of_cancer = "npst",
+              citation = "TBD", 
+              validate = FALSE)
+
 ```
 
 ## Add data types to study
 
-Data types can be most easily added _in any order_ using the `cbp_add*` functions.
-These download data files and create the meta for them, using **defaults for NF-OSI processed data**. 
-Sometimes if these defaults don't match what you want, take a look at the lower-level utils `make_meta_*` or edit the files manually after.
+Data types can be added _in any order_ using the `cbp_add*` functions.
+These convenience utils download data files and create the meta for them and expects certain **defaults for NF-OSI processed data**. 
+(If sometimes these defaults don't match what you want, take a look at the lower-level utils `make_meta_*` or edit the files manually after.)
 
-Important: user is expected to be in a valid cBioPortal study directory as set up in the previous step.
+**Note 1**: If you use `cbp_add*` for a dataset with existing data, this will replace the same data type already in the dataset.
+
+**Note 2**: We have to be in a valid cBioPortal study directory set up in the previous step. 
+This is intentional because it can automatically and consistently use the whatever study id is in the current study meta file.
+But because Rmarkdown files assume the working directory is where the Rmarkdown document is located, we have to force `setwd()` each time. 
+*If running outside of Rmarkdown, i.e. typing commands directly into console, you don't need to use `setwd()` each time.*
 
 ### Add mutations data
 
@@ -70,30 +80,35 @@ No further modifications are done except renaming it.
 
 ```{r add_maf, eval=FALSE}
 
-maf_data <- "syn36553188"
+setwd(study_id)
 
-add_cbp_maf(maf_data)
+maf_data <- "syn52073131"
+cbp_add_maf(maf_data)
 ```
 
 ### Add copy number alterations (CNA) data
 
-- `cna_data` is expected to be a `.seg` file on Synapse.
+- `cna_data` is mostly expected as discrete data, [GISTIC 2.0 format](https://docs.cbioportal.org/file-formats/#gistic-20-format) `.txt` file on Synapse.
 
 ```{r add_cna, eval=FALSE}
 
-cna_data <- "syn********"
+setwd(study_id)
 
+cna_data <- "syn********"
 cbp_add_cna(cna_data)
 ```
 
 ### Add expression data
 
-- `expression_data` is expected to be a `.txt` file on Synapse.
+...By the time of this third and final data type addition, we should hopefully have the gist of adding to the dataset. 
+
+- `expression_data` is expected to be a `.tsv` or `.txt` file on Synapse.
 
 ```{r add_expression, eval=FALSE}
 
-mrna_data <- "syn********"
+setwd(study_id)
 
+mrna_data <- "syn********"
 cbp_add_expression(mrna_data)
 ```
 
@@ -105,6 +120,8 @@ cbp_add_expression(mrna_data)
 
 ```{r add_clinical, eval=FALSE}
 
+setwd(study_id)
+
 ref_view <- "syn43278088"
 ref_map <- "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/mappings/cBioPortal.yaml"
 
@@ -113,12 +130,14 @@ cbp_add_clinical(ref_view, ref_map)
 
 ## Validation
 
-There are additional steps such as generating case lists and validation that have to be done _outside_ of the package with a cBioPortal backend, where each portal may have specific configurations (such as genomic reference) to validate against.
+### With cBioPortal tooling
+
+Additional steps such as generating case lists and validation have to be done _outside_ of this package with a cBioPortal backend. 
+The portal instance you are targeting has its own specific configuration (for genomic reference, certain types of enum values, etc.) to validate against.
 See the [general docs for dataset validation](https://docs.cbioportal.org/using-the-dataset-validator/).
 
-For the _public_ portal, the suggested step using the public server is given below.  
+For the _public_ portal, the suggested step using the public server/tools is given below.  
 
 Assuming your present working directory is `~/datahub/public` and a study folder called `mixed_nfosi_2022` has been placed into it, mount the dataset into the container and run validation with:  
 `docker run --rm -v $(pwd):/datahub cbioportal/cbioportal:4.1.13 validateStudies.py -d /datahub -l mixed_nfosi_2022 -u http://cbioportal.org -html /datahub/mixed_nfosi_2022/html_report`
 
- 
