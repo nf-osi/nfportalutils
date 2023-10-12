@@ -61,6 +61,15 @@
     <loc>/reference/add_to_collection.html</loc>
   </url>
   <url>
+    <loc>/reference/adjust_list_length.html</loc>
+  </url>
+  <url>
+    <loc>/reference/adjust_string_size.html</loc>
+  </url>
+  <url>
+    <loc>/reference/adjust_view.html</loc>
+  </url>
+  <url>
     <loc>/reference/annotate_aligned_reads.html</loc>
   </url>
   <url>
@@ -106,6 +115,9 @@
     <loc>/reference/button_widget.html</loc>
   </url>
   <url>
+    <loc>/reference/byte_budget.html</loc>
+  </url>
+  <url>
     <loc>/reference/calc_study_dist_dtm.html</loc>
   </url>
   <url>
@@ -131,6 +143,9 @@
   </url>
   <url>
     <loc>/reference/check_access.html</loc>
+  </url>
+  <url>
+    <loc>/reference/check_byte_budget_col_swap.html</loc>
   </url>
   <url>
     <loc>/reference/check_cbp_study_id.html</loc>
@@ -325,6 +340,9 @@
     <loc>/reference/map_sample_output_sarek.html</loc>
   </url>
   <url>
+    <loc>/reference/match_col.html</loc>
+  </url>
+  <url>
     <loc>/reference/meta_qc_dataset.html</loc>
   </url>
   <url>
@@ -332,6 +350,9 @@
   </url>
   <url>
     <loc>/reference/missing_annotation_email.html</loc>
+  </url>
+  <url>
+    <loc>/reference/new_col.html</loc>
   </url>
   <url>
     <loc>/reference/new_dataset.html</loc>
@@ -386,6 +407,9 @@
   </url>
   <url>
     <loc>/reference/summarize_file_access.html</loc>
+  </url>
+  <url>
+    <loc>/reference/swap_col.html</loc>
   </url>
   <url>
     <loc>/reference/syn_login.html</loc>
