@@ -3,19 +3,25 @@ template:
   bootstrap: 5
 
 reference:
-- title: Portal Tables Utils
+- title: Table Utils
+- subtitle: Main PORTAL table data update and management
   desc: Augment and update one of the main portal tables (e.g. Portal - Studies)
-- contents: 
+- contents:
   - starts_with("add_publication")
   - assign_study_data_types
   - calculate_related_studies
   - register_study
   - add_people_from_table
   - register_study_files
+- subtitle: Lower-level table maintenance
+- contents:
+  - adjust_view
+  - swap_col
+  - byte_budget
 
-- title: Project Configuration and Management 
+- title: Project Configuration and Management
   desc: Create or retrofit an NF project to expected default structure and assets
-- contents: 
+- contents:
   - new_project
   - add_default_fileview
   - add_default_folders
@@ -27,15 +33,15 @@ reference:
 - contents:
   - update_study_annotations
   - annotate_with_manifest
-  - copy_annotations 
+  - copy_annotations
   - .modify_annotation
   - meta_qc_dataset
   - meta_qc_project
   - manifest_generate
   - manifest_validate
   - infer_data_type
-- subtitle: Special annotation of nextflow processed data 
-  desc: Special annotation of nextflow processed data 
+- subtitle: Special annotation of nextflow processed data
+  desc: Special annotation of nextflow processed data
 - contents:
   - map_reports_sarek
   - map_sample_input_ss
@@ -87,7 +93,7 @@ reference:
 
 - title: Search Utils
   desc: Help locate Synapse accessions, etc.
-- contents: 
+- contents:
   - contains("find")
 
 - title: Provenance Utils
@@ -95,10 +101,10 @@ reference:
 - contents:
   - contains("activity")
   - delete_provenance
-  
+
 - title: Content Utils
   desc: Create and manage Wiki-type content for projects and pages
-- contents: 
+- contents:
   - add_default_wiki
   - wiki_mod
   - remove_wiki_subpage
@@ -107,9 +113,9 @@ reference:
   - check_wiki_links
   - remove_button
   - processing_flowchart
-  
+
 - title: Export Data to Other Platforms
-  desc: Helpers to export/release NF data to other platforms/databases. 
+  desc: Helpers to export/release NF data to other platforms/databases.
 - subtitle: cBioPortal
   desc: Export data as a cBioPortal study
 - contents:
@@ -126,7 +132,7 @@ reference:
   - identify_read_pair
   - test_failed
   - test_passed
-  
+
 - title: Basic Utils
   desc: Low-level functions
 - contents:
@@ -146,7 +152,7 @@ reference:
   - from_pubmed
 
 - title: Internal/experimental
-  description: Mostly meant to be internal or experimental stuff 
+  description: Mostly meant to be internal or experimental stuff
 - contents:
   - .delim_string_to_vector
   - .replace_string_column_with_stringlist_column
