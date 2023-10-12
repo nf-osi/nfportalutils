@@ -42,7 +42,7 @@ asFileFormat <- function(filename) {
   if(grepl("[.]stats$", filename)) return("stats")
   if(grepl("[.]out$", filename)) return("out")
   if(grepl("[.]zip$", filename)) return("zip")
-  if(grepl("[.]fna.gz$", filename)) return("fna")
+  if(grepl("[.]fna.gz$", filename)) return("fasta")
   if(grepl("[.]fld.gz$", filename)) return("")
   if(grepl("[.]expected_bias.gz$", filename)) return("")
   if(grepl("[.]observed_bias.*.gz$", filename)) return("")
