@@ -227,11 +227,16 @@ somewhat slower.</p>
 </h3>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
-<span><span class="va">sample_io</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/map_sample_io.html">map_sample_io</a></span><span class="op">(</span>workflow <span class="op">=</span> <span class="st">"nf-sarek"</span>,</span>
-<span>                           samplesheet <span class="op">=</span> <span class="st">"PilotBatch-WES-samplesheet.txt"</span>, <span class="co"># local file</span></span>
-<span>                           syn_out <span class="op">=</span> <span class="st">"syn27650634"</span><span class="op">)</span></span>
+<span><span class="va">sample_io</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/map_sample_io.html">map_sample_io</a></span><span class="op">(</span></span>
+<span>  workflow <span class="op">=</span>  <span class="st">"nf-sarek"</span>,</span>
+<span>  samplesheet <span class="op">=</span> <span class="st">"sarek_JH_WU_mixed_kit_samples.csv"</span>, <span class="co"># local file,</span></span>
+<span>  syn_out <span class="op">=</span> <span class="st">"syn52593603"</span>,</span>
+<span>  sample_level <span class="op">=</span> <span class="fl">3</span></span>
+<span><span class="op">)</span></span>
+<span></span>
 <span><span class="co"># Modify workflow assignment a bit</span></span>
-<span><span class="va">sample_io</span><span class="op">[</span><span class="va">workflow</span> <span class="op">==</span><span class="st">"Strelka"</span>, <span class="va">workflow</span> <span class="op">:=</span> <span class="st">"Strelka2"</span><span class="op">]</span></span></code></pre></div>
+<span><span class="va">sample_io</span><span class="op">[</span><span class="va">workflow</span> <span class="op">==</span><span class="st">"strelka"</span>, <span class="va">workflow</span> <span class="op">:=</span> <span class="st">"Strelka2"</span><span class="op">]</span></span>
+<span><span class="va">sample_io</span><span class="op">[</span><span class="va">workflow</span> <span class="op">==</span><span class="st">"mutect2"</span>, <span class="va">workflow</span> <span class="op">:=</span> <span class="st">"Mutect2"</span><span class="op">]</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="add-provenance-1">Add provenance<a class="anchor" aria-label="anchor" href="#add-provenance-1"></a>
@@ -239,9 +244,10 @@ somewhat slower.</p>
 <p>Use the manifest to add provenance.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
-<span><span class="va">wf_link</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>FreeBayes <span class="op">=</span> <span class="st">"https://nf-co.re/sarek/2.7.1/output#freebayes"</span>,</span>
-<span>             Mutect2 <span class="op">=</span> <span class="st">"https://nf-co.re/sarek/2.7.1/output#gatk-mutect2"</span>,</span>
-<span>             Strelka2 <span class="op">=</span> <span class="st">"https://nf-co.re/sarek/2.7.1/output#strelka2"</span><span class="op">)</span></span>
+<span><span class="va">wf_link</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>FreeBayes <span class="op">=</span> <span class="st">"https://nf-co.re/sarek/3.2.3/output#freebayes"</span>,</span>
+<span>             Mutect2 <span class="op">=</span> <span class="st">"https://nf-co.re/sarek/3.2.3/output#gatk-mutect2"</span>,</span>
+<span>             Strelka2 <span class="op">=</span> <span class="st">"https://nf-co.re/sarek/3.2.3/output#strelka2"</span><span class="op">)</span></span>
+<span></span>
 <span><span class="fu"><a href="../reference/add_activity_batch.html">add_activity_batch</a></span><span class="op">(</span><span class="va">sample_io</span><span class="op">$</span><span class="va">output_id</span>, </span>
 <span>                   <span class="va">sample_io</span><span class="op">$</span><span class="va">workflow</span>, </span>
 <span>                   <span class="va">wf_link</span><span class="op">[</span><span class="va">sample_io</span><span class="op">$</span><span class="va">workflow</span><span class="op">]</span>, </span>
@@ -258,7 +264,8 @@ see <code><a href="../reference/annotate_called_variants.html">?annotate_called_
 examination and correction has needed.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
-<span><span class="va">manifest</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/annotate_called_variants.html">annotate_called_variants</a></span><span class="op">(</span><span class="va">sample_io</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">manifest</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/annotate_called_variants.html">annotate_called_variants</a></span><span class="op">(</span><span class="va">sample_io</span>, </span>
+<span>                                     workflow_ref <span class="op">=</span> <span class="va">wf_link</span><span class="op">[</span><span class="va">sample_io</span><span class="op">$</span><span class="va">workflow</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
 <p>For example, if you used a slightly different version/fork, you
 should update it manually in the manifest. Otherwise, apply the
 annotations:</p>
