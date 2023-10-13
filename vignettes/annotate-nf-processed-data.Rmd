@@ -151,11 +151,16 @@ though mapping inputs-outputs can be somewhat slower.
 ### Creating helper resource files
 ```{r sarek-resources, eval=FALSE}
 
-sample_io <- map_sample_io(workflow = "nf-sarek",
-                           samplesheet = "PilotBatch-WES-samplesheet.txt", # local file
-                           syn_out = "syn27650634")
+sample_io <- map_sample_io(
+  workflow =  "nf-sarek",
+  samplesheet = "sarek_JH_WU_mixed_kit_samples.csv", # local file,
+  syn_out = "syn52593603",
+  sample_level = 3
+)
+
 # Modify workflow assignment a bit
-sample_io[workflow =="Strelka", workflow := "Strelka2"]
+sample_io[workflow =="strelka", workflow := "Strelka2"]
+sample_io[workflow =="mutect2", workflow := "Mutect2"]
 ```
 
 ### Add provenance
@@ -164,9 +169,10 @@ Use the manifest to add provenance.
 
 ```{r sarek-add-provenance, eval=FALSE}
 
-wf_link <- c(FreeBayes = "https://nf-co.re/sarek/2.7.1/output#freebayes",
-             Mutect2 = "https://nf-co.re/sarek/2.7.1/output#gatk-mutect2",
-             Strelka2 = "https://nf-co.re/sarek/2.7.1/output#strelka2")
+wf_link <- c(FreeBayes = "https://nf-co.re/sarek/3.2.3/output#freebayes",
+             Mutect2 = "https://nf-co.re/sarek/3.2.3/output#gatk-mutect2",
+             Strelka2 = "https://nf-co.re/sarek/3.2.3/output#strelka2")
+
 add_activity_batch(sample_io$output_id, 
                    sample_io$workflow, 
                    wf_link[sample_io$workflow], 
@@ -182,7 +188,8 @@ This returns a manifest for examination and correction has needed.
  
 ```{r sarek-make-annotations, eval=FALSE}
 
-manifest <- annotate_called_variants(sample_io)
+manifest <- annotate_called_variants(sample_io, 
+                                     workflow_ref = wf_link[sample_io$workflow])
 
 ```
 
