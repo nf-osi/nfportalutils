@@ -2,7 +2,7 @@
 % Please edit documentation in R/register_study.R
 \name{register_study_files}
 \alias{register_study_files}
-\title{Add new project scope to "Portal - Files" fileview}
+\title{Register a project's files in \strong{Portal - Files}}
 \usage{
 register_study_files(project_id, portal_fileview = "syn16858331")
 }
@@ -12,6 +12,6 @@ register_study_files(project_id, portal_fileview = "syn16858331")
 \item{portal_fileview}{Synapse id of "Portal - Files" entity view.}
 }
 \description{
-Add a new project to the scope of the "Portal - Files" fileview so that
+Add a project to the scope of the \strong{Portal - Files} fileview so that
 files for that project are "registered" and surfaced in portal.
 }

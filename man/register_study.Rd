@@ -2,63 +2,28 @@
 % Please edit documentation in R/register_study.R
 \name{register_study}
 \alias{register_study}
-\title{Register a study in Portal - Studies}
+\title{Register a NEW project for the NF Data Portal in \strong{Portal - Project View}}
 \usage{
 register_study(
-  name,
-  project_id,
-  abstract,
-  lead,
-  institution,
-  focus,
-  manifestation,
-  fileview_id,
-  funder = c("CTF", "GFF", "NTAP"),
-  initiative,
-  study_status = "Active",
-  data_status = "None",
-  terms_access =
-    "The data from this study is currently under embargo. Please contact the principal investigator for access to the data.",
-  terms_acknowledgement =
-    "The data from this study are still under embargo, therefore, if you have been granted access by the data contributor, you must work with them to determine how to acknowledge your collaboration in any manuscripts that arise. In addition, please acknowledge the NF Data Portal like so: \\"The results published here are in whole or in part based on data obtained from the NF Data Portal (http://www.nf.synapse.org, RRID:SCR_021683) and made available through the NF Open Science Initiative.\\"",
-  grant_doi = "",
-  study_table_id = "syn16787123"
+  id,
+  study_meta,
+  summary,
+  study_summary_table,
+  portal_project_view = "syn52677631"
 )
 }
 \arguments{
-\item{name}{Name of the project/study.}
+\item{id}{Synapse id of study.}
 
-\item{project_id}{The Synapse project id, used as the studyId.}
+\item{study_meta}{List of annotations representing study meta.}
 
-\item{abstract}{Project abstract/description.}
+\item{summary}{Large summary string.}
 
-\item{lead}{Name(s) of the project lead/data coordinator, comma-sep if multiple, e.g. "Jane Doe, John Doe".}
+\item{study_summary_table}{Id of where to store summary (can be any table with a \code{summary} LARGETEXT column).}
 
-\item{institution}{Affiliated institution(s), \strong{semicolon-sep if multiple}, e.g. "Stanford University; University of California, San Francisco".}
-
-\item{focus}{NF focus, e.g. "Neurofibromatosis type 1".}
-
-\item{manifestation}{Character vector of enum NF manifestation(s) associated with study.}
-
-\item{fileview_id}{Synapse id of the study project's main fileview.}
-
-\item{funder}{The funding agency. The relevant funder team will be made admin.}
-
-\item{initiative}{Title of funding initiative, e.g. "Young Investigator Award".}
-
-\item{study_status}{Status of study, defaults to "Active" for new projects.}
-
-\item{data_status}{Status of the data, defaults to "None" for new projects.}
-
-\item{terms_access}{Access requirements blurb, uses a default for new projects.}
-
-\item{terms_acknowledgement}{Blurb for how study should be acknowledged if materials are reused.
-Unless specified by PI/leads at inception, leave blank for new projects and update later.}
-
-\item{grant_doi}{DOI of grant proposal if available.}
-
-\item{study_table_id}{The Synapse id of the portal study table.}
+\item{portal_project_view}{View of DCC-managed projects (studies).}
 }
 \description{
-Basically create a row for a new NF-OSI project study in Portal - Studies table
+Add relevant study metadata to the project as annotations.
+Add to scope of NF-OSI data portal and management in \strong{Portal - Project View}.
 }
