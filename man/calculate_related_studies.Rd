@@ -23,7 +23,7 @@ since the number of desired related studies is specified, this may be preferable
 which gives variable number of related studies because clusters vary in size.
 Ignored if \code{n_clust} is already given.}
 
-\item{dry_run}{Default = TRUE. Skips upload to table and instead prints study tibble.}
+\item{dry_run}{Default = TRUE. Skips annotating the studies and instead prints study tibble.}
 }
 \value{
 If dry_run == T, returns study tibble and skips upload.
@@ -31,10 +31,10 @@ If dry_run == T, returns study tibble and skips upload.
 \description{
 Processes study summary text to identify clusters of related studies.
 Calculates tf-idf values for 1 and 2 length ngrams, and clusters studies using the ward.D clustering method.
-Updates data in a STRINGLIST column "relatedStudies."
+Adds results as annotations to the studies.
 }
 \examples{
-\dontrun{ 
+\dontrun{
 result1  <- calculate_related_studies(study_table_id = "syn16787123",
                            n_clust = 40,
                            dry_run = T)
@@ -44,6 +44,6 @@ result2  <- calculate_related_studies(study_table_id = "syn16787123",
 x <- lapply(result1$relatedStudies, jsonlite::fromJSON)
 y <- lapply(result2$relatedStudies, jsonlite::fromJSON)
 # Compare
-mapply(function(x, y) sum(y \%in\% x), x, y)                               
+mapply(function(x, y) sum(y \%in\% x), x, y)
 }
 }

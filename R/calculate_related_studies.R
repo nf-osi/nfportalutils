@@ -1,21 +1,21 @@
 #' Calculate and add related studies to study table
-#' 
-#' Processes study summary text to identify clusters of related studies. 
-#' Calculates tf-idf values for 1 and 2 length ngrams, and clusters studies using the ward.D clustering method. 
-#' Updates data in a STRINGLIST column "relatedStudies."
-#' 
+#'
+#' Processes study summary text to identify clusters of related studies.
+#' Calculates tf-idf values for 1 and 2 length ngrams, and clusters studies using the ward.D clustering method.
+#' Adds results as annotations to the studies.
+#'
 #' @param study_table_id The synapse id of the portal study table. Must have write access.
-#' @param n_clust Target number of clusters to generate using hierarchical clustering. 
+#' @param n_clust Target number of clusters to generate using hierarchical clustering.
 #' In practice, the number of total summaries divided by 3 is a good starting point (100 studies = 33 clusters).
 #' If given `n_k` is ignored.
 #' @param n_k Generate target number of most closely related studies using k-nearest-neighbors instead;
-#' since the number of desired related studies is specified, this may be preferable over using `n_clust`, 
+#' since the number of desired related studies is specified, this may be preferable over using `n_clust`,
 #' which gives variable number of related studies because clusters vary in size.
 #' Ignored if `n_clust` is already given.
-#' @param dry_run Default = TRUE. Skips upload to table and instead prints study tibble.
+#' @param dry_run Default = TRUE. Skips annotating the studies and instead prints study tibble.
 #' @return If dry_run == T, returns study tibble and skips upload.
 #' @examples
-#' \dontrun{ 
+#' \dontrun{
 #' result1  <- calculate_related_studies(study_table_id = "syn16787123",
 #'                            n_clust = 40,
 #'                            dry_run = T)
@@ -25,13 +25,12 @@
 #' x <- lapply(result1$relatedStudies, jsonlite::fromJSON)
 #' y <- lapply(result2$relatedStudies, jsonlite::fromJSON)
 #' # Compare
-#' mapply(function(x, y) sum(y %in% x), x, y)                               
+#' mapply(function(x, y) sum(y %in% x), x, y)
 #'}
 #' @export
-
-calculate_related_studies <- function(study_table_id, 
-                                      n_clust = NULL, 
-                                      n_k = NULL, 
+calculate_related_studies <- function(study_table_id,
+                                      n_clust = NULL,
+                                      n_k = NULL,
                                       dry_run = TRUE){
 
   .check_login()
@@ -41,12 +40,12 @@ calculate_related_studies <- function(study_table_id,
 
   studies <- query$filepath %>%
     readr::read_csv(na=character())
-  
+
   cdist <- calc_study_dist_dtm(studies)
-  
+
   # Distances can be input to either hclust or knn
   if(!is.null(n_clust) && is.numeric(n_clust)) {
-    
+
     hc <- hclust(cdist, "ward.D")
     ## then plot the cluster borders to define them
     ## then change the number of clusters if the clusters are too large
@@ -54,14 +53,14 @@ calculate_related_studies <- function(study_table_id,
     #break into 20 clusters - this probably should be changed for smaller or larger numbers of studies
     #I was targeting ~3-4 related studies per cluster, this seemed to work fairly well
     clustering <- cutree(hc, n_clust)
-    
+
     if(dry_run == TRUE) {
       plot(hc, main = "Hierarchical clustering of NF Study Summaries",
            ylab = "", xlab = "", yaxt = "n")
-      
+
       rect.hclust(hc, n_clust, border = "red")
     }
-    
+
     # p_words <- colSums(dtm) / sum(dtm)
     #
     # cluster_words <- lapply(unique(clustering), function(x){
@@ -81,48 +80,52 @@ calculate_related_studies <- function(study_table_id,
     #                                 collapse = ", ")
     #                             }),
     #                             stringsAsFactors = FALSE)
-    
+
     similar_studies <- clustering %>%
       tibble::as_tibble(rownames = "relatedStudies")
-    
+
     source_studies <-  clustering %>%
       tibble::as_tibble(rownames = "studyId")
-    
+
     ids <- dplyr::full_join(similar_studies,source_studies) %>%
       dplyr::filter(relatedStudies != studyId) %>% #remove self-association
       dplyr::group_by(studyId) %>%
       dplyr::summarise(relatedStudies = jsonlite::toJSON(relatedStudies)) %>%
       dplyr::ungroup()
-    
+
     studies_updated <- dplyr::left_join(studies, ids)
-    
+
   } else if(!is.null(n_k) && is.numeric(n_k)) {
-    
+
     cdist <- as.matrix(cdist)
     nearest <- lapply(1:nrow(cdist), function(x) row.names(cdist)[FastKNN::k.nearest.neighbors(x, cdist, k = n_k)])
-    studies_updated <- studies 
+    studies_updated <- studies
     studies_updated$relatedStudies <- sapply(nearest, jsonlite::toJSON)
-    
+
   } else {
     stop("You must specify a valid value for either n_clust or n_k!")
   }
-  
+
 
   if(dry_run == FALSE){
-    .update_table_data(table_id = study_table_id,
-                       new_data = studies_updated,
-                       etag = query$etag)
+    for(i in 1:nrow(studies_updated)) {
+      id <- studies_updated[i, "studyId"]
+      relatedStudies <- studies_updated[i, "relatedStudies"]
+      annotations <- .syn$getAnnotations(id)
+      annotations$relatedStudies <- relatedStudies
+      invisible(.syn$setAnnotations(id, annotations))
+    }
   } else {
     studies_updated
   }
 }
 
 #' Calculate study distance based on summary text
-#' 
-#' There are different measures of similarity; 
+#'
+#' There are different measures of similarity;
 #' this gives cosine similarity based on summary text, which is then converted to a distance matrix.
 #' In the future, other methods may be used for comparison or in ensemble.
-#' @param studies A `data.frame` where each row is a "document"; should have `summary` and `studyId`. 
+#' @param studies A `data.frame` where each row is a "document"; should have `summary` and `studyId`.
 #' @keywords internal
 calc_study_dist_dtm <- function(studies) {
   ##create a document object using the study summaries
@@ -135,7 +138,7 @@ calc_study_dist_dtm <- function(studies) {
                               remove_punctuation = T,
                               remove_numbers = F,
                               verbose = F)
-  
+
   tf_mat <- textmineR::TermDocFreq(dtm)
   tfidf <- t(dtm[ , tf_mat$term ] %>% as.matrix()) * tf_mat$idf
   tfidf <- t(tfidf)

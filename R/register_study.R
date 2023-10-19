@@ -1,88 +1,146 @@
-#' Register a study in Portal - Studies
-#' 
-#' Basically create a row for a new NF-OSI project study in Portal - Studies table
-#' 
-#' @inheritParams new_project
-#' @param project_id The Synapse project id, used as the studyId.
-#' @param focus NF focus, e.g. "Neurofibromatosis type 1".
-#' @param manifestation Character vector of enum NF manifestation(s) associated with study.
-#' @param fileview_id Synapse id of the study project's main fileview.
-#' @param study_status Status of study, defaults to "Active" for new projects.
-#' @param data_status Status of the data, defaults to "None" for new projects.
-#' @param terms_access Access requirements blurb, uses a default for new projects.
-#' @param terms_acknowledgement Blurb for how study should be acknowledged if materials are reused. 
-#' Unless specified by PI/leads at inception, leave blank for new projects and update later.
-#' @param study_table_id The Synapse id of the portal study table. 
-#' @param grant_doi DOI of grant proposal if available.
+#' Register a NEW project for the NF Data Portal in **Portal - Project View**
+#'
+#' Add relevant study metadata to the project as annotations.
+#' Add to scope of NF-OSI data portal and management in **Portal - Project View**.
+#'
+#' @param id Synapse id of study.
+#' @param study_meta List of annotations representing study meta.
+#' @param summary Large summary string.
+#' @param study_summary_table Id of where to store summary (can be any table with a `summary` LARGETEXT column).
+#' @param portal_project_view View of DCC-managed projects (studies).
 #' @export
-register_study <- function(name,
-                           project_id, 
-                           abstract, 
-                           lead, 
-                           institution, 
-                           focus, 
-                           manifestation,
-                           fileview_id,
-                           funder = c("CTF", "GFF", "NTAP"),
-                           initiative,
-                           study_status = "Active",
-                           data_status = "None",
-                           terms_access = "The data from this study is currently under embargo. Please contact the principal investigator for access to the data.",
-                           terms_acknowledgement = 'The data from this study are still under embargo, therefore, if you have been granted access by the data contributor, you must work with them to determine how to acknowledge your collaboration in any manuscripts that arise. In addition, please acknowledge the NF Data Portal like so: "The results published here are in whole or in part based on data obtained from the NF Data Portal (http://www.nf.synapse.org, RRID:SCR_021683) and made available through the NF Open Science Initiative."',
-                           grant_doi = "",
-                           study_table_id = "syn16787123") {
-  
-  schema <- .syn$get(study_table_id)
-  # Basic validation for project_id and fileview_id where expect format "syn12345678" (allow 9 digits eventually?)
-  if(!grepl("^syn[0-9]{8}", project_id)) stop("Possible typo/missing something in project Synapse id?")
-  if(!grepl("^syn[0-9]{8}", fileview_id)) stop("Possible typo/missing something in fileview Synapse id?")
-  
-  new_row <- data.frame(studyName = name,
-                       studyId = project_id,
-                       summary = abstract,                   
-                       initiative = initiative,                
-                       studyLeads = strlist_JSON(lead), # STRLIST                
-                       institutions = strlist_JSON(institution, sep = "; ?"),  # STRLIST  
-                       manifestation = strlist_JSON(manifestation),  # STRLIST  
-                       diseaseFocus = strlist_JSON(focus),  # STRLIST  
-                       studyStatus = study_status,
-                       dataStatus = data_status,
-                       fundingAgency = strlist_JSON(funder),  # STRLIST  
-                       accessRequirements = terms_access,
-                       acknowledgementStatements = terms_acknowledgement,
-                       dataType = "", # STRLIST  
-                       relatedStudies = "", # STRLIST  
-                       studyFileviewId = fileview_id,
-                       id = project_id,
-                       grantDOI = strlist_JSON(grant_doi), # STRLIST                   
-                       Resource_id = "") # STRLIST  
-  .syn$store(synapseclient$Table(schema, new_row))
-  
+register_study <- function(id,
+                           study_meta,
+                           summary,
+                           study_summary_table,
+                           portal_project_view = "syn52677631") {
+
+    add_new_study_meta(id, study_meta)
+    add_study_summary(id, summary, study_summary_table)
+    add_to_scope(portal_project_view, id)
+    message(glue::glue("Successfully added {id} to DCC study scope!"))
 }
 
 
-#' Add new project scope to "Portal - Files" fileview
-#' 
-#' Add a new project to the scope of the "Portal - Files" fileview so that 
+#' Register a project's files in **Portal - Files**
+#'
+#' Add a project to the scope of the **Portal - Files** fileview so that
 #' files for that project are "registered" and surfaced in portal.
-#' 
+#'
 #' @param project_id The project id, i.e. container, that will be added to the scope of the view.
 #' @param portal_fileview Synapse id of "Portal - Files" entity view.
 #' @export
-register_study_files <- function(project_id, 
+register_study_files <- function(project_id,
                                  portal_fileview = "syn16858331") {
-  
-  new_scope_id <- sub("syn", "", project_id)
-  portal_fileview <- .syn$get(portal_fileview)
-  # Works, but maybe there's a better implementation?
-  reticulate::py_set_attr(portal_fileview, "scopeIds", c(portal_fileview$properties$scopeIds, new_scope_id))
-  .syn$store(portal_fileview)
+
+  add_to_scope(portal_fileview, project_id)
 }
 
+
+#' Helpers ---------------------------------------------------------------------#
+
+#' Add meta for new studies as annotations
+#'
+#' Put *selected* metadata into Synapse annotations for the study project entity.
+#'
+#' @param id Id of container representing the study, usually a Synapse project.
+#' @param study_meta Study meta as a list.
+#' @keywords internal
+add_new_study_meta <- function(id, study_meta) {
+
+  study_meta <- study_meta[names(study_meta) %in% c(
+    "studyName",
+    "fundingAgency",
+    "initiative",
+    "studyLeads",
+    "institutions",
+    "diseaseFocus",
+    "manifestation",
+    "studyStatus",
+    "dataStatus",
+    "grantDOI",
+    "relatedStudies",
+    "studyFileviewId")]
+
+  if(is.null(study_meta$studyStatus) || is.na(study_meta$studyStatus)) study_meta$studyStatus <- "Active"
+  if(is.null(study_meta$dataStatus) || is.na(study_meta$dataStatus)) study_meta$dataStatus <- "Data Pending"
+
+  study <- .syn$setAnnotations(id, study_meta)
+  invisible(study)
+}
+
+
+#' Add to scope
+#'
+#' Convenience function to add container to view scope.
+#'
+#' @param view_id Id of view
+#' @param container_id Id of container to add.
+#' @export
+add_to_scope <- function(view_id, container_id) {
+
+  view <- .syn$get(view_id)
+  new_scope_id <- sub("syn", "", container_id) # should be integer id
+  view$add_scope(new_scope_id)
+  view <- .syn$store(view)
+  invisible(view)
+}
+
+
+#' Add studyId-summary key-value only
+#'
+#' @keywords internal
+add_study_summary <- function(study_id, summary, table_id = "syn16787123") {
+
+  BASE_URL <- "https://repo-prod.prod.sagebase.org/repo/v1"
+  url <- glue::glue("{BASE_URL}/entity/{table_id}/table/transaction/async/start")
+
+  studyId_col_model <- "82658"
+  summary_col_model <- "82091"
+
+  new_row <- list(etag = NULL,
+                  rowId = NULL,
+                  values = list(
+                    list(key = studyId_col_model, value = study_id), # id val in row
+                    list(key = summary_col_model, value = summary) # summary value in row
+                  ))
+
+  p_rowset <- list(concreteType = "org.sagebionetworks.repo.model.table.PartialRowSet",
+                   tableId = table_id,
+                   rows = list(new_row))
+
+  row_update <- list(concreteType = "org.sagebionetworks.repo.model.table.AppendableRowSetRequest",
+                     entityId = table_id,
+                     toAppend = p_rowset)
+
+  payload <- c(concreteType = "org.sagebionetworks.repo.model.table.TableUpdateTransactionRequest",
+               entityId = table_id,
+               changes = list(list(row_update)),
+               createSnapshot = FALSE,
+               snapshotOptions = list(list(snapshotComment = NULL, snapshotLabel = NULL, snapshotActivityId = NULL))) %>%
+    jsonlite::toJSON(auto_unbox = TRUE, null = "null", na = "null")
+
+  key <- .syn$credentials$secret
+  response <- httr::POST(url, httr::add_headers(Authorization = paste("Bearer",key)),
+                         body = payload, httr::content_type_json())
+
+  if(httr::status_code(response) %in% c(201L, 200L)) {
+    token <- httr::content(response)$token
+    Sys.sleep(1)
+    url_check <- glue::glue("https://repo-prod.prod.sagebase.org/repo/v1/asynchronous/job/{token}")
+    job_get <- httr::GET(url_check, httr::add_headers(Authorization = paste("Bearer",key)))
+    status <- httr::status_code(job_get)
+    if(status == 200L) message(glue::glue("Successfully submitted summary for {study_id}"))
+  } else {
+    stop("Error submitting summary")
+  }
+}
+
+
 #' Convert delimited record to JSON representation needed by a stringlist col schema
-#' 
+#'
 #' Internal helper that reuses and extends the utility of `.delim_string_to_vector`.
-#' 
+#'
 #' @inheritParams .delim_string_to_vector
 #' @param record Character vector of length one representing a single record.
 #' @keywords internal
@@ -91,4 +149,3 @@ strlist_JSON <- function(record, sep = ",", trim_ws = T) {
     jsonlite::toJSON() %>%
     as.character()
 }
-
