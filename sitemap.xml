@@ -46,6 +46,9 @@
     <loc>/reference/add_default_wiki.html</loc>
   </url>
   <url>
+    <loc>/reference/add_new_study_meta.html</loc>
+  </url>
+  <url>
     <loc>/reference/add_people_from_table.html</loc>
   </url>
   <url>
@@ -58,7 +61,13 @@
     <loc>/reference/add_publications_from_file.html</loc>
   </url>
   <url>
+    <loc>/reference/add_study_summary.html</loc>
+  </url>
+  <url>
     <loc>/reference/add_to_collection.html</loc>
+  </url>
+  <url>
+    <loc>/reference/add_to_scope.html</loc>
   </url>
   <url>
     <loc>/reference/adjust_list_length.html</loc>
