@@ -4,8 +4,8 @@ output:
   github_document:
     html_preview: true
 params:
-  dsp: Demo_Allaway_1.json # Demo_Banerjee_1.json # Accessible path to DSP data, which should be in JSON format
-  project_id: syn26462036 # syn22410511 # syn26462036
+  dsp: NA
+  project_id: NA # example syn26462036
   schema_url: https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld
 ---
 
@@ -14,12 +14,15 @@ params:
 knitr::opts_chunk$set(echo = TRUE)
 
 library(nfportalutils)
-syn_login(Sys.getenv("NF_SERVICE_TOKEN")) # syn_login(Sys.getenv("SYNAPSE_AUTH_TOKEN"))
+library(DiagrammeR)
+
+syn_login(Sys.getenv("SYNAPSE_AUTH_TOKEN"))
 ```
 
 
 ```{r include=FALSE}
 dsp <- tryCatch({ jsonlite::read_json(path = params$dsp) }, error = function(e) NULL)
+
 project_id <- params$project_id
 schema_url <- params$schema_url
 
@@ -54,19 +57,18 @@ cat("> [!WARNING]\n",
 ```{r, echo=FALSE, message=FALSE, results='asis', eval=is.null(dsp)}
 
 cat("*Skipped comparison check because DSP could not be retrieved.*")
+data_not_expected <- FALSE
 
 ```
 
 
-```{r, echo=FALSE, message=FALSE, eval=!is.null(dsp)}
+```{r, echo=FALSE, message=FALSE, results='asis', eval=!is.null(dsp)}
 
 tryCatch({
-  if(is.null(dsp$dataSharingWaived)) {
-    data_not_expected <- FALSE
+  if(!is.null(dsp$dataSharingWaived)) {
+    data_not_expected <- dsp$dataSharingWaived == TRUE
   } else if(!length(dsp$dataDeposit)) {
      data_not_expected <- TRUE
-  } else {
-    dsp$dataSharingWaived == TRUE
   }
   
   if(data_not_expected) {
@@ -76,7 +78,11 @@ tryCatch({
     dsp_datasets <- setNames(paste0("D", 1:nrow(expectation)),  expectation$dataLabel)
     in_project <- data.table::rbindlist(list_project_datasets(project_id), fill = T)
     project_datasets <- setNames(in_project$id, in_project$name)
-    dsp_dataset_mapping(dsp_datasets, project_datasets)
+    cat(
+      "```mermaid",
+      dsp_dataset_mapping(dsp_datasets, project_datasets),
+      "```",
+      sep = "\n")
   }
 },
 error = function(e) cat("Something went wrong with comparing DSP and project. Error:\n", e$message))
@@ -106,13 +112,13 @@ tryCatch({
   if(!is.null(results)) {
     results$result <- ifelse(results$result, ":thumbsup:", ":x:")
     knitr::kable(results)
+  } else {
+    htmltools::div("Datasets could not be detected. Check project structure.")
   }},
-  message = function(m) {
-    htmltools::div(m$message)
-  },
   error = function(e) {
-    htmltools::div("Something went wrong with project dataset review. Error message:", e$message)
-  })
+    htmltools::div("Something went wrong with project dataset review. Error message:", e$message) 
+  }
+)
 
 ```
 
@@ -126,7 +132,29 @@ cat("*Skipped governance check because DSP could not be retrieved.*")
 
 ```{r, echo=FALSE, eval=!is.null(dsp)}
 
-cat("This project requires:")
+items <- list()
+
+outside_us <- dsp$governance$dataCharacterization$dataIsOutsideUSA$response
+if(outside_us) {
+  items <- c(items, "Yes, data is outside US")
+}
+
+ext_gov <- dsp$governance$contributorDUO$DUOPX_details
+if(!is.null(ext_gov) || ext_gov != "") {
+  items <- c(items, paste("This project appears to have extended governance request:", htmltools::tags$em(ext_gov)))
+}
+
+if(length(items)) {
+  htmltools::tagList(
+    htmltools::div(
+      htmltools::tags$ul(
+        lapply(items, function(i) htmltools::tags$li(i))
+      )
+    )
+  )
+} else {
+  htmltools::div("Project does not indicate special governance items qualifying for review.")
+}
 
 
 ```
