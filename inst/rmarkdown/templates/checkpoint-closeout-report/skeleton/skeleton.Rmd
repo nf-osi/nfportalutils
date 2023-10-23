@@ -2,7 +2,7 @@
 title: "Checkpoint: Closeout Helper Report"
 output:
   github_document:
-    html_preview: true
+    html_preview: false
 params:
   dsp: NA
   project_id: NA # example syn26462036
