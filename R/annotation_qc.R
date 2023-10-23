@@ -1,8 +1,8 @@
 #' Generate manifest via schematic service
-#' 
+#'
 #' See [schematic manifest generation](https://schematic.api.sagebionetworks.org/v1/ui/#/Manifest%20Operations/schematic_api.api.routes.get_manifest_route).
 #' Note that this uses the access token of user that should already by logged in with `syn_login`.
-#' 
+#'
 #' @param data_type Data type of the manifest to generate (aka Component).
 #' @param dataset_id Optional, if given this fills out manifest for existing dataset instead of generating a blank manifest.
 #' @param title Optional, custom title.
@@ -17,16 +17,16 @@ manifest_generate <- function(data_type,
                               dataset_id = NULL,
                               title = data_type,
                               schema_url = "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld",
-                              asset_view = "syn16858331", 
+                              asset_view = "syn16858331",
                               output_format = "excel",
                               use_annotations = TRUE,
                               service = "https://schematic.api.sagebionetworks.org/v1/manifest/generate") {
-  
+
   # yes, param has been re-encoded like this for 'dataframe'
   output_format_param <- if (output_format == "dataframe") "dataframe (only if getting existing manifests)" else output_format
   access_token <- .syn$credentials$secret
   use_annotations <- tolower(as.character(use_annotations))
-  
+
   req <- httr::GET(service,
                    query = list(
                      schema_url = schema_url,
@@ -38,24 +38,24 @@ manifest_generate <- function(data_type,
                      output_format = output_format_param,
                      access_token = access_token
                    ))
-  
+
   status <- httr::status_code(req)
   if(status != 200L) stop("Unsuccessful request, received status code: ", status)
-  
+
   if(output_format == "excel") {
-    file <- "manifest.xlsx"
+    file <- glue::glue("manifest_{dataset_id}.xlsx")
     message(glue::glue("Manifest generated and saved as {file}"))
     bin <- httr::content(req, "raw")
     writeBin(bin, file)
     return(file)
   }
-  
+
   if(output_format == "google_sheet") {
     message("Manifest generated as Googlesheet(s)")
     url <- httr::content(req)
     return(url)
-  } 
-  
+  }
+
   if(output_format == "dataframe") {
     message("Manifest(s) generated as JSON doc")
     json_str <- httr::content(req, "text", encoding = "UTF-8")
@@ -66,7 +66,7 @@ manifest_generate <- function(data_type,
 
 
 #' Validate manifest via schematic service
-#' 
+#'
 #' See [schematic validation](https://schematic.api.sagebionetworks.org/v1/ui/#/Model%20Operations/schematic_api.api.routes.validate_manifest_route).
 #' Get validation results from schematic service. Downstream utils can consume these results for custom display/report.
 #'
@@ -81,12 +81,12 @@ manifest_validate <- function(data_type,
                               restrict_rules = FALSE,
                               schema_url = "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld",
                               service = "https://schematic.api.sagebionetworks.org/v1/model/validate") {
-  
+
   restrict_rules <- tolower(as.character(restrict_rules))
-  
+
   # json_str can't be more than 4-8 KiB (nginx server typical limits), otherwise header overflow error
   if(!is.null(json_str)) {
-    if(object.size(json_str) > 40000) stop("Data of this size should be submitted as a file instead of JSON string") 
+    if(object.size(json_str) > 40000) stop("Data of this size should be submitted as a file instead of JSON string")
     req <- httr::POST(service,
                       query = list(
                         json_str = json_str,
@@ -104,7 +104,7 @@ manifest_validate <- function(data_type,
   } else {
     stop("Must provide manifest data as either JSON or local file path.")
   }
-  
+
   status <- httr::status_code(req)
   if(status != 200L) stop("Unsuccessful request, received status code: ", status)
   result <- httr::content(req)
@@ -112,27 +112,27 @@ manifest_validate <- function(data_type,
 }
 
 #' Terse error messages please
-#' 
-#' @param error An error object from schematic.  
+#'
+#' @param error An error object from schematic.
 #' @keywords internal
 tersely <- function(error) {
   row <- error[[1]]
   column <- error[[2]]
   message <- error[[3]]
   value <- error[[4]]
-  
+
   wording <- if(grepl("is not one of", message)) paste(shQuote(value), "is not a valid value for", column) else message
   wording
 }
 
 #' Provide a pass/fail summary result
-#' 
-#' @param result Result list data from schematic service. 
+#'
+#' @param result Result list data from schematic service.
 #' @returns Boolean for whether passed.
 #' @returns List of structure `list(result = result, notes = notes)`, where `result` indicates whether the dataset passed.
 #' @keywords internal
 manifest_passed <- function(result) {
-  
+
   errors <- length(result$errors)
   if(errors) {
     messages <- unique(sapply(result$errors, tersely))
@@ -144,16 +144,16 @@ manifest_passed <- function(result) {
 }
 
 #' Infer data type of a dataset folder
-#' 
-#' Infer the data type by checking the first few files. 
-#' TODO: Check `dataType` instead of Component and derive Component 
+#'
+#' Infer the data type by checking the first few files.
+#' TODO: Check `dataType` instead of Component and derive Component
 #' because some older files does not have Component explicitly.
-#' 
+#'
 #' @inheritParams manifest_generate
 #' @return List of structure `list(result = result, notes = notes)`, where `result` can be `NA`.
 #' @export
 infer_data_type <- function(dataset_id) {
-  
+
   children <- .syn$getChildren(dataset_id)
   children <- reticulate::iterate(children)
   if(!length(children)) return(list(result = NA, notes = "Empty dataset folder"))
@@ -171,90 +171,133 @@ infer_data_type <- function(dataset_id) {
 
 
 #' QC dataset metadata with pass/fail result
-#' 
+#'
 #' R wrapper for validation workflow with schematic. Because there is no validation-only service endpoint,
 #' we move metadata around twice (generating manifest from server and submitting back to server),
 #' so once schematic has a validation-only service endpoint that would be much more efficient.
 #' A dataset in this context is a folder, usually tagged with `contentType` = "dataset".
-#' 
+#'
 #' Note that we prefer to wrap the schematic web API over a local installation because:
 #' - Will not require user to go through local schematic setup for this to be functional
 #' - API more likely reflects an up-to-date version of schematic and consistent with current DCA deployment
-#' 
+#'
 #' When `data_type` can't be inferred based on annotations, this is treated as a fail.
-#' 
-#' Status: alpha and likely to change based on changes in `schematic`. 
+#'
+#' Status: alpha and likely to change based on changes in `schematic`.
 #'
 #' @param dataset_id Id of folder that represents a dataset, not actual Synapse dataset entity -- see details.
 #' @param data_type A specific data type to validate against, otherwise tries to infer based on annotations. See details.
 #' @param asset_view A reference view, defaults to the main NF portal fileview.
 #' @param schema_url Schema URL, points by default to 'latest' main NF schema, can change to use a specific released version.
 #' @param cleanup Whether to automatically remove reconstituted manifests once done. Default `TRUE`.
-#' @returns List of structure `list(result = result, notes = notes)`, 
+#' @returns List of structure `list(result = result, notes = notes)`,
 #' where `result` indicates passing or `NA` if no data or if couldn't be validated for other reasons.
 #' @export
-meta_qc_dataset <- function(dataset_id, 
+meta_qc_dataset <- function(dataset_id,
                             data_type = NULL,
                             asset_view = "syn16787123",
                             schema_url = "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld",
                             cleanup = TRUE) {
-  
+
+  dataset_name <- .syn$get(dataset_id)$properties$name
+
   files <- reticulate::iterate(.syn$getChildren(dataset_id))
-  if(!length(files)) return(list(result = NA, notes = "Empty dataset"))
-  
+  if(!length(files)) {
+    return(list(result = NA,
+                notes = "Empty dataset with no files",
+                dataset_name = dataset_name,
+                dataset_id = dataset_id,
+                data_type = data_type))
+  }
+
   if(is.null(data_type)) {
     data_type <- infer_data_type(dataset_id)$result
-    if(is.na(data_type)) return(list(result = FALSE, notes = "Metadata quality insufficient to even infer data type"))
+    if(is.na(data_type)) {
+      return(list(result = FALSE,
+                  notes = "Metadata quality insufficient to even infer data type",
+                  dataset_name = dataset_name,
+                  dataset_id = dataset_id,
+                  data_type = data_type))
+    }
   }
-  
-  # Reconstitute metadata manifest -- using excel as the safest option for now
+
+  # Reconstitute metadata manifest via excel as the best option for now
   tryCatch({
-    xl <- manifest_generate(data_type, dataset_id, output_format = "excel")
-    csv <- readxl::read_excel(xl, sheet = 1)
-    write.csv(csv, file = "manifest.csv")
+    message(glue::glue("Generating manifest files for dataset {dataset_id}..."))
+    xl_file <- manifest_generate(data_type, dataset_id, output_format = "excel")
+    csv_file <-  glue::glue("manifest_{dataset_id}.csv")
+    csv <- readxl::read_excel(xl_file, sheet = 1)
+    write.csv(csv, file = csv_file)
     # Validate
-    results <- manifest_validate(data_type = data_type, file_name = "manifest.csv")
-    if(cleanup) file.remove(xl, "manifest.csv")
-    manifest_passed(results)
+    results <- manifest_validate(data_type = data_type, file_name = csv_file)
+    if(cleanup) {
+      file.remove(xl_file, csv_file)
+      message(glue::glue("Temp manifest files removed for dataset {dataset_id}"))
+    }
+    results <- manifest_passed(results)
   }, error = function(e) {
-    list(result = NA, notes = e$message)
+    results <- list(result = NA, notes = e$message) # API errors
   })
+
+  results$dataset_name <- dataset_name
+  results$data_type <- data_type
+  results$dataset_id <- dataset_id
+  results
 }
 
 
-#' QC metadata at the project level with pass/fail result 
-#' 
-#' For projects with a relatively standard structure that also corresponds to what the DCA expects, 
-#' this is an adequate wrapper to go through the datasets and do basic QC in a one-stop-shop manner.
-#' For selective validation or other (e.g. milestone-based or ad hoc) structures, look at `meta_qc_dataset`.
-#' 
+#' QC metadata at the project level with pass/fail result
+#'
+#' An adequate wrapper to go through project datasets and do basic QC in one-stop-shop manner
+#' **for projects that have standard structure corresponding to what DCA expects**.
+#'
+#' For selective validation or other (e.g. milestone-based) structures, look at `meta_qc_dataset`.
+#'
 #' @param project_id Synapse project id.
+#' @param result_file If not NULL, *also* write to output to `.csv` file.
+#' @param ... Params passed to `meta_qc_dataset`.
 #' @return A table of with rows for the datasets QC'd, with dataset id, name, TRUE/FALSE pass result, and summary;
 #' otherwise `NA`.
 #' @export
-meta_qc_project <- function(project_id) {
-  
-  data_root <- find_data_root(project_id)
-  if(is.null(data_root)) {
-    message("Data root could not be located. Project structure may require custom assessment and dropping down to `meta_qc_dataset`.")
+meta_qc_project <- function(project_id, result_file = NULL, ...) {
+
+  datasets <- list_project_datasets(project_id)
+  if(!length(datasets)) {
+    message("Problem with detecting datasets. Check project structure or drop down to manual dataset-by-dataset assessment.")
     return(NA)
   }
-  in_data <- .syn$getChildren(data_root)
-  in_data <- reticulate::iterate(in_data)
-  # Select only folders in data and ignore files at this level
-  datasets <- Filter(function(x) x$type == "org.sagebionetworks.repo.model.Folder", in_data)
-  if(length(datasets)) {
-    dataset_names <- sapply(datasets, `[[`, "name")
-    dataset_ids <- sapply(datasets, `[[`, "id")
-    message("Datasets for QC:\n", glue::glue_collapse(dataset_names, sep = "\n"))
-    results <- lapply(dataset_ids, meta_qc_dataset)
-    report <- rbindlist(results)
-    report$dataset_name <- dataset_names
-    report$dataset_id <- dataset_ids
-    report
-  } else {
-    message("No datasets found under data root.")
-    return(NA)
-  }
+
+  dataset_ids <- sapply(datasets, `[[`, "id")
+  dataset_names <- sapply(datasets, `[[`, "name")
+  message("Datasets found for QC:\n", glue::glue_collapse(dataset_names, sep = "\n"))
+  results <- lapply(dataset_ids, meta_qc_dataset, ...)
+  report <- rbindlist(results, fill = TRUE)
+  if(!is.null(result_file)) write.csv(report, file = result_file, row.names = T)
+  report
+
 }
 
+#' List datasets in project
+#'
+#' Return a list of dataset folders if they are in expected location in project, otherwise NULL w/ explanatory message.
+#'
+#' @inheritParams find_data_root
+#' @keywords export
+#'
+list_project_datasets <- function(project_id) {
+
+  data_root <- find_data_root(project_id)
+  if(is.null(data_root)) {
+
+    warning("Data root could not be located.")
+    return()
+
+  } else {
+
+    in_data <- .syn$getChildren(data_root)
+    in_data <- reticulate::iterate(in_data)
+    datasets <- Filter(function(x) x$type == "org.sagebionetworks.repo.model.Folder", in_data)
+    if(!length(datasets)) warning("No datasets found under data root.")
+    datasets
+  }
+}
