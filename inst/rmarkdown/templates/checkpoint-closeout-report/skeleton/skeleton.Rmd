@@ -1,0 +1,125 @@
+---
+title: "Checkpoint: Closeout Helper Report"
+output:
+  github_document:
+    html_preview: true
+params:
+  dsp: Demo_Allaway_1.json # Demo_Banerjee_1.json # Accessible path to DSP data, which should be in JSON format
+  project_id: syn26462036 # syn22410511 # syn26462036
+  schema_url: https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(nfportalutils)
+syn_login(Sys.getenv("SYNAPSE_AUTH_TOKEN"))
+```
+
+
+```{r setup, include=FALSE}
+dsp <- tryCatch({ jsonlite::read_json(path = params$dsp) }, error = function(e) NULL)
+project_id <- params$project_id
+schema_url <- params$schema_url
+
+```
+
+### Parameters
+
+**Project:** `r project_id`  
+**Report run date:** `r Sys.Date()`
+
+
+**Data sharing plan**: `r params$dsp`  
+**NF data model:** `r schema_url`  
+**Schematic API service:** https://schematic.api.sagebionetworks.org/v1/
+
+---
+
+```{r, echo=FALSE, message=FALSE, results='asis', eval=is.null(dsp)}
+
+cat("> [!WARNING]\n", 
+    "*Data Sharing Plan data could not be retrieved.", 
+    "Some projects may not have a structured data sharing plan available.",
+    "However, check path or formatting if one was truly expected to exist.",
+    "Some checks will be skipped.*")
+
+```
+
+## Datasets
+
+### Data Sharing Plan vs Project Assets
+
+```{r, echo=FALSE, message=FALSE, results='asis', eval=is.null(dsp)}
+
+cat("*Skipped comparison check because DSP could not be retrieved.*")
+
+```
+
+
+```{r, echo=FALSE, message=FALSE, eval=!is.null(dsp)}
+
+data_not_expected <- dsp$dataSharingWaived == TRUE
+
+if(data_not_expected) {
+  cat("*Skipped comparison check because DSP indicates **Data Not Expected**.*")
+} else if(!length(dsp$dataDeposit)) {
+   cat("*Data deposit appears to not be filled out.*")
+} else {
+  expectation <- dsp$dataDeposit
+  dsp_datasets <- setNames(paste0("D", seq_along(expectation)),  sapply(dsp$dataDeposit, `[[`, "dataLabel"))
+  in_project <- list_project_datasets(project_id)
+  project_datasets <- setNames(sapply(in_project, `[[`, "id"), sapply(in_project, `[[`, "name"))
+}
+
+```
+
+
+### Metadata Revalidation
+
+```{r, echo=FALSE, message=FALSE, results='asis', eval=is.null(dsp)}
+  
+cat("*Defaulting to metadata revalidation without DSP information.*")
+```
+
+
+```{r, echo=FALSE, message=FALSE, results='asis', eval=!is.null(dsp)}
+
+if(data_not_expected) cat("*Skipped revalidation check because data sharing plan indicates **Data Not Expected**.*")
+
+```
+
+
+```{r, echo=FALSE, message=FALSE, eval=!data_not_expected}
+
+tryCatch({
+  results <- meta_qc_project(project_id, schema_url = schema_url)
+  if(!is.null(results)) {
+    results$result <- ifelse(results$result, ":thumbsup:", ":x:")
+    knitr::kable(results)
+  }},
+  message = function(m) {
+    htmltools::div(m$message)
+  },
+  error = function(e) {
+    htmltools::div("Something went wrong with project dataset review. Error message:", e$message)
+  })
+
+```
+
+
+## Governance
+
+```{r, echo=FALSE, results='asis', eval=is.null(dsp)}
+
+cat("*Skipped governance check because DSP could not be retrieved.*")
+```
+
+```{r, echo=FALSE, eval=!is.null(dsp)}
+
+cat("This project requires:")
+
+
+```
+
