@@ -108,10 +108,10 @@ bipartite_mmd_template <- function(nodeset1,
 #' @export
 dsp_dataset_mapping <- function(dsp_datasets, project_datasets) {
 
-  dsp_nodes <- as_mmd_node(dsp, class = "Dataset")
-  project_nodes <- as_mmd_node(project, class = "Folder")
+  dsp_nodes <- as_mmd_node(dsp_datasets, class = "Dataset")
+  project_nodes <- as_mmd_node(project_datasets, class = "Folder")
   # This relies on matching by name for now
-  pairings <- pmatch(names(dsp), names(project))
+  pairings <- pmatch(names(dsp_datasets), names(project_datasets))
   pairings <- pairings[!is.na(pairings)]
   if(length(pairings)) {
     links <- as_mmd_link(dsp_datasets[pairings],
