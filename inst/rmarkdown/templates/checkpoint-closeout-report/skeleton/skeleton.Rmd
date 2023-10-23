@@ -1,5 +1,5 @@
 ---
-title: "Checkpoint: Closeout Helper Report"
+title: "Checkpoint Report: Closeout"
 output:
   github_document:
     html_preview: false

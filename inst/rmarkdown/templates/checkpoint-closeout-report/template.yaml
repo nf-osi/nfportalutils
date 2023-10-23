@@ -1,4 +1,4 @@
-name: Checkpoint: Closeout Report
+name: "Checkpoint Report: Closeout"
 description: >
-   A description of the template
+   Helper report for closeout checkpoint.
 create_dir: FALSE
