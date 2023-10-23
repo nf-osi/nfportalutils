@@ -282,8 +282,7 @@ meta_qc_project <- function(project_id, result_file = NULL, ...) {
 #' Return a list of dataset folders if they are in expected location in project, otherwise NULL w/ explanatory message.
 #'
 #' @inheritParams find_data_root
-#' @keywords export
-#'
+#' @export
 list_project_datasets <- function(project_id) {
 
   data_root <- find_data_root(project_id)
