@@ -4,17 +4,23 @@
 \alias{meta_qc_project}
 \title{QC metadata at the project level with pass/fail result}
 \usage{
-meta_qc_project(project_id)
+meta_qc_project(project_id, result_file = NULL, ...)
 }
 \arguments{
 \item{project_id}{Synapse project id.}
+
+\item{result_file}{If not NULL, \emph{also} write to output to \code{.csv} file.}
+
+\item{...}{Params passed to \code{meta_qc_dataset}.}
 }
 \value{
 A table of with rows for the datasets QC'd, with dataset id, name, TRUE/FALSE pass result, and summary;
 otherwise \code{NA}.
 }
 \description{
-For projects with a relatively standard structure that also corresponds to what the DCA expects,
-this is an adequate wrapper to go through the datasets and do basic QC in a one-stop-shop manner.
-For selective validation or other (e.g. milestone-based or ad hoc) structures, look at \code{meta_qc_dataset}.
+An adequate wrapper to go through project datasets and do basic QC in one-stop-shop manner
+\strong{for projects that have standard structure corresponding to what DCA expects}.
+}
+\details{
+For selective validation or other (e.g. milestone-based) structures, look at \code{meta_qc_dataset}.
 }
