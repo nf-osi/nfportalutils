@@ -116,7 +116,8 @@ tryCatch({
     htmltools::div("Datasets could not be detected. Check project structure.")
   }},
   error = function(e) {
-    htmltools::div("Something went wrong with project dataset review. Error message:", e$message) 
+    htmltools::div("Something went wrong with project dataset review. Error message:", 
+                   htmltools::code(e$message)) 
   }
 )
 
