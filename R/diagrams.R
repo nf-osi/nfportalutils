@@ -66,11 +66,13 @@ ppp_mmd_template <- function(project_nodes,
 #' @param nodeset2 Character vector of one or more node ids. If named, nodes will use names instead of ids as labels.
 #' @param nodeset1_title Title for nodeset1.
 #' @param nodeset2_title Title for nodeset2.
+#' @param links Optional, character vector of edges between nodes.
 #' @export
 bipartite_mmd_template <- function(nodeset1,
                                    nodeset2,
                                    nodeset1_title = "INPUT",
-                                   nodeset2_title = "OUTPUT") {
+                                   nodeset2_title = "OUTPUT",
+                                   links = "") {
 
   theme <- "%%{init: {'themeVariables': { 'primaryColor': '#125e81','edgeLabelBackground': 'white' }}}%%"
   glue::glue(
@@ -93,29 +95,41 @@ bipartite_mmd_template <- function(nodeset1,
         {nodeset2}
       end
 
+      %% links
+      {links}
+
     ")
 }
 
 #' Wrapper to create Data Sharing Plan to project dataset comparison chart
 #'
-#' @param dsp Named vector of datasets in data sharing plan.
-#' @param project Named vector of datasets in project.
+#' @param dsp_datasets Named vector of datasets in data sharing plan.
+#' @param project_datasets Named vector of datasets in project.
 #' @export
-dsp_dataset_mapping <- function(dsp, project) {
+dsp_dataset_mapping <- function(dsp_datasets, project_datasets) {
 
-  dsp_datasets <- as_mmd_node(dsp, class = "Dataset")
-  project_datasets <- as_mmd_node(project, class = "Folder")
+  dsp_nodes <- as_mmd_node(dsp, class = "Dataset")
+  project_nodes <- as_mmd_node(project, class = "Folder")
+  # This relies on matching by name for now
+  pairings <- pmatch(names(dsp), names(project))
+  pairings <- pairings[!is.na(pairings)]
+  if(length(pairings)) {
+    links <- as_mmd_link(dsp_datasets[pairings],
+                         project_datasets[pairings],
+                         style = "dash")
+  }
 
-  bipartite_mmd_template(nodeset1 = dsp_datasets,
-                         nodeset2 = project_datasets,
+  bipartite_mmd_template(nodeset1 = dsp_nodes,
+                         nodeset2 = project_nodes,
                          nodeset1_title = "DSP",
-                         nodeset2_title = "Project")
+                         nodeset2_title = "Project",
+                         links = links)
 
 }
 
 # Helpers ----------------------------------------------------------------------#
 
-#' Helper function for rendering nodes
+#' Generate notation for mermaid.js nodes
 #'
 #' @param entity Character vector of one or more entity ids.
 #' If named, nodes will use names instead of ids as labels. Note that entity ids
@@ -145,6 +159,21 @@ as_mmd_node <- function(entity,
 
 }
 
+#' Generate notation for mermaid.js link
+#'
+#' @param n1 Id for node at one end.
+#' @param n2 Id for node at other end.
+#' @param directional Boolean option for diretional arrow from n1 to n2.
+#' @param style Option for "solid" or "dash"-style links.
+#' @keywords internal
+as_mmd_link <- function(n1, n2, directional = TRUE, style = "solid") {
+
+  link <- if(style == "solid") "--" else "-.-"
+  link <- if(directional) paste0(link, "> ") else paste0(link, " ")
+  links <- Map(function(x1, x2) paste0(x1, link, x2, ";"), n1, n2) %>%
+    unlist(use.names = F) %>%
+    glue::glue_collapse("\n")
+}
 
 #' Wrapper to create data-driven flowchart with pretty processing provenance mermaid template
 #'
