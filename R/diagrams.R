@@ -62,6 +62,10 @@ ppp_mmd_template <- function(project_nodes,
 
 #' Simple bipartite representation in mermaid charts
 #'
+#' @param nodeset1 Character vector of one or more node ids. If named, nodes will use names instead of ids as labels.
+#' @param nodeset2 Character vector of one or more node ids. If named, nodes will use names instead of ids as labels.
+#' @param nodeset1_title Title for nodeset1.
+#' @param nodeset2_title Title for nodeset2.
 #' @export
 bipartite_mmd_template <- function(nodeset1,
                                    nodeset2,
