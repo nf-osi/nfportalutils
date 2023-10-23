@@ -112,10 +112,10 @@ dsp_dataset_mapping <- function(dsp_datasets, project_datasets) {
   project_nodes <- as_mmd_node(project_datasets, class = "Folder")
   # This relies on matching by name for now
   pairings <- pmatch(names(dsp_datasets), names(project_datasets))
-  pairings <- pairings[!is.na(pairings)]
-  if(length(pairings)) {
-    links <- as_mmd_link(dsp_datasets[pairings],
-                         project_datasets[pairings],
+  match_index <- pairings[!is.na(pairings)]
+  if(length(match_index)) {
+    links <- as_mmd_link(dsp_datasets[!is.na(pairings)],
+                         project_datasets[match_index],
                          style = "dash")
   }
 
