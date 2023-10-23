@@ -8,3 +8,7 @@ inst/doc
 docs
 /doc/
 /Meta/
+
+# Artifacts and test files
+**/skeleton.md
+
