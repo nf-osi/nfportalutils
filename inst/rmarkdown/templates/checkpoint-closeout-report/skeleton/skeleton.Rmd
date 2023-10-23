@@ -133,23 +133,23 @@ cat("*Skipped governance check because DSP could not be retrieved.*")
 
 ```{r, echo=FALSE, eval=!is.null(dsp)}
 
-items <- list()
+items <- htmltools::tagList()
 
 outside_us <- dsp$governance$dataCharacterization$dataIsOutsideUSA$response
 if(outside_us) {
-  items <- c(items, "Yes, data is outside US")
+  items <- htmltools::tagAppendChild(items, htmltools::tags$li("Yes, data is outside US"))
 }
 
 ext_gov <- dsp$governance$contributorDUO$DUOPX_details
 if(!is.null(ext_gov) || ext_gov != "") {
-  items <- c(items, paste("This project appears to have extended governance request:", htmltools::tags$em(ext_gov)))
+  items <- htmltools::tagAppendChild(items, htmltools::tags$li("This project has an extended governance request:", htmltools::tags$em(ext_gov)))
 }
 
 if(length(items)) {
   htmltools::tagList(
     htmltools::div(
       htmltools::tags$ul(
-        lapply(items, function(i) htmltools::tags$li(i))
+        items
       )
     )
   )
