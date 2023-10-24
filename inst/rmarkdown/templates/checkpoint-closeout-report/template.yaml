@@ -1,0 +1,4 @@
+name: "Checkpoint Report: Closeout"
+description: >
+   Helper report for closeout checkpoint.
+create_dir: FALSE

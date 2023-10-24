@@ -103,7 +103,7 @@ reference:
   - delete_provenance
 
 - title: Content Utils
-  desc: Create and manage Wiki-type content for projects and pages
+  desc: Create and manage content for projects and pages
 - contents:
   - add_default_wiki
   - wiki_mod
@@ -112,7 +112,12 @@ reference:
   - get_project_wiki
   - check_wiki_links
   - remove_button
+- subtitle: Figures and diagrams
+  desc: Supplemental figures and diagrams that go into Wikis or other places
+- contents:
   - processing_flowchart
+  - dsp_dataset_mapping
+  - bipartite_mmd_template
 
 - title: Export Data to Other Platforms
   desc: Helpers to export/release NF data to other platforms/databases.
@@ -142,6 +147,7 @@ reference:
   - make_folder
   - add_to_scope
   - new_view
+  - list_project_datasets
   - latest_version
   - walk
   - copy
