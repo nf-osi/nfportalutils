@@ -43,7 +43,11 @@ manifest_generate <- function(data_type,
   if(status != 200L) stop("Unsuccessful request, received status code: ", status)
 
   if(output_format == "excel") {
-    file <- glue::glue("manifest_{dataset_id}.xlsx")
+    if(!is.null(dataset_id)){
+       file <- glue::glue("manifest_{dataset_id}.xlsx")
+    }else{
+       file <- glue::glue("manifest.xlsx")
+    }
     message(glue::glue("Manifest generated and saved as {file}"))
     bin <- httr::content(req, "raw")
     writeBin(bin, file)
