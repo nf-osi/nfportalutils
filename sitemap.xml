@@ -106,6 +106,9 @@
     <loc>/reference/as_coll_items.html</loc>
   </url>
   <url>
+    <loc>/reference/as_mmd_link.html</loc>
+  </url>
+  <url>
     <loc>/reference/as_mmd_node.html</loc>
   </url>
   <url>
@@ -119,6 +122,9 @@
   </url>
   <url>
     <loc>/reference/bare_syn_id.html</loc>
+  </url>
+  <url>
+    <loc>/reference/bipartite_mmd_template.html</loc>
   </url>
   <url>
     <loc>/reference/button_widget.html</loc>
@@ -214,6 +220,9 @@
     <loc>/reference/dot-update_view_data.html</loc>
   </url>
   <url>
+    <loc>/reference/dsp_dataset_mapping.html</loc>
+  </url>
+  <url>
     <loc>/reference/dt_read.html</loc>
   </url>
   <url>
@@ -284,6 +293,9 @@
   </url>
   <url>
     <loc>/reference/latest_version.html</loc>
+  </url>
+  <url>
+    <loc>/reference/list_project_datasets.html</loc>
   </url>
   <url>
     <loc>/reference/make_admin.html</loc>
