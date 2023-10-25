@@ -6,7 +6,8 @@
 \usage{
 make_meta_expression(
   cancer_study_identifier,
-  data_filename = "data_expression.txt",
+  type = "raw",
+  data_filename = glue::glue("data_expression_{type}.txt"),
   publish_dir = ".",
   write = TRUE,
   verbose = TRUE
