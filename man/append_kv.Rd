@@ -4,7 +4,10 @@
 \alias{append_kv}
 \title{Append key-value pair dependent on value being given}
 \usage{
-append_kv(x, key, value)
+append_kv(x, key, value, quote = FALSE)
+}
+\arguments{
+\item{quote}{Quote the value (needed if contains conflict YAML characters).}
 }
 \description{
 Append key-value pair dependent on value being given
