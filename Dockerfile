@@ -1,4 +1,4 @@
-FROM rocker/r-base:4.2.2
+FROM rocker/rstudio:4.3
 
 RUN apt-get update && \
     apt-get -y --no-install-recommends install software-properties-common \
@@ -6,15 +6,17 @@ RUN apt-get update && \
     python3-pip \
     libcurl4-openssl-dev \
     libssl-dev \
-    libxml2-dev
+    libxml2-dev \
+    libxt6
 
 
-RUN pip install --break-system-packages pandas==1.5.3 synapseclient==2.7.0
+RUN pip install synapseclient==3.0.0
 
 COPY . /nfportalutils
 
-# R components
-RUN R -e "install.packages(c('remotes'), repos='http://cran.rstudio.com/')"
+# R components for installation or suggested usage
+RUN R -e "install.packages(c('remotes', 'rmarkdown', 'DiagrammeR'), repos='http://cran.rstudio.com/')"
 RUN R -e "remotes::install_local('nfportalutils', dependencies = c('Depends', 'Imports'))"
 
+ENTRYPOINT [ "/bin/bash" ]
 
