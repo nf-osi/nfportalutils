@@ -1,7 +1,7 @@
 #' Generate manifest via schematic service
 #'
 #' See [schematic manifest generation](https://schematic.api.sagebionetworks.org/v1/ui/#/Manifest%20Operations/schematic_api.api.routes.get_manifest_route).
-#' Note that this uses the access token of user that should already by logged in with `syn_login`.
+#' Note that this uses the access token of user that should already be logged in with `syn_login`.
 #'
 #' @param data_type Data type of the manifest to generate (aka Component).
 #' @param dataset_id Optional, if given this fills out manifest for existing dataset instead of generating a blank manifest.
@@ -22,7 +22,7 @@ manifest_generate <- function(data_type,
                               use_annotations = TRUE,
                               service = "https://schematic.api.sagebionetworks.org/v1/manifest/generate") {
 
-  # yes, param has been re-encoded like this for 'dataframe'
+  # yes, param needs to be re-encoded like this for 'dataframe'
   output_format_param <- if (output_format == "dataframe") "dataframe (only if getting existing manifests)" else output_format
   access_token <- .syn$credentials$secret
   use_annotations <- tolower(as.character(use_annotations))
