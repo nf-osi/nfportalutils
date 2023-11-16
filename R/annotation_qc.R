@@ -35,9 +35,8 @@ manifest_generate <- function(data_type,
                      use_annotations = use_annotations,
                      dataset_id = dataset_id,
                      asset_view = asset_view,
-                     output_format = output_format_param,
-                     access_token = access_token
-                   ))
+                     output_format = output_format_param),
+                   httr::add_headers(Authorization = paste("Bearer", access_token)))
 
   status <- httr::status_code(req)
   if(status != 200L) stop("Unsuccessful request, received status code: ", status)

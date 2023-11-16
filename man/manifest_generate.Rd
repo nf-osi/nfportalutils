@@ -38,5 +38,5 @@ For excel, path to local file; for google_sheet, URL to sheet; for dataframe, JS
 }
 \description{
 See \href{https://schematic.api.sagebionetworks.org/v1/ui/#/Manifest\%20Operations/schematic_api.api.routes.get_manifest_route}{schematic manifest generation}.
-Note that this uses the access token of user that should already by logged in with \code{syn_login}.
+Note that this uses the access token of user that should already be logged in with \code{syn_login}.
 }
