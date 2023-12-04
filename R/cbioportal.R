@@ -113,6 +113,8 @@ cbp_new_study <- function(cancer_study_identifier,
 #' @param ref_view A view that contains all clinical data for the study.
 #' @param ref_map YAML file specifying the mapping of (NF) clinical metadata to cBioPortal model. See details.
 #' @param verbose Whether to provide informative messages throughout.
+#'
+#' @export
 cbp_add_clinical <- function(ref_view,
                              ref_map,
                              verbose = TRUE) {

@@ -133,7 +133,7 @@ tersely <- function(error) {
 #' @param result Result list data from schematic service.
 #' @returns Boolean for whether passed.
 #' @returns List of structure `list(result = result, notes = notes)`, where `result` indicates whether the dataset passed.
-#' @keywords internal
+#' @export
 manifest_passed <- function(result) {
 
   errors <- length(result$errors)
