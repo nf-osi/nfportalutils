@@ -39,6 +39,7 @@ reference:
   - meta_qc_project
   - manifest_generate
   - manifest_validate
+  - manifest_passed
   - infer_data_type
 - subtitle: Special annotation of nextflow processed data
   desc: Special annotation of nextflow processed data

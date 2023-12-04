@@ -17,4 +17,3 @@ List of structure \code{list(result = result, notes = notes)}, where \code{resul
 \description{
 Provide a pass/fail summary result
 }
-\keyword{internal}
