@@ -2,49 +2,38 @@
 % Please edit documentation in R/assign_study_data_types.R
 \name{assign_study_data_types}
 \alias{assign_study_data_types}
-\title{Summarize file annotations into a STRINGLIST column on a study table.}
+\title{Summarize data types for the study}
 \usage{
 assign_study_data_types(
   study_table_id,
   fileview_id,
-  group_colname = "studyId",
-  source_colname = "dataType",
-  sep = ",",
-  valid_values,
+  id_col = "studyId",
+  attribute = "dataType",
   dry_run = TRUE
 )
 }
 \arguments{
-\item{study_table_id}{The synapse id of the portal study table. Must have write access.}
+\item{study_table_id}{Synapse ID of the portal study table/view that lists relevant studies in column \code{id} or \code{studyId}.}
 
-\item{fileview_id}{The Synapse ID of the portal fileview.}
+\item{fileview_id}{Synapse ID of the portal fileview.}
 
-\item{group_colname}{The column name to group by and join on (such as the default = 'studyId')}
+\item{id_col}{Name of the id column in \code{study_table_id} and \code{fileview_id}.}
 
-\item{source_colname}{The column name to summarize and add to the study_table_id table. The column must exist in both schemas, and must be a STRINGLIST-type column in the "study_table_id" table.}
+\item{attribute}{The attribute that we are rolling up; defaults to \code{dataType}. Must be queryable in \code{fileview_id}.}
 
-\item{sep}{If any delimited values exist in the source_colname column, pass the delimiter here so that these cases are included.}
-
-\item{valid_values}{A vector of valid values for the source_colname. e.g. the output of running \code{get_valid_values_from_json_schema()}}
-
-\item{dry_run}{Default = TRUE. Skips upload to table and instead prints study tibble.}
-}
-\value{
-If dry_run == T, returns study tibble and skips upload.
+\item{dry_run}{Default = TRUE. Skips updating the annotation and instead displays annotation object.}
 }
 \description{
-Summarize fileview annotations into a string-list column on another table.
-
-For example, use this function to summarize all of the "dataType" annotations for a each study into a STRINGLIST annotation on the Study table of a portal. Overwrites whatever is currently in the target column.
+Data types are summarized, or "rolled-up", for the study based on its child file annotations.
+This summary is added as (and will overwrite the current) \code{dataType} annotation for the study.
+Contrast this with \code{update_study_annotations}, where study-level annotations are rolled down to child files.
 }
 \examples{
 \dontrun{
-assign_study_data_types(study_table_id = 'syn16787123', 
-                       fileview_id = 'syn16858331', 
-                       group_colname = 'studyId', 
-                       source_colname = "dataType", 
-                       sep = ",", 
-                       valid_values = get_valid_values_from_json_schema(), 
-                       dry_run = T)
-}                        
+assign_study_data_types(study_table_id = 'syn52677631', # either syn52677631 or syn52694652 OK
+                        fileview_id = 'syn16858331',
+                        id_col = 'studyId',
+                        attribute = 'dataType',
+                        dry_run = T)
+}
 }
