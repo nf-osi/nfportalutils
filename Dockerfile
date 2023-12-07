@@ -16,8 +16,8 @@ COPY . /nfportalutils
 
 # R components for installation or suggested usage
 RUN R -e "install.packages(c('remotes', 'rmarkdown', 'DiagrammeR'), repos='http://cran.rstudio.com/')"
-RUN R -e "remotes::install_version('reticulate', version = '1.28', repos ='http://cran.us.r-project.org')"
 RUN R -e "remotes::install_local('nfportalutils', dependencies = c('Depends', 'Imports'))"
+RUN R -e "remotes::install_version('reticulate', version = '1.28', repos ='http://cran.us.r-project.org')"
 
 ENTRYPOINT [ "/bin/bash" ]
 
