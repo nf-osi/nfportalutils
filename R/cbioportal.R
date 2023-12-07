@@ -121,11 +121,12 @@ cbp_add_clinical <- function(ref_view,
 
   cancer_study_identifier <- check_cbp_study_id()
 
-  if(verbose) checked_message("Pulling the clinical data from Synapse")
-  df <- get_clinical_data_for_cbp_study(ref_view)
+  df <- .syn$tableQuery(glue::glue("select * from {ref_view}"), includeRowIdAndRowVersion = FALSE)$asDataFrame()
+  if(verbose) checked_message("Retrieved clinical data from Synapse")
 
   if(verbose) checked_message("Formatting and making clinical data file(s)")
-  df$specimenID <- gsub(" ", "_", clinical_data$specimenID)
+  checked_message("Spaces in specimen IDs will be replaced with _ per cBioPortal specifications")
+  df$specimenID <- gsub(" ", "_", df$specimenID)
   write_cbio_clinical(df, ref_map = ref_map, verbose = verbose)
 
   if(verbose) checked_message("Making sample clinical meta file")
