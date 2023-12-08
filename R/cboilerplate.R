@@ -96,7 +96,7 @@ write_cbio_clinical <- function(df,
   if(!all(present %in% attributes)) stop("Missing mapping for:", paste(setdiff(present, attributes), collapse = ","))
 
   # Take care of list columns and NA
-  .df <- copy(df)
+  .df <- data.table::copy(df)
   for(col in names(.df)) {
     if(class(.df[[col]]) == "list") {
       .df[[col]] <- paste(.df[[col]], sep = ",")
@@ -118,7 +118,7 @@ write_cbio_clinical <- function(df,
     sample_df <- .df[, c(names(.df) %in% m$SAMPLE$source)]
     header <- make_cbio_clinical_header(sample_df, m$SAMPLE)
     sample_df <- rbind(header, sample_df)
-    files[["SAMPLE"]] <- patient_df
+    files[["SAMPLE"]] <- sample_df
   }
 
   for(clinical_type in names(files)) {
