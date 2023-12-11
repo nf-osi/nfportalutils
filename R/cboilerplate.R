@@ -31,7 +31,6 @@ make_cbio_clinical_header <- function(df, mapping) {
   description <- mapping[match(names(df), source), description]
   data_type <- mapping[match(names(df), source), data_type]
 
-  # Original code assigns a default priority = 1 to all; this is kept until we need more complex configuration
   header <- rbind(label, description, data_type, rep(1))
   header <- t(apply(header, 1, function(x) { return(c(paste0("#", x[1]), x[2:length(x)]))}))
   header <- rbind(header, label) # use harmonized name as row-5 attribute names
@@ -108,8 +107,8 @@ write_cbio_clinical <- function(df,
 
   files <- list()
   m <- split(m, by = "attribute_type")
-  if("individualID" %in% .df) {
-    patient_df <- unique(.df)[, c(names(.df) %in% m$PATIENT$source)]
+  if("individualID" %in% names(.df)) {
+    patient_df <- unique(.df[, c(names(.df) %in% m$PATIENT$source)])
     header <- make_cbio_clinical_header(patient_df, m$PATIENT)
     patient_df <- rbind(header, patient_df)
     files[["PATIENT"]] <- patient_df
