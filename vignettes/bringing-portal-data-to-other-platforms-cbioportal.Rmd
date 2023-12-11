@@ -29,7 +29,7 @@ The current API covers creating a cBioPortal study with a subset of data types r
 The design has been inspired by and should feel somewhat like working with the R package [usethis](https://github.com/r-lib/usethis), 
 and data types can be added to the study package interactively.
 
-Though there is some checking depending on the data type, final validation with the official cBioPortal validation tools/scripts should still be run (see last section).
+Though there is some checking depending on the data type, final [validation](#Validation) with the official cBioPortal validation tools/scripts should still be run.
 
 Breaking changes are possible as the API is still in development.
 
@@ -46,7 +46,8 @@ syn_login()
 
 ## Create a new study dataset
 
-First create the study before we can put together the data.
+First create the study dataset "package" where we can put together the data. 
+Each study dataset combines multiple data types -- clinical, gene expression, gene variants, etc.
 
 ```{r cbp_new_study, eval=FALSE}
 
@@ -58,15 +59,19 @@ cbp_new_study(cancer_study_identifier = "npst_nfosi_ntap_2022",
 ## Add data types to study
 
 Data types can be most easily added _in any order_ using the `cbp_add*` functions.
-These download data files and create the meta for them, using **defaults for NF-OSI processed data**. 
-Sometimes if these defaults don't match what you want, take a look at the lower-level utils `make_meta_*` or edit the files manually after.
+These functions download data files and create the meta for them. 
 
-Important: user is expected to be in a valid cBioPortal study directory as set up in the previous step.
+Note that:
+
+- These should be run with the working directory set to the study dataset directory as set up above to ensure consistent metadata.
+- **Defaults are for known NF-OSI processed data outputs**. 
+- If these defaults don't apply because of changes in the scenario, take a look at the lower-level utils `make_meta_*` or edit the files manually after.
+- Data types can vary in how much additional work is needed in remapping, reformatting, custom sanity checks, etc.
 
 ### Add mutations data
 
 - `maf_data` references a final merged maf output file from the NF-OSI processing pipeline OK for public release. 
-No further modifications are done except renaming it.
+- This data file type requires no further modifications except renaming.
 
 ```{r add_maf, eval=FALSE}
 
@@ -88,27 +93,32 @@ cbp_add_cna(cna_data)
 
 ### Add expression data
 
-- `expression_data` is expected to be a `.txt` file on Synapse.
+- `expression_data` is expected to be a `.txt` called `gene_tpm.tsv` file on Synapse.
+- The NF-OSI default includes including the raw expression data as well, called `gene_counts.tsv`, but this can be omitted.
+- These NF-OSI outputs will be somewhat modified in translation to have the required headers.
 
 ```{r add_expression, eval=FALSE}
 
 mrna_data <- "syn********"
+mrna_data_raw <- "syn********"
 
-cbp_add_expression(mrna_data)
+cbp_add_expression(mrna_data,
+                   expression_data_raw = mrna_data_raw)
 ```
-
 
 ### Add clinical data
 
-- `ref_view` is a fileview that contains clinical data for the data released in the study.
-- `ref_map` maps clinical variables from the NF-OSI data dictionary to cBioPortal's
+- `clinical_data` is a prepared clinical data table already subsetted to those released in this study, or pass in a query that can be used for subsetting if using a full clinical database table. For example, the full clinical cohort comprises patients 1-50, but this study dataset consists of available and releasable data only for patients 1-20 for expression data and data patients 15-20 for cna data. Here, `clinical_data` can be a smaller table of just those 1-30, or it can be the original table but pass in a suitable additional filter, e.g. `where release = 'batch1'`.
+- Clinical data requires mapping to be as consistent with other public datasets as possible. `ref_map` defines the mapping of clinical variables from the NF-OSI data dictionary to cBioPortal's. Only variables in the mapping are exported to cBioPortal. Follow link below to inspect the default file and format used.
+- Clinical data should be added last for overall sample checks to work. For example, if there is expression data for patients 1-20 and cna data patients 15-20,
+it can more informatively warn about any missing/mismatches. 
 
 ```{r add_clinical, eval=FALSE}
 
-ref_view <- "syn43278088"
+clinical_data <- "select * from syn43278088"
 ref_map <- "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/mappings/cBioPortal.yaml"
 
-cbp_add_clinical(ref_view, ref_map)
+cbp_add_clinical(clinical_data, ref_map)
 ```
 
 ## Validation
@@ -118,7 +128,7 @@ See the [general docs for dataset validation](https://docs.cbioportal.org/using-
 
 For the _public_ portal, the suggested step using the public server is given below.  
 
-Assuming your present working directory is `~/datahub/public` and a study folder called `mixed_nfosi_2022` has been placed into it, mount the dataset into the container and run validation with:  
-`docker run --rm -v $(pwd):/datahub cbioportal/cbioportal:4.1.13 validateStudies.py -d /datahub -l mixed_nfosi_2022 -u http://cbioportal.org -html /datahub/mixed_nfosi_2022/html_report`
+Assuming your present working directory is `~/datahub/public` and a study folder called `npst_nfosi_ntap_2022` has been placed into it, mount the dataset into the container and run validation with:  
+`docker run --rm -v $(pwd):/datahub cbioportal/cbioportal:5.4.7 validateStudies.py -d /datahub -l npst_nfosi_ntap_2022 -u http://cbioportal.org -html /datahub/npst_nfosi_ntap_2022/html_report`
 
- 
+The html report will list issues by data types to help with any corrections needed.  
