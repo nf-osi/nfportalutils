@@ -270,5 +270,5 @@ format_gene_expression_data <- function(file) {
   data_expression <- fread(file)
   data_expression[, gene_id := NULL] # Ensembl ids not used in cBioPortal
   setnames(data_expression, old = c("gene_name"), new = c("Hugo_Symbol"))
-  fwrite(data_expression, file = file)
+  fwrite(data_expression, file = file, sep = "\t")
 }
