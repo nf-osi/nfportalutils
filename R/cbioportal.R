@@ -110,18 +110,18 @@ cbp_new_study <- function(cancer_study_identifier,
 #' in Nextflow processing any spaces gets replaced with underscores so that's the default here.
 #' Does *not* check for missing samples, as final validation via cBioPortal tool is still expected for that.
 #'
-#' @param ref_view A view that contains all clinical data for the study.
+#' @param clinical_data Clinical table query.
 #' @param ref_map YAML file specifying the mapping of (NF) clinical metadata to cBioPortal model. See details.
 #' @param verbose Whether to provide informative messages throughout.
 #'
 #' @export
-cbp_add_clinical <- function(ref_view,
+cbp_add_clinical <- function(clinical_data,
                              ref_map,
                              verbose = TRUE) {
 
   cancer_study_identifier <- check_cbp_study_id()
 
-  df <- .syn$tableQuery(glue::glue("select * from {ref_view}"), includeRowIdAndRowVersion = FALSE)$asDataFrame()
+  df <- .syn$tableQuery(clinical_data, includeRowIdAndRowVersion = FALSE)$asDataFrame()
   if(verbose) checked_message("Retrieved clinical data from Synapse")
 
   if(verbose) checked_message("Formatting and making clinical data file(s)")
@@ -241,6 +241,7 @@ cbp_add_expression <- function(expression_data,
   file <- .syn$get(expression_data, downloadLocation = ".")
   data_expression <- sub(file$name, "data_expression_tpm.txt", file$path)
   file.rename(file$path, data_expression)
+  format_gene_expression_data("data_expression_tpm.txt")
 
   if(verbose) checked_message("Making the meta file")
   make_meta_expression(cancer_study_identifier, type = "tpm")
@@ -250,6 +251,7 @@ cbp_add_expression <- function(expression_data,
     file <- .syn$get(expression_data_raw, downloadLocation = ".")
     data_expression_supp <- sub(file$name, "data_expression_raw.txt", file$path)
     file.rename(file$path, data_expression_supp)
+    format_gene_expression_data("data_expression_raw.txt")
 
     if(verbose) checked_message("Making the meta file for supplemental raw mRNA expression data file")
     make_meta_expression(cancer_study_identifier, type = "raw")
@@ -260,3 +262,13 @@ cbp_add_expression <- function(expression_data,
 
 }
 
+#' Format gene expression
+#'
+#' @keywords internal
+#' @import data.table
+format_gene_expression_data <- function(file) {
+  data_expression <- fread(file)
+  data_expression[, gene_id := NULL] # Ensembl ids not used in cBioPortal
+  setnames(data_expression, old = c("gene_name"), new = c("Hugo_Symbol"))
+  fwrite(data_expression, file = file)
+}
