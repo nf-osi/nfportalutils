@@ -19,7 +19,9 @@
 #' @param institution Affiliated institution(s), **semicolon-sep if multiple**, e.g. "Stanford University; University of California, San Francisco".
 #' @param funder The funding agency. The relevant funder team will be made admin.
 #' @param initiative Title of funding initiative, e.g. "Young Investigator Award".
-#' @param datasets (Optional) Datasets for which folders will be created under main data folder ("Raw Data").
+#' @param datasets (Optional) List of datasets for which folders will be created under main data folder ("Raw Data").
+#' Attributes set on the list items become annotations on the dataset folders.
+#' @param other_resources (Optional) List of non-data resource types for which folders will be created.
 #' @param publicview Whether to put this project in the public view instead of staying private (registered or non-registered users can see project).
 #' @param webview Whether to open web browser to view newly created project. Defaults to FALSE.
 #' @param ... Additional arguments. Not used.
@@ -34,6 +36,7 @@ new_project <- function(name,
                         funder,
                         initiative,
                         datasets = NULL,
+                        other_resources = NULL,
                         publicview = FALSE,
                         webview = FALSE,
                         ...) {
@@ -72,8 +75,18 @@ new_project <- function(name,
   if(publicview) {
     public_sharing <- make_public_viewable(project)
   }
-  
+
   # ASSETS ---------------------------------------------------------------------#
+
+  # Folder structure looks something like this, where * elements are present depending on data given:
+  #├── Analysis
+  #├── Milestone Reports
+  #├── Protocols*
+  #├── Raw Data
+  #│   ├── IHC dataset*
+  #│   └── RNA-seq dataset*
+  #└── Tools*
+
   # Create default upper-level folders
   folders <- add_default_folders(project)
   data_folder <- folders[["Raw Data"]]
@@ -81,6 +94,11 @@ new_project <- function(name,
   # Create data-specific folders in "Raw Data"
   if(length(datasets)) {
     make_folder(parent = data_folder$properties$id, folders = datasets)
+  }
+
+  # Create homes for non-data resources alongside "Raw Data"
+  if(length(other_resources)) {
+    make_folder(parent = project, folders = other_resources)
   }
 
   # Add Project Files and Metadata fileview, add NF schema; currently doesn't add facets
@@ -179,11 +197,11 @@ make_admin <- function(entity, principal_id) {
 #' @return A list of the created folder object(s).
 #' @export
 #' @examples
-#' \dontrun{ 
+#' \dontrun{
 #' datasets <- list("sequencing data", "imaging data")
 #' assays <- c("rnaSeq", "immunohistochemistry")
-#' for(i in seq_along(datasets)) attr(datasets[[i]], "assay") <- assays[[i]] 
-#' make_folder(parent = "syn26462036", datasets)  
+#' for(i in seq_along(datasets)) attr(datasets[[i]], "assay") <- assays[[i]]
+#' make_folder(parent = "syn26462036", datasets)
 #'}
 make_folder <- function(parent, folders) {
 
@@ -251,7 +269,7 @@ add_default_folders <- function(project, folders = c("Analysis", "Milestone Repo
 #' @keywords internal
 is_valid_user <- function(id) {
   status <- tryCatch(
-    .syn$getUserProfile(id), error = function(e) return(NULL) 
+    .syn$getUserProfile(id), error = function(e) return(NULL)
     )
   if(length(status)) return(TRUE) else return(FALSE)
 }
@@ -260,7 +278,7 @@ is_valid_user <- function(id) {
 #' @keywords internal
 is_valid_team <- function(id) {
   status <- tryCatch(
-    .syn$getTeam(id), error = function(e) return(NULL) 
+    .syn$getTeam(id), error = function(e) return(NULL)
   )
   if(length(status)) return(TRUE) else return(FALSE)
 }

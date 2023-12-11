@@ -14,6 +14,7 @@ new_project(
   funder,
   initiative,
   datasets = NULL,
+  other_resources = NULL,
   publicview = FALSE,
   webview = FALSE,
   ...
@@ -37,7 +38,10 @@ Currently, only takes one admin user, and the rest can be added via the UI.}
 
 \item{initiative}{Title of funding initiative, e.g. "Young Investigator Award".}
 
-\item{datasets}{(Optional) Datasets for which folders will be created under main data folder ("Raw Data").}
+\item{datasets}{(Optional) List of datasets for which folders will be created under main data folder ("Raw Data").
+Attributes set on the list items become annotations on the dataset folders.}
+
+\item{other_resources}{(Optional) List of non-data resource types for which folders will be created.}
 
 \item{publicview}{Whether to put this project in the public view instead of staying private (registered or non-registered users can see project).}
 

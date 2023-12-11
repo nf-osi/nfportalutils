@@ -19,10 +19,10 @@ Use to set up a scaffold of standard upper-level folders as well as
 customized data folders within "Raw Data" for a new project.
 }
 \examples{
-\dontrun{ 
+\dontrun{
 datasets <- list("sequencing data", "imaging data")
 assays <- c("rnaSeq", "immunohistochemistry")
-for(i in seq_along(datasets)) attr(datasets[[i]], "assay") <- assays[[i]] 
-make_folder(parent = "syn26462036", datasets)  
+for(i in seq_along(datasets)) attr(datasets[[i]], "assay") <- assays[[i]]
+make_folder(parent = "syn26462036", datasets)
 }
 }
