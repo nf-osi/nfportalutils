@@ -336,33 +336,35 @@ precheck_manifest <- function(manifest_csv,
     unique_components <- unique(manifest$Component)
     if(length(unique_components) > 1) {
       which_components <- glue::glue_collapse(shQuote(unique_components), ", ")
-      message(glue::glue("emoji::emoji('x') Multiple components detected in a single manifest: {which_components}. This can happen when files were annotated at different eras.
+      message(glue::glue("{emoji::emoji('x')} Multiple components detected in a single manifest: {which_components}. This can happen when files were annotated at different eras.
                           Suggestions: 1) Split up the manifest because schematic can only validate one type at a type. 2) Harmonize the components if this is sensible.
                           For example, RNASeqTemplate is an alias for GenomicsAssayTemplate"))
     }
 
     if("" %in% unique_components) {
-      message("emoji::emoji('x') Blank value '' for Component detected. This can happen because files were annotated before 2022, when Component was introduced for most DCCs.")
+      message("{emoji::emoji('x')} Blank value '' for Component detected. This can happen because files were annotated before 2022, when Component was introduced for most DCCs.")
     }
 
   }
-
-  #-- WARNINGS --#
-  # These technically don't break present-day schematic revalidation but should be cleaned up; many are from earlier schematic issues.
 
   # Duplicate columns like age..1 etc.
   likely_dups <- grep("[.][0-9]+", attributes, value = TRUE)
   if(length(likely_dups)) {
     likely_dups <- glue::glue_collapse(shQuote(likely_dups), ", ")
-    message(glue::glue("emoji::emoji('warning') The pattern of these attribute names suggest duplicates: {likely_dups}. This may happen when metadata is supplemented programmatically with a data-type mismatch"))
+    message(glue::glue("{emoji::emoji('x')} The pattern of these attribute names suggest duplicates: {likely_dups}. This may happen when metadata is supplemented programmatically with a data-type mismatch"))
   }
 
+  #-- WARNINGS --#
+  # These technically don't break present-day schematic revalidation but should be cleaned up; many are from earlier schematic issues.
+
+  # See https://sagebionetworks.slack.com/archives/C01ANC02U59/p1681418154850589
   if("Uuid" %in% attributes) {
     message(crayon::yellow("emoji::emoji('warning') An attribute `Uuid` is present and should preferably be removed. See issue # ."))
   }
 
+  # See https://github.com/Sage-Bionetworks/schematic/issues/476#issuecomment-848853193
   if("eTag" %in% attributes) {
-    message(crayon::yellow("emoji::emoji('warning') An attribute `eTag` is present and preferably be removed. See issue # ."))
+    message(crayon::yellow("{emoji::emoji('warning')} An attribute `eTag` is present and preferably be removed."))
   }
 
   #-- INFO only --#
@@ -370,7 +372,7 @@ precheck_manifest <- function(manifest_csv,
   custom_attributes <- setdiff(attributes, props)
   if(length(custom_attributes)) {
     custom_attributes <- glue::glue_collapse(shQuote(custom_attributes), ", ")
-    message(crayon::blue(glue::glue("emoji::emoji('speech_balloon') Custom attributes (not documented in data model) were found: {custom_attributes}. In general, custom attributes added by the researcher to help with data management are fine.
+    message(crayon::blue(glue::glue("{emoji::emoji('speech_balloon')} Custom attributes (not documented in data model) were found: {custom_attributes}. In general, custom attributes added by the researcher to help with data management are fine.
                 Just check that they are not PHI or added by mistake. If they are deemed generally useful or important enough, they can also be documented officially in the data model for others to reference.")))
   }
 
