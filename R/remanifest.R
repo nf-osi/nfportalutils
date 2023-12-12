@@ -1,7 +1,7 @@
-#' Re-manifest
+#' Reconstitute a manifest
 #'
 #' Quickly "reconstitute" a manifest for files with existing annotations.
-#' This is a power-user alternative to schematic's `manifest_generate` with option `useAnnotations = TRUE` for certain scenarios:
+#' This is a *power-user* alternative to schematic's `manifest_generate` with option `useAnnotations = TRUE` for certain scenarios:
 #'
 #' - Meant to be faster and more convenient for workflows focused on scalable/programmatic annotation/revalidation.
 #' Convenience and speed mainly comes from bypassing the schematic API layer and using the Synapse API directly,

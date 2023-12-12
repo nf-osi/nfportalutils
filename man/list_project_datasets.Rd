@@ -4,11 +4,16 @@
 \alias{list_project_datasets}
 \title{List datasets in project}
 \usage{
-list_project_datasets(project_id)
+list_project_datasets(project_id, type = c("folder", "dataset"))
 }
 \arguments{
 \item{project_id}{Synapse project id.}
+
+\item{type}{Whether to list datasets as immediate folders under "Raw Data" root (default, see details) or actual dataset entities in the project.}
 }
 \description{
-Return a list of dataset folders if they are in expected location in project, otherwise NULL w/ explanatory message.
+Return a list of datasets. Datasets can be folders in the expected location in the project or actual dataset entities.
+Note that dataset-folders will always be what exists first in the project, as sort of the dataset precursor.
+The files in dataset-folders can be translated to dataset entities later.
+When not found, will return NULL w/ explanatory message.
 }
