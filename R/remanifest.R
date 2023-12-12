@@ -46,7 +46,7 @@ remanifest <- function(scope,
     } else {
 
       manifest <- gather_annotations(dataset_items)
-      if(!is.null(file)) fwrite(manifest, file = file) else manifest
+      if(!is.null(file)) save_manifest(manifest, file) else manifest
 
     }
 
@@ -65,14 +65,14 @@ remanifest <- function(scope,
       scope <- c(scope[-1], more)
       if(!length(scope)) {
         manifest <- rbind(mf, manifest, fill = T)
-        if(!is.null(file)) fwrite(manifest, file = file) else manifest
+        if(!is.null(file)) save_manifest(manifest, file) else manifest
       } else {
         remanifest(scope = scope,
                    recurse = recurse,
                    mf = rbind(mf, manifest, fill = T))
       }
     } else {
-      if(!is.null(file)) fwrite(manifest, file = file) else manifest
+      if(!is.null(file)) save_manifest(manifest, file) else manifest
     }
 
   } else {
@@ -81,7 +81,6 @@ remanifest <- function(scope,
 
   }
 }
-
 
 #' Internal helper for gathering annotations into a table using the REST API
 #'
@@ -100,3 +99,10 @@ gather_annotations <- function(ids, list_sep = ", ") {
 }
 
 
+#' Save manifest
+#'
+#' @keywords internal
+save_manifest <- function(manifest, file) {
+  fwrite(manifest, file = file)
+  checked_message(glue::glue("Saved manifest as {file}"))
+}
