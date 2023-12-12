@@ -311,7 +311,11 @@ list_project_datasets <- function(project_id,
       datasets
     }
   } else {
-
+    children <- .syn$getChildren(project_id)
+    datasets <- reticulate::iterate(children)
+    datasets <- Filter(function(x) x$type == "org.sagebionetworks.repo.model.table.Dataset", datasets)
+    if(!length(datasets)) warning("No dataset entities found in project.")
+    datasets
   }
 }
 
