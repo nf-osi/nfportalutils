@@ -346,7 +346,7 @@ precheck_manifest <- function(manifest_csv,
     }
 
     if("" %in% unique_components) {
-      message("{emoji::emoji('x')} Blank value '' for Component detected. This can happen because files were annotated before 2022, when Component was introduced for most DCCs.")
+      message(glue::glue("{emoji::emoji('x')} Blank value '' for Component detected. This can happen because files were annotated before 2022, when Component was introduced for most DCCs."))
     }
 
   }
@@ -363,7 +363,7 @@ precheck_manifest <- function(manifest_csv,
 
   # See https://sagebionetworks.slack.com/archives/C01ANC02U59/p1681418154850589
   if("Uuid" %in% attributes) {
-    message(crayon::yellow("emoji::emoji('warning') An attribute `Uuid` is present and should preferably be removed. See issue # ."))
+    message(crayon::yellow("{emoji::emoji('warning')} An attribute `Uuid` is present and should preferably be removed. See issue # ."))
   }
 
   # See https://github.com/Sage-Bionetworks/schematic/issues/476#issuecomment-848853193
@@ -376,7 +376,7 @@ precheck_manifest <- function(manifest_csv,
   custom_attributes <- setdiff(attributes, props)
   if(length(custom_attributes)) {
     custom_attributes <- glue::glue_collapse(shQuote(custom_attributes), ", ")
-    message(crayon::blue(glue::glue("{emoji::emoji('speech_balloon')} Custom attributes (not documented in data model) were found: {custom_attributes}. In general, custom attributes added by the researcher to help with data management are fine.
+    message(crayon::blue(glue::glue("{emoji::emoji('information')} Custom attributes (not documented in data model) were found: {custom_attributes}. In general, custom attributes added by the researcher to help with data management are fine.
                 Just check that they are not PHI or added by mistake. If they are deemed generally useful or important enough, they can also be documented officially in the data model for others to reference.")))
   }
 
