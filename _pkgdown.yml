@@ -39,6 +39,7 @@ reference:
   - meta_qc_project
   - manifest_generate
   - manifest_validate
+  - manifest_passed
   - precheck_manifest
   - remanifest
   - infer_data_type
