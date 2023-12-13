@@ -133,7 +133,7 @@ tersely <- function(error) {
 #' @param result Result list data from schematic service.
 #' @returns Boolean for whether passed.
 #' @returns List of structure `list(result = result, notes = notes)`, where `result` indicates whether the dataset passed.
-#' @keywords internal
+#' @export
 manifest_passed <- function(result) {
 
   errors <- length(result$errors)
@@ -363,12 +363,12 @@ precheck_manifest <- function(manifest_csv,
 
   # See https://sagebionetworks.slack.com/archives/C01ANC02U59/p1681418154850589
   if("Uuid" %in% attributes) {
-    message(crayon::yellow("{emoji::emoji('warning')} An attribute `Uuid` is present and should preferably be removed. See issue # ."))
+    message(crayon::yellow(glue::glue("{emoji::emoji('warning')} An attribute `Uuid` is present and should preferably be removed.")))
   }
 
   # See https://github.com/Sage-Bionetworks/schematic/issues/476#issuecomment-848853193
   if("eTag" %in% attributes) {
-    message(crayon::yellow("{emoji::emoji('warning')} An attribute `eTag` is present and preferably be removed."))
+    message(crayon::yellow(glue::glue("{emoji::emoji('warning')} An attribute `eTag` is present and preferably be removed.")))
   }
 
   #-- INFO only --#
