@@ -1,15 +1,15 @@
 #' Summarize data types for the study
 #'
 #' Data types are summarized, or "rolled-up", for the study based on its child file annotations.
-#' This summary is added as (and will overwrite the current) `dataType` annotation for the study.
-#' Contrast this with `update_study_annotations`, where study-level annotations are rolled down to child files.
+#' Summary values are added back and overwrites the current `dataType` annotation for the study.
+#' See also `update_study_annotations`, where study-level annotations are *rolled down* to child files.
 #'
 #' @param study_table_id Synapse ID of the portal study table/view that lists relevant studies in column `id` or `studyId`.
 #' @param fileview_id Synapse ID of the portal fileview.
 #' @param id_col Name of the id column in `study_table_id` and `fileview_id`.
-#' @param attribute The attribute that we are rolling up; name should not contain spaces.
-#' Defaults to `dataType`. Must be queryable in `fileview_id`.
-#' @param dry_run Default = TRUE. Skips updating the annotation and instead returns annotation object(s) list.
+#' @param attribute The attribute that we are summarizing from `fileview_id`; name should not contain spaces. Defaults to `dataType`.
+#' @param dry_run Default = TRUE. Whether to update as well or just return list of annotation objects.
+#' @return List of annotations objects.
 #' @examples
 #' \dontrun{
 #' assign_study_data_types(study_table_id = 'syn52694652',
@@ -34,16 +34,26 @@ assign_study_data_types <- function(study_table_id,
   fv <- .syn$tableQuery(
     glue::glue("select {id_col},group_concat(distinct {attribute}) as {attribute} from {fileview_id} where type = \'file\' and {attribute} is not null and {id_col} is not null group by {id_col}"),
     includeRowIdAndRowVersion = F)$asDataFrame()
-  meta <- lapply(fv[[attribute]], function(x) unique(trimws(strsplit(x, split = ",")[[1]]))) # stray whitespaces occasional issue
+  meta <- lapply(fv[[attribute]], function(x) unique(trimws(strsplit(x, split = ",")[[1]]))) # stray whitespaces still occasional issue
   names(meta) <- fv[[id_col]]
 
-  dry_list <- list()
+  result_list <- list()
   for(study in names(meta)) {
     study_meta <- .syn$get_annotations(study)
     study_meta[attribute] <- meta[[study]]
-    if(dry_run) dry_list[[study]] <- study_meta else .syn$set_annotations(study_meta)
+    result_list[[study]] <- study_meta
+    if(!dry_run) {
+      # Also submit study_meta conditional on hard-coded check / roll-ups should not really exceed 50 values
+      if(length(meta[[study]] > 50)) {
+        warning(glue::glue("There are over 50 values. Since this exceeds typical length limits and might indicate data issues, skipping update for {study}."))
+      } else {
+        .syn$set_annotations(study_meta)
+        message(glue::glue("Updated {study} {attribute} summary"))
+      }
+    }
   }
-  if(dry_run) dry_list
+
+  invisible(result_list)
 }
 
 #' Retrieve valid subclasses of a value in a JSON-LD schema
