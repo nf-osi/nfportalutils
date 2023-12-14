@@ -7,11 +7,12 @@
 #' @param study_table_id Synapse ID of the portal study table/view that lists relevant studies in column `id` or `studyId`.
 #' @param fileview_id Synapse ID of the portal fileview.
 #' @param id_col Name of the id column in `study_table_id` and `fileview_id`.
-#' @param attribute The attribute that we are rolling up; defaults to `dataType`. Must be queryable in `fileview_id`.
-#' @param dry_run Default = TRUE. Skips updating the annotation and instead displays annotation object.
+#' @param attribute The attribute that we are rolling up; name should not contain spaces.
+#' Defaults to `dataType`. Must be queryable in `fileview_id`.
+#' @param dry_run Default = TRUE. Skips updating the annotation and instead returns annotation object(s) list.
 #' @examples
 #' \dontrun{
-#' assign_study_data_types(study_table_id = 'syn52677631', # either syn52677631 or syn52694652 OK
+#' assign_study_data_types(study_table_id = 'syn52694652',
 #'                         fileview_id = 'syn16858331',
 #'                         id_col = 'studyId',
 #'                         id_col = 'studyId',
@@ -27,18 +28,22 @@ assign_study_data_types <- function(study_table_id,
   .check_login()
 
   # get studies from study table
-  studies <- .syn$tableQuery(glue::glue("select {id_col} from {study_table_id}", includeRowIdAndRowVersion=T))
+  studies <- table_query(table_id = study_table_id, columns = id_col) %>% unlist()
 
   # query the fileview
   fv <- .syn$tableQuery(
-    glue::glue('select {id_col},{attribute} from {fileview_id} where type = \'file\' and {attribute} is not null and {id_col} is not null'))$filepath %>%
-    readr::read_csv(na=character()) ##asDataFrame() & reticulate return rowIdAndRowVersion as concatenated rownames, read_csv reads them in as column
+    glue::glue("select {id_col},group_concat(distinct {attribute}) as {attribute} from {fileview_id} where type = \'file\' and {attribute} is not null and {id_col} is not null group by {id_col}"),
+    includeRowIdAndRowVersion = F)$asDataFrame()
+  meta <- lapply(fv[[attribute]], function(x) unique(trimws(strsplit(x, split = ",")[[1]]))) # stray whitespaces occasional issue
+  names(meta) <- fv[[id_col]]
 
-  if(dry_run == FALSE){
-
-  } else{
-
+  dry_list <- list()
+  for(study in names(meta)) {
+    study_meta <- .syn$get_annotations(study)
+    study_meta[attribute] <- meta[[study]]
+    if(dry_run) dry_list[[study]] <- study_meta else .syn$set_annotations(study_meta)
   }
+  if(dry_run) dry_list
 }
 
 #' Retrieve valid subclasses of a value in a JSON-LD schema

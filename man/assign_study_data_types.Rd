@@ -19,9 +19,10 @@ assign_study_data_types(
 
 \item{id_col}{Name of the id column in \code{study_table_id} and \code{fileview_id}.}
 
-\item{attribute}{The attribute that we are rolling up; defaults to \code{dataType}. Must be queryable in \code{fileview_id}.}
+\item{attribute}{The attribute that we are rolling up; name should not contain spaces.
+Defaults to \code{dataType}. Must be queryable in \code{fileview_id}.}
 
-\item{dry_run}{Default = TRUE. Skips updating the annotation and instead displays annotation object.}
+\item{dry_run}{Default = TRUE. Skips updating the annotation and instead returns annotation object(s) list.}
 }
 \description{
 Data types are summarized, or "rolled-up", for the study based on its child file annotations.
@@ -30,10 +31,10 @@ Contrast this with \code{update_study_annotations}, where study-level annotation
 }
 \examples{
 \dontrun{
-assign_study_data_types(study_table_id = 'syn52677631', # either syn52677631 or syn52694652 OK
+assign_study_data_types(study_table_id = 'syn52694652',
                         fileview_id = 'syn16858331',
                         id_col = 'studyId',
-                        attribute = 'dataType',
+                        id_col = 'studyId',
                         dry_run = T)
 }
 }
