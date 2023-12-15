@@ -126,6 +126,7 @@ reference:
   desc: Export data as a cBioPortal study
 - contents:
   - cbp_new_study
+  - cbp_new_cancer_type
   - cbp_add_maf
   - cbp_add_clinical
   - cbp_add_expression

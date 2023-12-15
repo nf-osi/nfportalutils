@@ -272,3 +272,25 @@ format_gene_expression_data <- function(file) {
   setnames(data_expression, old = c("gene_name"), new = c("Hugo_Symbol"))
   fwrite(data_expression, file = file, sep = "\t")
 }
+
+#' Create index files for new cancer type
+#'
+#' https://docs.cbioportal.org/file-formats/#cancer-type
+#'
+#' @export
+cbp_new_cancer_type <- function(type_of_cancer,
+                                name,
+                                color,
+                                parent_type_of_cancer) {
+
+  cat("genetic_alteration_type: CANCER_TYPE",
+      "datatype: CANCER_TYPE",
+      "data_filename: cancer_type.txt",
+      sep = "\n",
+      file = "meta_cancer_type.txt")
+
+  cat(glue::glue("{type_of_cancer}\t{name}\t{color}\t{parent_type_of_cancer}"),
+      file = "cancer_type.txt")
+
+  checked_message("Created new cancer type meta and data")
+}
