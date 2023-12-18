@@ -128,7 +128,10 @@ See the [general docs for dataset validation](https://docs.cbioportal.org/using-
 
 For the _public_ portal, the suggested step using the public server is given below.  
 
-Assuming your present working directory is `~/datahub/public` and a study folder called `npst_nfosi_ntap_2022` has been placed into it, mount the dataset into the container and run validation with:  
-`docker run --rm -v $(pwd):/datahub cbioportal/cbioportal:5.4.7 validateStudies.py -d /datahub -l npst_nfosi_ntap_2022 -u http://cbioportal.org -html /datahub/npst_nfosi_ntap_2022/html_report`
+Assuming your present working directory is `~/datahub/public` and a study folder called `npst_nfosi_ntap_2022` has been placed into it, mount the dataset into the container and run validation like:  
+```
+STUDY=npst_nfosi_ntap_2022
+sudo docker run --rm -v $(pwd):/datahub cbioportal/cbioportal:5.4.7 validateStudies.py -d /datahub -l $STUDY -u http://cbioportal.org -html /datahub/$STUDY/html_report
+```
 
 The html report will list issues by data types to help with any corrections needed.  

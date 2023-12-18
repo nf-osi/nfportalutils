@@ -98,7 +98,7 @@ write_cbio_clinical <- function(df,
   .df <- data.table::copy(df)
   for(col in names(.df)) {
     if(class(.df[[col]]) == "list") {
-      .df[[col]] <- paste(.df[[col]], sep = ",")
+      .df[[col]] <- sapply(.df[[col]], function(x) paste0(x, collapse = "-"))
       warning(glue::glue("The {col} field was stored as a list has been coerced for export, you may want to check output."), call. = F)
     }
     # Use actual NA's so that `write.table` can write out "" consistently

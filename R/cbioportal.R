@@ -273,10 +273,15 @@ format_gene_expression_data <- function(file) {
   fwrite(data_expression, file = file, sep = "\t")
 }
 
-#' Create index files for new cancer type
+#' Create reference file for new cancer type
 #'
+#' Helper for creating reference for new cancer subtype which does not already exist.
 #' https://docs.cbioportal.org/file-formats/#cancer-type
 #'
+#' @param type_of_cancer Id for new cancer type, e.g. "cnf".
+#' @param name Full name for new cancer type, e.g. "Cutaneous Neurofibroma"
+#' @param color Color name for new cancer; https://en.wikipedia.org/wiki/Web_colors#X11_color_names.
+#' @param parent_type_of_cancer Id of existing parent, e.g. "nfib" for Neurofibroma.
 #' @export
 cbp_new_cancer_type <- function(type_of_cancer,
                                 name,
