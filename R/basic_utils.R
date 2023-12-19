@@ -1,5 +1,5 @@
 #' Create copy of entity
-#' 
+#'
 #' Create a copy of syn entity; mostly used to create a copy on which to test out changes.
 #' See https://python-docs.synapse.org/build/html/synapseutils.html?highlight=copy#synapseutils.copy_functions.copy
 #' @param entity Entity to copy.
@@ -7,28 +7,28 @@
 #' @param skip_copy_wiki_page Whether to skip copying wiki; defaults FALSE.
 #' @param skip_copy_annotations Whether to skip copying annotations; defaults FALSE.
 #' @keywords internal
-copy <- function(entity, 
-                 destination_id, 
-                 skip_copy_wiki_page = FALSE, 
+copy <- function(entity,
+                 destination_id,
+                 skip_copy_wiki_page = FALSE,
                  skip_copy_annotations = FALSE) {
-  
+
   .check_login()
   # load synapseutils as needed
-  
-  
-  synapseutils$copy(.syn, 
-                    entity = entity, 
-                    destinationId = destination_id, 
-                    skipCopyWikiPage = skip_copy_wiki_page, 
+
+
+  synapseutils$copy(.syn,
+                    entity = entity,
+                    destinationId = destination_id,
+                    skipCopyWikiPage = skip_copy_wiki_page,
                     skipCopyAnnotations = skip_copy_annotations)
-  
+
 }
 
 
 #' Download and read file to `data.table`
 #'
 #' Convenience function for reading a delimited local file or one on Synapse.
-#' 
+#'
 #' @keywords internal
 #' @import data.table
 dt_read <- function(file) {
@@ -46,13 +46,13 @@ dt_read <- function(file) {
 }
 
 #' Extract synapse id from URI or other string
-#' 
+#'
 #' @param uri URI or string containing embedded Synapse id.
 #' @keywords internal
 bare_syn_id <- function(uri) {
   not_na <- which(!is.na(uri))
   x <- uri[not_na]
-  syn <- regmatches(x, regexpr("syn[0-9]{8,9}", x))
+  syn <- regmatches(x, regexpr("syn[0-9]{8,12}", x))
   uri[not_na] <- syn
   return(uri)
 }
@@ -63,21 +63,21 @@ bare_syn_id <- function(uri) {
 #' @param id Id string.
 #' @keywords internal
 is_valid_syn_id <- function(id) {
-  result <- grepl("^syn[0-9]{8,9}$", id)
+  result <- grepl("^syn[0-9]{8,12}$", id)
   result
 }
 
 #' Walk through a directory
-#' 
+#'
 #' For now, an internal util imported from `synapseutils`.
 #' @param syn_id Synapse id of directory root to traverse.
-#' @param as_list 
-#' @return An R list or Py generator object. 
+#' @param as_list
+#' @return An R list or Py generator object.
 #' @keywords internal
 walk <- function(syn_id, as_list = TRUE) {
   .check_login()
   x <- synapseutils$walk(.syn, syn_id)
   if(as_list) reticulate::iterate(x) else x
-  
+
 }
 
