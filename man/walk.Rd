@@ -8,8 +8,6 @@ walk(syn_id, as_list = TRUE)
 }
 \arguments{
 \item{syn_id}{Synapse id of directory root to traverse.}
-
-\item{as_list}{}
 }
 \value{
 An R list or Py generator object.

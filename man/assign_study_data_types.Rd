@@ -13,28 +13,31 @@ assign_study_data_types(
 )
 }
 \arguments{
-\item{study_table_id}{Synapse ID of the portal study table/view that lists relevant studies in column \code{id} or \code{studyId}.}
+\item{study_table_id}{Synapse ID of reference portal study table. Used to get study ids.}
 
-\item{fileview_id}{Synapse ID of the portal fileview.}
+\item{fileview_id}{Synapse ID of the reference portal fileview.}
 
-\item{id_col}{Name of the id column in \code{study_table_id} and \code{fileview_id}.}
+\item{id_col}{Name of the study id column in \code{study_table_id} and \code{fileview_id}. Defaults to \code{studyId}.}
 
-\item{attribute}{The attribute that we are rolling up; name should not contain spaces.
-Defaults to \code{dataType}. Must be queryable in \code{fileview_id}.}
+\item{attribute}{Attribute being summarized using fileview. Defaults to \code{dataType}.}
 
-\item{dry_run}{Default = TRUE. Skips updating the annotation and instead returns annotation object(s) list.}
+\item{dry_run}{Default = TRUE. Whether to update as well or just return list of annotation objects.}
+}
+\value{
+List of annotations objects.
 }
 \description{
 Data types are summarized, or "rolled-up", for the study based on its child file annotations.
-This summary is added as (and will overwrite the current) \code{dataType} annotation for the study.
-Contrast this with \code{update_study_annotations}, where study-level annotations are rolled down to child files.
+Summary values are added back as and overwrites the current \code{dataType} annotation for the study.
+See also the related \code{update_study_annotations}, where study-level annotations are \emph{rolled down} to child files.
+Note that under-the-hood this now wraps a generalized util \code{summarize_attribute}.
 }
 \examples{
 \dontrun{
 assign_study_data_types(study_table_id = 'syn52694652',
                         fileview_id = 'syn16858331',
                         id_col = 'studyId',
-                        id_col = 'studyId',
+                        attribute = 'dataType',
                         dry_run = T)
 }
 }
