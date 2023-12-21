@@ -59,7 +59,7 @@ assign_study_data_types <- function(study_table_id,
 #' Example 1: With datasets, summarize `species` for all the files.
 #' Example 2: With projects, summarize `dataType` for all the files (in fact, see `assign_study_data_types`).
 #'
-#' @param summary_query Query (usually of a fileview) that returns appropriate aggregation per row.
+#' @param summary_query Query (usually of a fileview) that returns appropriate aggregation per row. You may need to add `group_concat`, `distinct`, and or `unnest` to the query to get the correct list of distinct values depending on your data (e.g.`select group_concat(distinct unnest(tumorType)) as tumorType from ...`).
 #' @param attribute Name of attribute to update as annotation.
 #' @param entity_id Either a single valid Synapse id of the entity for which to update the attribute *or* a column present in `summary_query` that stores ids.
 #' @param dry_run Default = `TRUE`. Whether to update as well or just return list of annotation objects.
