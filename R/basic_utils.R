@@ -29,6 +29,7 @@ copy <- function(entity,
 #'
 #' Convenience function for reading a delimited local file or one on Synapse.
 #'
+#' @param file File Synapse id or local path.
 #' @keywords internal
 #' @import data.table
 dt_read <- function(file) {
@@ -71,7 +72,7 @@ is_valid_syn_id <- function(id) {
 #'
 #' For now, an internal util imported from `synapseutils`.
 #' @param syn_id Synapse id of directory root to traverse.
-#' @param as_list
+#' @param as_list Whether to return as R list.
 #' @return An R list or Py generator object.
 #' @keywords internal
 walk <- function(syn_id, as_list = TRUE) {

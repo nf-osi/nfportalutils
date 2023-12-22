@@ -13,7 +13,7 @@ summarize_attribute(
 )
 }
 \arguments{
-\item{summary_query}{Query (usually of a fileview) that returns appropriate aggregation per row.}
+\item{summary_query}{Query (usually of a fileview) that returns appropriate aggregation per row. You may need to add \code{group_concat}, \code{distinct}, and or \code{unnest} to the query to get the correct list of distinct values depending on your data (e.g.\verb{select group_concat(distinct unnest(tumorType)) as tumorType from ...}).}
 
 \item{attribute}{Name of attribute to update as annotation.}
 
