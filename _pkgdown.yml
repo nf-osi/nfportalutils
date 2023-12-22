@@ -13,6 +13,7 @@ reference:
   - register_study
   - add_people_from_table
   - register_study_files
+  - summarize_attribute
 - subtitle: Lower-level table maintenance
 - contents:
   - adjust_view
