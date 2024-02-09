@@ -13,6 +13,7 @@ reference:
   - register_study
   - add_people_from_table
   - register_study_files
+  - summarize_attribute
 - subtitle: Lower-level table maintenance
 - contents:
   - adjust_view
@@ -40,6 +41,8 @@ reference:
   - manifest_generate
   - manifest_validate
   - manifest_passed
+  - precheck_manifest
+  - remanifest
   - infer_data_type
 - subtitle: Special annotation of nextflow processed data
   desc: Special annotation of nextflow processed data

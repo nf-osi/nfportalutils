@@ -1,0 +1,95 @@
+---
+title: "Revalidation workflows"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{revalidation-workflows}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+This vignette demonstrates variants of metadata revalidation workflows.
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+First set up as usual.
+```{r setup, cache=TRUE}
+
+library(nfportalutils)
+syn_login(Sys.getenv("SYNAPSE_AUTH_TOKEN"))
+```
+
+## Basics with Schematic API service
+
+Schematic API only works with dataset folders currently. Find a dataset folder.
+
+1. To validate metadata, a manifest must be reconstituted.
+Type `?manifest_generate` to read the docs.
+
+As seen in the params below, you do need to know the `data_type` to validate against.
+The `data_type` is the same as the "Component" in the schematic data model (and so the exact term depends on the data model).
+If feeling lucky, try `infer_data_type`.
+```{r}
+
+my_dataset <- "syn25386362"
+
+inferred <- infer_data_type(my_dataset)
+inferred
+
+data_type <- inferred$result
+
+manifest_generate(data_type,
+                  dataset_id = my_dataset,
+                  schema_url = "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld",
+                  output_format = "google_sheet") # otherwise excel
+```
+
+2. Go to google_sheet and download as `.csv`. If Excel was chosen, open in some spreadsheet editor and resave file as `.csv`.
+Then validate.
+```{r}
+manifest_validate(data_type = data_type,
+                  file_name = "GenomicsAssayTemplate - Sheet1.csv")
+```
+
+3. Make corrections in the `.csv` according to validation laundry list.
+
+4. Submit corrected manifest via DCA.
+
+## Alternative with dataset entity
+
+For working with dataset entities or doing extra checks, this slightly different workflow can be applied instead.
+Dataset entities may be more complicated because they can combine files in different times and places (batches).
+
+1. Generate a manifest for Synapse dataset entity.
+We need to use `remanifest`; to understand differences, read the docs by running `?remanifest`.
+```{r}
+datasets <- list_project_datasets(project_id = "syn4939902", type = "dataset")
+new_datasets <- Filter(function(d) as.Date(d$createdOn) > as.Date("2023-12-01"), datasets) # or filter by name
+
+```
+
+We will use the first item as the demo.
+```{r}
+test <- new_datasets[[1]]$id
+remanifest(test, file = "manifest_rd1.csv")
+```
+
+For reproducibility this original manifest "manifest_rd1.csv" is in the vignettes folder.
+
+2. Run precheck.
+```{r}
+precheck_manifest("manifest_rd1.csv")
+```
+
+3. Make a copy of "manifest_rd1.csv", e.g. "manifest_rd1_corrected.csv" and use precheck notes to help make corrections.
+
+4. Validate "manifest_rd1_corrected.csv" using schematic service (same as above, not run since general validation output has already been shown).
+
+5. Make *more* corrections as needed.
+
+6. Finally submit corrected manifest.

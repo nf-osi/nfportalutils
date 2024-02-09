@@ -1,69 +1,102 @@
-#' Summarize file annotations into a STRINGLIST column on a study table.
-#' @description Summarize fileview annotations into a string-list column on another table.
-#' @description For example, use this function to summarize all of the "dataType" annotations for a each study into a STRINGLIST annotation on the Study table of a portal. Overwrites whatever is currently in the target column.
-#' @param study_table_id The synapse id of the portal study table. Must have write access.
-#' @param fileview_id The Synapse ID of the portal fileview.
-#' @param group_colname The column name to group by and join on (such as the default = 'studyId')
-#' @param source_colname The column name to summarize and add to the study_table_id table. The column must exist in both schemas, and must be a STRINGLIST-type column in the "study_table_id" table.
-#' @param sep If any delimited values exist in the source_colname column, pass the delimiter here so that these cases are included.
-#' @param valid_values A vector of valid values for the source_colname. e.g. the output of running `get_valid_values_from_json_schema()`
-#' @param dry_run Default = TRUE. Skips upload to table and instead prints study tibble.
-#' @return If dry_run == T, returns study tibble and skips upload.
-#' @examples 
+#' Summarize data types for the study
+#'
+#' Data types are summarized, or "rolled-up", for the study based on its child file annotations.
+#' Summary values are added back as and overwrites the current `dataType` annotation for the study.
+#' See also the related `update_study_annotations`, where study-level annotations are *rolled down* to child files.
+#' Note that under-the-hood this now wraps a generalized util `summarize_attribute`.
+#'
+#' @param study_table_id Synapse ID of reference portal study table. Used to get study ids.
+#' @param fileview_id Synapse ID of the reference portal fileview.
+#' @param id_col Name of the study id column in `study_table_id` and `fileview_id`. Defaults to `studyId`.
+#' @param attribute Attribute being summarized using fileview. Defaults to `dataType`.
+#' @param dry_run Default = TRUE. Whether to update as well or just return list of annotation objects.
+#' @return List of annotations objects.
+#' @examples
 #' \dontrun{
-#' assign_study_data_types(study_table_id = 'syn16787123', 
-#'                        fileview_id = 'syn16858331', 
-#'                        group_colname = 'studyId', 
-#'                        source_colname = "dataType", 
-#'                        sep = ",", 
-#'                        valid_values = get_valid_values_from_json_schema(), 
-#'                        dry_run = T)
-#'}                        
+#' assign_study_data_types(study_table_id = 'syn52694652',
+#'                         fileview_id = 'syn16858331',
+#'                         id_col = 'studyId',
+#'                         attribute = 'dataType',
+#'                         dry_run = T)
+#'}
 #' @export
-assign_study_data_types <- function(study_table_id, fileview_id, group_colname = "studyId",
-                                    source_colname = "dataType", sep = ",", valid_values, dry_run = TRUE){
+assign_study_data_types <- function(study_table_id,
+                                    fileview_id,
+                                    id_col = "studyId",
+                                    attribute = "dataType",
+                                    dry_run = TRUE) {
 
   .check_login()
 
-  ##query the study table
-  query <- .syn$tableQuery(glue::glue("select {group_colname}, {source_colname} from {study_table_id}", includeRowIdAndRowVersion=T))
+  # get studies within scope from study table
+  studies <- table_query(table_id = study_table_id, columns = id_col) %>% unlist()
 
-  studies <- query$filepath %>%
-    readr::read_csv(na=character()) ##asDataFrame() & reticulate return rowIdAndRowVersion as concatenated rownames, read_csv reads them in as columns
+  # query the fileview
+  query <- glue::glue("select {id_col},group_concat(distinct {attribute}) as {attribute} from {fileview_id}
+                      where type = \'file\' and {attribute} is not null and {id_col} is not null group by {id_col}")
 
-  ##query the fileview
-  fv <- .syn$tableQuery(glue::glue('select {group_colname},{source_colname} from {fileview_id} where type = \'file\' and {group_colname} is not null and {source_colname} is not null'))$filepath %>%
-    readr::read_csv(na=character()) ##asDataFrame() & reticulate return rowIdAndRowVersion as concatenated rownames, read_csv reads them in as column
-
-  #TODO:: add support for stringlist-ed values
-
-  ##make simplified data table for stringlist-ing
-  data_types <- fv %>%
-    dplyr::select(one_of({{group_colname}}, {{source_colname}})) %>%
-    dplyr::distinct() %>%
-    tidyr::separate_rows({{source_colname}}, sep = {{sep}}) %>% ##this handles comma seperated or other delimited values
-    dplyr::filter(!!rlang::sym(source_colname) %in% valid_values)
-
-  studies <- dplyr::select(studies, ROW_ID, ROW_VERSION, {{group_colname}})
-
-  ##create stringlisted data
-  ids <- data_types %>% dplyr::group_by_at(group_colname) %>%
-    dplyr::summarise(!!rlang::sym(source_colname) := jsonlite::toJSON(!!rlang::sym(source_colname)))
-
-  ##join study table to stringlisted values, filter NA rows out, we don't need to update those
-  studies_updated <- dplyr::left_join(studies, ids) %>%
-    dplyr::filter(!is.na(!!rlang::sym(source_colname)))
-
-  #TODO: could add check here to report number of updated rows vs original...
-
-  if(dry_run == FALSE){
-    .update_table_data(table_id = study_table_id,
-                       new_data = studies_updated,
-                       etag = query$etag)
-  }else{
-    studies_updated
+  check_fun <- function(values) {
+    if(length(values) > 50) {
+      warning(glue::glue("Over 50 values found, which will break the schema."))
+      return(FALSE)
+    } else {
+      return(TRUE)
+    }
   }
+
+  summarize_attribute(summary_query = query,
+                      attribute = attribute,
+                      entity_id = id_col,
+                      dry_run = dry_run,
+                      check_fun = check_fun)
 }
+
+
+#' Helper summarization util
+#'
+#' Given some table X that provides values, summarize the values for an attribute and add summary as annotations on some entity.
+#' The entity could be X itself or another entity Y, e.g. a parent container entity.
+#' Example 1: With datasets, summarize `species` for all the files.
+#' Example 2: With projects, summarize `dataType` for all the files (in fact, see `assign_study_data_types`).
+#'
+#' @param summary_query Query (usually of a fileview) that returns appropriate aggregation per row. You may need to add `group_concat`, `distinct`, and or `unnest` to the query to get the correct list of distinct values depending on your data (e.g.`select group_concat(distinct unnest(tumorType)) as tumorType from ...`).
+#' @param attribute Name of attribute to update as annotation.
+#' @param entity_id Either a single valid Synapse id of the entity for which to update the attribute *or* a column present in `summary_query` that stores ids.
+#' @param dry_run Default = `TRUE`. Whether to update as well or just return list of annotation objects.
+#' @param check_fun An optional custom check function to apply to the values being updated in order for update to go through. Should return a boolean. Used only if dry_run = `FALSE`.
+#' It can be tailored towards the attribute/entity being updated (i.e. taking into account the schema and valid values).
+#' @export
+summarize_attribute <- function(summary_query,
+                                attribute,
+                                entity_id = NULL,
+                                dry_run = TRUE,
+                                check_fun = NULL) {
+
+  values <- .syn$tableQuery(summary_query,includeRowIdAndRowVersion = F)$asDataFrame()
+  meta <- lapply(values[[attribute]], function(x) unique(trimws(strsplit(x, split = ",")[[1]]))) # in case of stray whitespaces
+  if(is_valid_syn_id(entity_id)) {
+    names(meta) <- entity_id
+  } else {
+    names(meta) <- values[[entity_id]]
+  }
+
+  result_list <- list()
+  for(entity in names(meta)) {
+    entity_meta <- .syn$get_annotations(entity)
+    entity_meta[attribute] <- meta[[entity]]
+    result_list[[entity]] <- entity_meta
+    if(!dry_run) {
+      if(is.function(check_fun)) {
+        if(check_fun(meta[[entity]])) .syn$set_annotations(entity_meta) else message("Skipped update for {entity}.")
+      } else {
+        .syn$set_annotations(entity_meta)
+        message(glue::glue("Updated {entity} {attribute}."))
+      }
+    }
+  }
+  invisible(result_list)
+}
+
 
 #' Retrieve valid subclasses of a value in a JSON-LD schema
 #' @description Retrieve valid subclasses of a value in a JSON-LD schema generated by schematic.
@@ -77,11 +110,11 @@ get_valid_values_from_json_schema <- function(schema_url = 'https://raw.githubus
                                               parent_context = 'bts'){
 
   parent_id <- paste0(parent_context, ':', parent_name)
-  
-  subclasses <- 
+
+  subclasses <-
     jsonlite::fromJSON(schema_url) %>%
     purrr::pluck("@graph") %>%
-    dplyr::filter(purrr::map_lgl(`rdfs:subClassOf`, ~ parent_id %in% .x)) %>% 
+    dplyr::filter(purrr::map_lgl(`rdfs:subClassOf`, ~ parent_id %in% .x)) %>%
     dplyr::pull(`sms:displayName`)
 
   subclasses

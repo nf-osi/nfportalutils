@@ -6,6 +6,9 @@
 \usage{
 dt_read(file)
 }
+\arguments{
+\item{file}{File Synapse id or local path.}
+}
 \description{
 Convenience function for reading a delimited local file or one on Synapse.
 }

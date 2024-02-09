@@ -280,26 +280,104 @@ meta_qc_project <- function(project_id, result_file = NULL, ...) {
 
 }
 
+
 #' List datasets in project
 #'
-#' Return a list of dataset folders if they are in expected location in project, otherwise NULL w/ explanatory message.
+#' Return a list of datasets. Datasets can be folders in the expected location in the project or actual dataset entities.
+#' Note that dataset-folders will always be what exists first in the project, as sort of the dataset precursor.
+#' The files in dataset-folders can be translated to dataset entities later.
+#' When not found, will return NULL w/ explanatory message.
 #'
 #' @inheritParams find_data_root
+#' @param type Whether to list datasets as immediate folders under "Raw Data" root (default, see details) or actual dataset entities in the project.
 #' @export
-list_project_datasets <- function(project_id) {
+list_project_datasets <- function(project_id,
+                                  type = c("folder", "dataset")) {
 
-  data_root <- find_data_root(project_id)
-  if(is.null(data_root)) {
+  type <- match.arg(type)
+  if(type == "folder") {
+    data_root <- find_data_root(project_id)
+    if(is.null(data_root)) {
 
-    warning("Data root could not be located.")
-    return()
+      warning("Data root could not be located.")
+      return()
 
+    } else {
+
+      in_data <- .syn$getChildren(data_root)
+      in_data <- reticulate::iterate(in_data)
+      datasets <- Filter(function(x) x$type == "org.sagebionetworks.repo.model.Folder", in_data)
+      if(!length(datasets)) warning("No datasets found under data root.")
+      datasets
+    }
   } else {
-
-    in_data <- .syn$getChildren(data_root)
-    in_data <- reticulate::iterate(in_data)
-    datasets <- Filter(function(x) x$type == "org.sagebionetworks.repo.model.Folder", in_data)
-    if(!length(datasets)) warning("No datasets found under data root.")
+    children <- .syn$getChildren(project_id)
+    datasets <- reticulate::iterate(children)
+    datasets <- Filter(function(x) x$type == "org.sagebionetworks.repo.model.table.Dataset", datasets)
+    if(!length(datasets)) warning("No dataset entities found in project.")
     datasets
   }
+}
+
+#' Precheck a manifest
+#'
+#' Precheck before sending manifest off to schematic validation service.
+#' Provides additional context and helpful recommendations.
+#'
+#' @param manifest_csv Path to manifest_csv.
+#' @param official_props (Optional) Doc listing official model attributes. Currently this requires the LinkML format.
+#' @export
+precheck_manifest <- function(manifest_csv,
+                              official_props = "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/modules/props.yaml") {
+
+  manifest <- fread(manifest_csv)
+  attributes <- names(manifest)
+
+  #-- ERRORS --#
+  if(!"Component" %in% attributes) {
+    message(glue::glue())
+  } else {
+    unique_components <- unique(manifest$Component)
+    if(length(unique_components) > 1) {
+      which_components <- glue::glue_collapse(shQuote(unique_components), ", ")
+      message(glue::glue("{emoji::emoji('x')} Multiple components detected in a single manifest: {which_components}. This can happen when files were annotated at different eras.
+                          Suggestions: 1) Split up the manifest because schematic can only validate one type at a type. 2) Harmonize the components if this is sensible.
+                          For example, RNASeqTemplate is an alias for GenomicsAssayTemplate"))
+    }
+
+    if("" %in% unique_components) {
+      message(glue::glue("{emoji::emoji('x')} Blank value '' for Component detected. This can happen because files were annotated before 2022, when Component was introduced for most DCCs."))
+    }
+
+  }
+
+  # Duplicate columns like age..1 etc.
+  likely_dups <- grep("[.][0-9]+", attributes, value = TRUE)
+  if(length(likely_dups)) {
+    likely_dups <- glue::glue_collapse(shQuote(likely_dups), ", ")
+    message(glue::glue("{emoji::emoji('x')} The pattern of these attribute names suggest duplicates: {likely_dups}. This may happen when metadata is supplemented programmatically with a data-type mismatch"))
+  }
+
+  #-- WARNINGS --#
+  # These technically don't break present-day schematic revalidation but should be cleaned up; many are from earlier schematic issues.
+
+  # See https://sagebionetworks.slack.com/archives/C01ANC02U59/p1681418154850589
+  if("Uuid" %in% attributes) {
+    message(crayon::yellow(glue::glue("{emoji::emoji('warning')} An attribute `Uuid` is present and should preferably be removed.")))
+  }
+
+  # See https://github.com/Sage-Bionetworks/schematic/issues/476#issuecomment-848853193
+  if("eTag" %in% attributes) {
+    message(crayon::yellow(glue::glue("{emoji::emoji('warning')} An attribute `eTag` is present and preferably be removed.")))
+  }
+
+  #-- INFO only --#
+  if(!is.null(official_props)) props <- names(yaml::read_yaml(official_props)$slots)
+  custom_attributes <- setdiff(attributes, props)
+  if(length(custom_attributes)) {
+    custom_attributes <- glue::glue_collapse(shQuote(custom_attributes), ", ")
+    message(crayon::blue(glue::glue("{emoji::emoji('information')} Custom attributes (not documented in data model) were found: {custom_attributes}. In general, custom attributes added by the researcher to help with data management are fine.
+                Just check that they are not PHI or added by mistake. If they are deemed generally useful or important enough, they can also be documented officially in the data model for others to reference.")))
+  }
+
 }
