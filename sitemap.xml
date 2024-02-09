@@ -22,6 +22,9 @@
     <loc>/articles/index.html</loc>
   </url>
   <url>
+    <loc>/articles/revalidation-workflows.html</loc>
+  </url>
+  <url>
     <loc>/articles/survey-public-files.html</loc>
   </url>
   <url>
@@ -229,6 +232,9 @@
     <loc>/reference/find_child.html</loc>
   </url>
   <url>
+    <loc>/reference/find_child_type.html</loc>
+  </url>
+  <url>
     <loc>/reference/find_data_root.html</loc>
   </url>
   <url>
@@ -239,6 +245,9 @@
   </url>
   <url>
     <loc>/reference/from_pubmed.html</loc>
+  </url>
+  <url>
+    <loc>/reference/gather_annotations.html</loc>
   </url>
   <url>
     <loc>/reference/get_by_prop_from_json_schema.html</loc>
@@ -406,6 +415,9 @@
     <loc>/reference/ppp_mmd_template.html</loc>
   </url>
   <url>
+    <loc>/reference/precheck_manifest.html</loc>
+  </url>
+  <url>
     <loc>/reference/processing_flowchart.html</loc>
   </url>
   <url>
@@ -415,10 +427,16 @@
     <loc>/reference/register_study_files.html</loc>
   </url>
   <url>
+    <loc>/reference/remanifest.html</loc>
+  </url>
+  <url>
     <loc>/reference/remove_button.html</loc>
   </url>
   <url>
     <loc>/reference/remove_wiki_subpage.html</loc>
+  </url>
+  <url>
+    <loc>/reference/save_manifest.html</loc>
   </url>
   <url>
     <loc>/reference/schema_max_str_len.html</loc>
