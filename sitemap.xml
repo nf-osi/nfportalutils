@@ -157,6 +157,9 @@
     <loc>/reference/cbp_datatypes.html</loc>
   </url>
   <url>
+    <loc>/reference/cbp_new_cancer_type.html</loc>
+  </url>
+  <url>
     <loc>/reference/cbp_new_study.html</loc>
   </url>
   <url>
@@ -242,6 +245,9 @@
   </url>
   <url>
     <loc>/reference/find_nf_asset.html</loc>
+  </url>
+  <url>
+    <loc>/reference/format_gene_expression_data.html</loc>
   </url>
   <url>
     <loc>/reference/from_pubmed.html</loc>

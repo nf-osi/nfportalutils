@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">nfportalutils</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.946</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9500</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -98,9 +98,8 @@ types relevant to the NF workflow (so not all data types). The design
 has been inspired by and should feel somewhat like working with the R
 package <a href="https://github.com/r-lib/usethis" class="external-link">usethis</a>, and data
 types can be added to the study package interactively.</p>
-<p>Though there is some checking depending on the data type, final
-validation with the official cBioPortal validation tools/scripts should
-still be run (see last section).</p>
+<p>Though there is some checking depending on the data type, final <a href="#Validation">validation</a> with the official cBioPortal
+validation tools/scripts should still be run.</p>
 <p>Breaking changes are possible as the API is still in development.</p>
 </div>
 <div class="section level2">
@@ -118,7 +117,9 @@ stored therein.</p>
 <div class="section level2">
 <h2 id="create-a-new-study-dataset">Create a new study dataset<a class="anchor" aria-label="anchor" href="#create-a-new-study-dataset"></a>
 </h2>
-<p>First create the study before we can put together the data.</p>
+<p>First create the study dataset “package” where we can put together
+the data. Each study dataset combines multiple data types – clinical,
+gene expression, gene variants, etc.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="fu"><a href="../reference/cbp_new_study.html">cbp_new_study</a></span><span class="op">(</span>cancer_study_identifier <span class="op">=</span> <span class="st">"npst_nfosi_ntap_2022"</span>,</span>
@@ -129,21 +130,30 @@ stored therein.</p>
 <h2 id="add-data-types-to-study">Add data types to study<a class="anchor" aria-label="anchor" href="#add-data-types-to-study"></a>
 </h2>
 <p>Data types can be most easily added <em>in any order</em> using the
-<code>cbp_add*</code> functions. These download data files and create
-the meta for them, using <strong>defaults for NF-OSI processed
-data</strong>. Sometimes if these defaults don’t match what you want,
+<code>cbp_add*</code> functions. These functions download data files and
+create the meta for them.</p>
+<p>Note that:</p>
+<ul>
+<li>These should be run with the working directory set to the study
+dataset directory as set up above to ensure consistent metadata.</li>
+<li>
+<strong>Defaults are for known NF-OSI processed data
+outputs</strong>.</li>
+<li>If these defaults don’t apply because of changes in the scenario,
 take a look at the lower-level utils <code>make_meta_*</code> or edit
-the files manually after.</p>
-<p>Important: user is expected to be in a valid cBioPortal study
-directory as set up in the previous step.</p>
+the files manually after.</li>
+<li>Data types can vary in how much additional work is needed in
+remapping, reformatting, custom sanity checks, etc.</li>
+</ul>
 <div class="section level3">
 <h3 id="add-mutations-data">Add mutations data<a class="anchor" aria-label="anchor" href="#add-mutations-data"></a>
 </h3>
 <ul>
 <li>
 <code>maf_data</code> references a final merged maf output file from
-the NF-OSI processing pipeline OK for public release. No further
-modifications are done except renaming it.</li>
+the NF-OSI processing pipeline OK for public release.</li>
+<li>This data file type requires no further modifications except
+renaming.</li>
 </ul>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
@@ -171,31 +181,50 @@ Synapse.</li>
 <ul>
 <li>
 <code>expression_data</code> is expected to be a <code>.txt</code>
-file on Synapse.</li>
+called <code>gene_tpm.tsv</code> file on Synapse.</li>
+<li>The NF-OSI default includes including the raw expression data as
+well, called <code>gene_counts.tsv</code>, but this can be omitted.</li>
+<li>These NF-OSI outputs will be somewhat modified in translation to
+have the required headers.</li>
 </ul>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">mrna_data</span> <span class="op">&lt;-</span> <span class="st">"syn********"</span></span>
+<span><span class="va">mrna_data_raw</span> <span class="op">&lt;-</span> <span class="st">"syn********"</span></span>
 <span></span>
-<span><span class="fu"><a href="../reference/cbp_add_expression.html">cbp_add_expression</a></span><span class="op">(</span><span class="va">mrna_data</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="../reference/cbp_add_expression.html">cbp_add_expression</a></span><span class="op">(</span><span class="va">mrna_data</span>,</span>
+<span>                   expression_data_raw <span class="op">=</span> <span class="va">mrna_data_raw</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="add-clinical-data">Add clinical data<a class="anchor" aria-label="anchor" href="#add-clinical-data"></a>
 </h3>
 <ul>
 <li>
-<code>ref_view</code> is a fileview that contains clinical data for
-the data released in the study.</li>
-<li>
-<code>ref_map</code> maps clinical variables from the NF-OSI data
-dictionary to cBioPortal’s</li>
+<code>clinical_data</code> is a prepared clinical data table already
+subsetted to those released in this study, or pass in a query that can
+be used for subsetting if using a full clinical database table. For
+example, the full clinical cohort comprises patients 1-50, but this
+study dataset consists of available and releasable data only for
+patients 1-20 for expression data and data patients 15-20 for cna data.
+Here, <code>clinical_data</code> can be a smaller table of just those
+1-30, or it can be the original table but pass in a suitable additional
+filter, e.g. <code>where release = 'batch1'</code>.</li>
+<li>Clinical data requires mapping to be as consistent with other public
+datasets as possible. <code>ref_map</code> defines the mapping of
+clinical variables from the NF-OSI data dictionary to cBioPortal’s. Only
+variables in the mapping are exported to cBioPortal. Follow link below
+to inspect the default file and format used.</li>
+<li>Clinical data should be added last for overall sample checks to
+work. For example, if there is expression data for patients 1-20 and cna
+data patients 15-20, it can more informatively warn about any
+missing/mismatches.</li>
 </ul>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
-<span><span class="va">ref_view</span> <span class="op">&lt;-</span> <span class="st">"syn43278088"</span></span>
+<span><span class="va">clinical_data</span> <span class="op">&lt;-</span> <span class="st">"select * from syn43278088"</span></span>
 <span><span class="va">ref_map</span> <span class="op">&lt;-</span> <span class="st">"https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/mappings/cBioPortal.yaml"</span></span>
 <span></span>
-<span><span class="fu"><a href="../reference/cbp_add_clinical.html">cbp_add_clinical</a></span><span class="op">(</span><span class="va">ref_view</span>, <span class="va">ref_map</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="../reference/cbp_add_clinical.html">cbp_add_clinical</a></span><span class="op">(</span><span class="va">clinical_data</span>, <span class="va">ref_map</span><span class="op">)</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
@@ -210,8 +239,12 @@ docs for dataset validation</a>.</p>
 server is given below.</p>
 <p>Assuming your present working directory is
 <code>~/datahub/public</code> and a study folder called
-<code>mixed_nfosi_2022</code> has been placed into it, mount the dataset
-into the container and run validation with:<br><code>docker run --rm -v $(pwd):/datahub cbioportal/cbioportal:4.1.13 validateStudies.py -d /datahub -l mixed_nfosi_2022 -u http://cbioportal.org -html /datahub/mixed_nfosi_2022/html_report</code></p>
+<code>npst_nfosi_ntap_2022</code> has been placed into it, mount the
+dataset into the container and run validation like:</p>
+<pre><code>STUDY=npst_nfosi_ntap_2022
+sudo docker run --rm -v $(pwd):/datahub cbioportal/cbioportal:5.4.7 validateStudies.py -d /datahub -l $STUDY -u http://cbioportal.org -html /datahub/$STUDY/html_report</code></pre>
+<p>The html report will list issues by data types to help with any
+corrections needed.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside>
