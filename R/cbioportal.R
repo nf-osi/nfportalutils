@@ -110,20 +110,23 @@ cbp_new_study <- function(cancer_study_identifier,
 #' in Nextflow processing any spaces gets replaced with underscores so that's the default here.
 #' Does *not* check for missing samples, as final validation via cBioPortal tool is still expected for that.
 #'
-#' @param ref_view A view that contains all clinical data for the study.
+#' @param clinical_data Clinical table query.
 #' @param ref_map YAML file specifying the mapping of (NF) clinical metadata to cBioPortal model. See details.
 #' @param verbose Whether to provide informative messages throughout.
-cbp_add_clinical <- function(ref_view,
+#'
+#' @export
+cbp_add_clinical <- function(clinical_data,
                              ref_map,
                              verbose = TRUE) {
 
   cancer_study_identifier <- check_cbp_study_id()
 
-  if(verbose) checked_message("Pulling the clinical data from Synapse")
-  df <- get_clinical_data_for_cbp_study(ref_view)
+  df <- .syn$tableQuery(clinical_data, includeRowIdAndRowVersion = FALSE)$asDataFrame()
+  if(verbose) checked_message("Retrieved clinical data from Synapse")
 
   if(verbose) checked_message("Formatting and making clinical data file(s)")
-  df$specimenID <- gsub(" ", "_", clinical_data$specimenID)
+  checked_message("Spaces in specimen IDs will be replaced with _ per cBioPortal specifications")
+  df$specimenID <- gsub(" ", "_", df$specimenID)
   write_cbio_clinical(df, ref_map = ref_map, verbose = verbose)
 
   if(verbose) checked_message("Making sample clinical meta file")
@@ -238,6 +241,7 @@ cbp_add_expression <- function(expression_data,
   file <- .syn$get(expression_data, downloadLocation = ".")
   data_expression <- sub(file$name, "data_expression_tpm.txt", file$path)
   file.rename(file$path, data_expression)
+  format_gene_expression_data("data_expression_tpm.txt")
 
   if(verbose) checked_message("Making the meta file")
   make_meta_expression(cancer_study_identifier, type = "tpm")
@@ -247,6 +251,7 @@ cbp_add_expression <- function(expression_data,
     file <- .syn$get(expression_data_raw, downloadLocation = ".")
     data_expression_supp <- sub(file$name, "data_expression_raw.txt", file$path)
     file.rename(file$path, data_expression_supp)
+    format_gene_expression_data("data_expression_raw.txt")
 
     if(verbose) checked_message("Making the meta file for supplemental raw mRNA expression data file")
     make_meta_expression(cancer_study_identifier, type = "raw")
@@ -257,3 +262,40 @@ cbp_add_expression <- function(expression_data,
 
 }
 
+#' Format gene expression
+#'
+#' @keywords internal
+#' @import data.table
+format_gene_expression_data <- function(file) {
+  data_expression <- fread(file)
+  data_expression[, gene_id := NULL] # Ensembl ids not used in cBioPortal
+  setnames(data_expression, old = c("gene_name"), new = c("Hugo_Symbol"))
+  fwrite(data_expression, file = file, sep = "\t")
+}
+
+#' Create reference file for new cancer type
+#'
+#' Helper for creating reference for new cancer subtype which does not already exist.
+#' https://docs.cbioportal.org/file-formats/#cancer-type
+#'
+#' @param type_of_cancer Id for new cancer type, e.g. "cnf".
+#' @param name Full name for new cancer type, e.g. "Cutaneous Neurofibroma"
+#' @param color Color name for new cancer; https://en.wikipedia.org/wiki/Web_colors#X11_color_names.
+#' @param parent_type_of_cancer Id of existing parent, e.g. "nfib" for Neurofibroma.
+#' @export
+cbp_new_cancer_type <- function(type_of_cancer,
+                                name,
+                                color,
+                                parent_type_of_cancer) {
+
+  cat("genetic_alteration_type: CANCER_TYPE",
+      "datatype: CANCER_TYPE",
+      "data_filename: cancer_type.txt",
+      sep = "\n",
+      file = "meta_cancer_type.txt")
+
+  cat(glue::glue("{type_of_cancer}\t{name}\t{color}\t{parent_type_of_cancer}"),
+      file = "cancer_type.txt")
+
+  checked_message("Created new cancer type meta and data")
+}

@@ -4,19 +4,16 @@
 \alias{make_cbio_clinical_header}
 \title{Make header for cBioPortal clinical data file}
 \usage{
-make_cbio_clinical_header(df, label, description, data_type)
+make_cbio_clinical_header(df, mapping)
 }
 \arguments{
 \item{df}{A \code{data.frame} representing clinical dataset to publicize.}
 
-\item{label}{Character vector representing a short label for each column in the dataset}
-
-\item{description}{Character vector representing a long descriptions for each column in the dataset}
-
-\item{data_type}{Character vector representing the data type of each column in the dataset}
+\item{mapping}{A reference table providing \code{label}, \code{description}, and \code{data_type} for each \code{source} attribute in \code{df}.}
 }
 \description{
 This is called from the wrapper \code{write_cbio_clinical}.
-Reused from https://github.com/Sage-Bionetworks/genie-erbb2-cbio/blob/develop/create_clinical.R#L396.
+Adapted from https://github.com/Sage-Bionetworks/genie-erbb2-cbio/blob/develop/create_clinical.R#L396.
+Needs a data table of clinical data and a reference providing \code{label}, \code{description}, and \code{data_type}.
 }
 \keyword{internal}

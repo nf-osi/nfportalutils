@@ -20,7 +20,8 @@ test_that("Add study meta works", {
 
   expected <- c(study_meta, studyStatus = "Active")
 
-  testthat::expect_mapequal(s, expected)
+  testthat::expect_output(print(s), "\\{'studyName': \\['NF Dev Playground'\\], 'dataStatus': \\['Data Not Expected'\\], 'initiative': \\['Other'\\], 'studyLeads': \\['Robert Allaway', 'Anh Nguyet Vu'\\], 'studyStatus': \\['Active'\\], 'diseaseFocus': \\['Multiple'\\], 'institutions': \\['Sage Bionetworks'\\], 'fundingAgency': \\['Sage Bionetworks'\\]\\}")
+
 })
 
 
