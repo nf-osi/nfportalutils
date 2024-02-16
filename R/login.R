@@ -1,9 +1,9 @@
 #' Logs into Synapse.
-#' 
+#'
 #' Wrapper around https://python-docs.synapse.org/build/html/index.html#synapseclient.Synapse.login
 #' Username and password authentication is not supported.
 #' Recommendation is to store `SYNAPSE_AUTH_TOKEN` in environment, so login can be used simply as `syn_login()`.
-#'  
+#'
 #' @param authtoken Uses `SYNAPSE_AUTH_TOKEN` environmental variable, or a personal access token (PAT) can be provided.
 #' @examples
 #' \dontrun{
@@ -22,9 +22,7 @@ syn_login <- function(authtoken = Sys.getenv("SYNAPSE_AUTH_TOKEN")){
 #' @returns A message.
 #' @keywords internal
 .check_login <- function(){
-  if(!exists(".syn")){
-    stop('Please run `nfportalutils::syn_login()` prior to running functions that require a connection to Synapse. (Alternatively, the Python `synapseclient` is unavailable.)')
-  }else if(capture.output(.syn) == "<pointer: 0x0>"){
-    stop('Please run `nfportalutils::syn_login()` prior to running functions that require a connection to Synapse. (Alternatively, the Python `synapseclient` is unavailable.)')
+  if(!exists(".syn") & !exists("syn")){
+    stop('Please run `nfportalutils::syn_login()` or `synapser::synLogin()` prior to running functions that require a connection to Synapse. (Alternatively, the Python `synapseclient` is unavailable.)')
   }
 }

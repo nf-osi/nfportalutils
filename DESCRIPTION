@@ -40,7 +40,8 @@ Imports:
     emoji,
     plyr,
     readxl,
-    yaml
+    yaml,
+    synapser
 URL: https://github.com/nf-osi/nfportalutils
 BugReports: https://github.com/nf-osi/nfportalutils/issues
 Suggests: 
