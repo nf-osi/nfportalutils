@@ -15,7 +15,7 @@ jobs:
     name: ${{ matrix.config.os }} (${{ matrix.config.r }})
 
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         config:
           - {os: macOS-13,   r: 'release'}
@@ -42,9 +42,8 @@ jobs:
       - name: Install macOS system dependencies
         if: runner.os == 'macOS'
         run: |
-          brew install libssl-dev
-          brew install libcurl-dev
-          brew install zlib-dev
+          brew install curl-openssl
+          brew install zlib
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
