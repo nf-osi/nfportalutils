@@ -52,4 +52,4 @@ Suggests:
 Config/testthat/edition: 2
 VignetteBuilder: knitr
 Remotes:  
-    github::Sage-Bionetworks/synapser
+    github::Sage-Bionetworks/synapser@*release

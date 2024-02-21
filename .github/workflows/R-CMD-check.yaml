@@ -37,13 +37,7 @@ jobs:
         with:
           r-version: ${{ matrix.config.r }}
           http-user-agent: ${{ matrix.config.http-user-agent }}
-          use-public-rspm: true
-
-      - name: Install macOS system dependencies
-        if: runner.os == 'macOS'
-        run: |
-          brew install curl-openssl
-          brew install zlib
+          use-public-rspm: false
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
