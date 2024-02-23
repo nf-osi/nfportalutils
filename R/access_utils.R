@@ -29,9 +29,8 @@ summarize_file_access <- function(principal_id, # 3378999 for NF-OSI
                                   fileview_id # "syn16858331"
                         ) {
 
-  .check_login()
   tryCatch({
-    view <- .syn$tableQuery(glue::glue("SELECT id,type,benefactorId FROM {fileview_id}"))
+    view <- synapser::synTableQuery(glue::glue("SELECT id,type,benefactorId FROM {fileview_id}"))
   }, error = function(e) stop("Could not query view!"))
   view <- as.data.table(view$asDataFrame())
   files_by_benefactor <- view[type == "file", .N, by = .(benefactorId)]
@@ -56,7 +55,7 @@ check_access <- function(id,
   stopifnot(is.numeric(principal_id))
 
   acl_result <- tryCatch({
-    .syn$restGET(glue::glue("https://repo-prod.prod.sagebase.org/repo/v1/entity/{id}/acl"))$resourceAccess %>%
+    synapser::synRestGET(glue::glue("https://repo-prod.prod.sagebase.org/repo/v1/entity/{id}/acl"))$resourceAccess %>%
     rbindlist(.)
   }, error = function(e) stop(glue::glue("Error for {id}: {e$message}")))
 
@@ -69,26 +68,26 @@ check_access <- function(id,
 
 # -- SETTING ACCESS -------------------------------------------------------------#
 
-#' Set public access to VIEW (READ) only for an entity 
-#' 
-#' Set both registered users and non-registered users to have VIEW-only permissions. 
+#' Set public access to VIEW (READ) only for an entity
+#'
+#' Set both registered users and non-registered users to have VIEW-only permissions.
 #' See code{link{make_public}} for more permissive permissions to download (for registered users), which is usually set later at data release time.
-#' 
+#'
 #' @param id Synapse entity id.
 #' @export
 make_public_viewable <- function(id) {
-  .check_login()
+
   ALL_REGISTERED_SYNAPSE_USERS_GROUP <- "273948"
   PUBLIC_GROUP <- "273949"
   # set registered synapse users to view, download
-  .syn$setPermissions(entity = id,
-                      principalId = ALL_REGISTERED_SYNAPSE_USERS_GROUP,
-                      accessType = list("READ"))
-  
+  synapser::synSetPermissions(entity = id,
+                              principalId = ALL_REGISTERED_SYNAPSE_USERS_GROUP,
+                              accessType = list("READ"))
+
   # set public to view
-  .syn$setPermissions(entity = id,
-                      principalId = PUBLIC_GROUP,
-                      accessType = list("READ"))
+  synapser::synSetPermissions(entity = id,
+                              principalId = PUBLIC_GROUP,
+                              accessType = list("READ"))
 }
 
 
@@ -101,18 +100,18 @@ make_public_viewable <- function(id) {
 #' @param id Synapse entity id.
 #' @export
 make_public <- function(id) {
-  .check_login()
+
   ALL_REGISTERED_SYNAPSE_USERS_GROUP <- "273948"
   PUBLIC_GROUP <- "273949"
   # set registered synapse users to view, download
-  .syn$setPermissions(entity = id,
-                      principalId = ALL_REGISTERED_SYNAPSE_USERS_GROUP,
-                      accessType = list("READ","DOWNLOAD"))
+  synapser::synSetPermissions(entity = id,
+                              principalId = ALL_REGISTERED_SYNAPSE_USERS_GROUP,
+                              accessType = list("READ","DOWNLOAD"))
 
   # set public to view
-  .syn$setPermissions(entity = id,
-                      principalId = PUBLIC_GROUP,
-                      accessType = list("READ"))
+  synapser::synSetPermissions(entity = id,
+                              principalId = PUBLIC_GROUP,
+                              accessType = list("READ"))
 }
 
 
@@ -138,14 +137,14 @@ grant_specific_file_access <- function(principal_id, entity_ids, create_dataset 
 
   # set registered synapse users to view, download
   sapply(entity_ids, function(id){
-    .syn$setPermissions(entity = id,
-                      principalId = principal_id,
-                      accessType = list("READ","DOWNLOAD"))
+    synapser::synSetPermissions(entity = id,
+                                principalId = principal_id,
+                                accessType = list("READ","DOWNLOAD"))
    })
 
   ##need to grab the current versions for dataset creation
   dataset_items <- lapply(entity_ids, function(id){
-    vsn <- .syn$get(id, downloadFile = F)$versionNumber
+    vsn <- synapser::synGet(id, downloadFile = F)$versionNumber
     list(entityId = id, versionNumber = vsn)
   })
 
@@ -156,15 +155,15 @@ grant_specific_file_access <- function(principal_id, entity_ids, create_dataset 
   if(create_dataset){
     tryCatch({
       # First attempt with addAnnotationColumns = TRUE
-      dataset <- .syn$store(synapseclient$Dataset(name = dataset_name, 
+      dataset <- synapser::synStore(synapseclient$Dataset(name = dataset_name,
                                                   parent = project_id, dataset_items = dataset_items, addAnnotationColumns = TRUE))
       message(glue::glue("{emoji::emoji(\"thumbsup\")} Dataset created with annotation columns at {dataset$properties$id}"))
     }, error = function(e) {
       # If error, retry with addAnnotationColumns = FALSE
-      dataset <- .syn$store(synapseclient$Dataset(name = dataset_name, 
+      dataset <- synapser::synStore(synapseclient$Dataset(name = dataset_name,
                                                   parent = project_id, dataset_items = dataset_items, addAnnotationColumns = FALSE))
-      .syn$setPermissions(entity = dataset$properties$id, principalId = principal_id, 
-                          accessType = list("READ", "DOWNLOAD"))
+      synapser::synSetPermissions(entity = dataset$properties$id, principalId = principal_id,
+                                  accessType = list("READ", "DOWNLOAD"))
       message(glue::glue("{emoji::emoji(\"warning\")} Dataset created without annotation columns at {dataset$properties$id}. Annotation columns will need to be added manually."))
     })
   }
@@ -172,7 +171,7 @@ grant_specific_file_access <- function(principal_id, entity_ids, create_dataset 
   message(glue::glue('{emoji::emoji("astonished")} Principal {principal_id} added to {length(entity_ids)} entities'))
 
   #TODO: set schema programmatically? might be easier to add annotations to schema in web client as needed to support principal_id...
-  ## Note Dec 2023; schema is automatically defined unless there is an error caused by the way synapse detects annotation schemas, e.g. a type collision that causes duplicate columns with the same name. 
+  ## Note Dec 2023; schema is automatically defined unless there is an error caused by the way synapse detects annotation schemas, e.g. a type collision that causes duplicate columns with the same name.
 
 }
 
