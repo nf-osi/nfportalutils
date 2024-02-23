@@ -40,7 +40,8 @@ Imports:
     emoji,
     plyr,
     readxl,
-    yaml
+    yaml,
+    synapser (>= 1.0.0)
 URL: https://github.com/nf-osi/nfportalutils
 BugReports: https://github.com/nf-osi/nfportalutils/issues
 Suggests: 
@@ -50,3 +51,5 @@ Suggests:
     withr
 Config/testthat/edition: 2
 VignetteBuilder: knitr
+Remotes:  
+    github::Sage-Bionetworks/synapser
