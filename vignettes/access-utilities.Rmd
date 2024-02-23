@@ -1,0 +1,74 @@
+---
+title: "Access utilities"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Surveying public files in the portal}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Intro
+
+This explains some access-related utilities and use cases where they're helpful.
+
+## Set up 
+
+The usual setup:
+```{r setup, eval=F}
+library(nfportalutils)
+synapser::synLogin()
+```
+
+## Give selected access to an individual or team
+
+Sometimes a selected set of private (embargoed) data needs to made available to a collaborator or other researcher outside the project. 
+One way to go about this is to identify the file ids, add the individual/team to the (this creates local sharing settings), and then collect those files into a dataset so a single dataset link can be shared (this makes it easier especially if files are spread across multiple folders).
+
+The main convenience util to do this is `grant_specific_file_access`.
+To test it out, we create some mock files below, and share with NF-OSI Team as the collaborator (replace example with appropriate project id that you own). 
+
+```{r, eval=F}
+
+file_ids <- c("syn123", "syn456")
+outside_collaborator <- "" # NF-OSI Team
+project_id <- "" # replace
+grant_specific_file_access(principal_id = outside_collaborator,
+                           entity_ids = file_ids, 
+                           create_dataset = T, 
+                           project_id = NULL, 
+                           dataset_name = NULL) # optional 
+
+```
+
+## Survey files downloadable for Synapse registered users
+
+There's often reference to "public" files, which usually means files that are viewable + downloadable to Synapse users.
+If we just have a fileview with ids of the files, how do we know which ones are "public"?
+The group of Synapse users has id `273948`, and we can use a util called `summarize_file_access`, passing in this group id, the permissions we're checking, and the fileview id. 
+
+```{r query-1, eval=F}
+public_access <- summarize_file_access(principal_id = 273948, "DOWNLOAD", "syn16858331")
+public_access
+```
+
+Sometimes this data is only retrieved because someone wants a breakdown, both as absolute numbers and as proportions for "public" files.
+Getting the breakdown looks like this:
+```{r summarize-1, eval=F}
+public_access[, .(n_files = sum(N)), by = access][, .(access, n_files, proportion = n_files / sum(n_files))]
+```
+
+### Some nuances
+
+So `summarize_file_access` has a step where the file benefactor (a parent container that sets the permissions on the child files) is first identified. 
+Since access is looked up most efficiently through the benefactor, the API is queried to get the current permissions for the benefactor and then uses that information to derive the permissions that must be on the files.
+The API **only returns access permission info at present**.
+If you use an older fileview to do the benefactor lookup, you might get inaccurate results, because files are moved around/inherit from different benefactors in time.
+
+
