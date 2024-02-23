@@ -8,8 +8,6 @@
   function(pmid, study_id, disease_focus, manifestation,
            publication_table_id, study_table_id, dry_run = T) {
 
-    .check_login()
-
     counter <<- counter + 1L
     # cat("current record:", counter) # make verbose?
     # Query only for data needed, i.e. PMID to check non-dup; result can be cached
@@ -25,7 +23,7 @@
       if(!length(record)) return()
 
       study_id_set <- glue::glue_collapse(glue::single_quote(study_id), sep = ", ")
-      study <- .syn$tableQuery(glue::glue("SELECT studyId, studyName, fundingAgency FROM {study_table_id} WHERE studyId IN ({study_id_set})"))$asDataFrame()
+      study <- synapser::as.data.frame(synapser::synTableQuery(glue::glue("SELECT studyId, studyName, fundingAgency FROM {study_table_id} WHERE studyId IN ({study_id_set})")))
       record <- cbind(record, diseaseFocus = I(list(disease_focus)), manifestation = I(list(manifestation)),
                       studyId = I(list(study$studyId)), studyName = I(list(study$studyName)), fundingAgency = I(list(study$fundingAgency)))
 
@@ -37,7 +35,7 @@
         new_data <- as_table_schema(record, publication_table_id)
       }
       if(!dry_run) {
-        new_data <- .syn$store(new_data)
+        new_data <- synapser::synStore(new_data)
         message(glue::glue('PMID:{new_data$asDataFrame()$pmid} added!'))
       } else {
         new_data
