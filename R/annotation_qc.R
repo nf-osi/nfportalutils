@@ -11,6 +11,7 @@
 #' @param output_format Format of 'excel', 'google_sheet', or 'dataframe'. Defaults to 'excel'.
 #' @param use_annotations Use annotations if filling out manifest for existing dataset. Defaults to TRUE for NF.
 #' @param service Service endpoint to use. Defaults to the schematic production endpoint.
+#' @param access_token Synapse auth token, defaults to `SYNAPSE_AUTH_TOKEN` set in env.
 #' @returns For excel, path to local file; for google_sheet, URL to sheet; for dataframe, JSON string of data.
 #' @export
 manifest_generate <- function(data_type,
@@ -20,11 +21,11 @@ manifest_generate <- function(data_type,
                               asset_view = "syn16858331",
                               output_format = "excel",
                               use_annotations = TRUE,
-                              service = "https://schematic.api.sagebionetworks.org/v1/manifest/generate") {
+                              service = "https://schematic.api.sagebionetworks.org/v1/manifest/generate",
+                              access_token = Sys.getenv("SYNAPSE_AUTH_TOKEN")) {
 
   # yes, param needs to be re-encoded like this for 'dataframe'
   output_format_param <- if (output_format == "dataframe") "dataframe (only if getting existing manifests)" else output_format
-  access_token <- .syn$credentials$secret
   use_annotations <- tolower(as.character(use_annotations))
 
   req <- httr::GET(service,
