@@ -305,15 +305,15 @@ list_project_datasets <- function(project_id,
 
     } else {
 
-      in_data <- .syn$getChildren(data_root)
-      in_data <- reticulate::iterate(in_data)
+      in_data <- synapser::synGetChildren(data_root)
+      in_data <- synapser::as.list(in_data)
       datasets <- Filter(function(x) x$type == "org.sagebionetworks.repo.model.Folder", in_data)
       if(!length(datasets)) warning("No datasets found under data root.")
       datasets
     }
   } else {
-    children <- .syn$getChildren(project_id)
-    datasets <- reticulate::iterate(children)
+    children <- synapser::synGetChildren(project_id)
+    datasets <- synapser::as.list(children)
     datasets <- Filter(function(x) x$type == "org.sagebionetworks.repo.model.table.Dataset", datasets)
     if(!length(datasets)) warning("No dataset entities found in project.")
     datasets
