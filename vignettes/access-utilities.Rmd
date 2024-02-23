@@ -23,7 +23,7 @@ This explains some access-related utilities and use cases where they're helpful.
 The usual setup:
 ```{r setup, eval=F}
 library(nfportalutils)
-synapser::synLogin()
+synapser::synLogin(authToken = Sys.getenv("SYNAPSE_AUTH_TOKEN"))
 ```
 
 ## Give selected access to an individual or team
