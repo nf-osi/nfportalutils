@@ -13,7 +13,8 @@ manifest_generate(
   asset_view = "syn16858331",
   output_format = "excel",
   use_annotations = TRUE,
-  service = "https://schematic.api.sagebionetworks.org/v1/manifest/generate"
+  service = "https://schematic.api.sagebionetworks.org/v1/manifest/generate",
+  access_token = Sys.getenv("SYNAPSE_AUTH_TOKEN")
 )
 }
 \arguments{
@@ -32,6 +33,8 @@ manifest_generate(
 \item{use_annotations}{Use annotations if filling out manifest for existing dataset. Defaults to TRUE for NF.}
 
 \item{service}{Service endpoint to use. Defaults to the schematic production endpoint.}
+
+\item{access_token}{Synapse auth token, defaults to \code{SYNAPSE_AUTH_TOKEN} set in env.}
 }
 \value{
 For excel, path to local file; for google_sheet, URL to sheet; for dataframe, JSON string of data.
