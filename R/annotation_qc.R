@@ -158,13 +158,13 @@ manifest_passed <- function(result) {
 #' @export
 infer_data_type <- function(dataset_id) {
 
-  children <- .syn$getChildren(dataset_id)
-  children <- reticulate::iterate(children)
+  children <- synapser::synGetChildren(dataset_id)
+  children <- synapser::as.list(children)
   if(!length(children)) return(list(result = NA, notes = "Empty dataset folder"))
   children <- first(children, 3)
   data_type <- c()
   for (entity in children) {
-    e <- .syn$getAnnotations(entity)
+    e <- synapser::synGetAnnotations(entity)
     data_type <- append(data_type, e$Component)
   }
   data_type <- unique(data_type)
@@ -203,9 +203,9 @@ meta_qc_dataset <- function(dataset_id,
                             schema_url = "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld",
                             cleanup = TRUE) {
 
-  dataset_name <- .syn$get(dataset_id)$properties$name
+  dataset_name <- synapser::synGet(dataset_id)$properties$name
 
-  files <- reticulate::iterate(.syn$getChildren(dataset_id))
+  files <-  synapser::as.list(synapser::synGetChildren(dataset_id))
   if(!length(files)) {
     return(list(result = NA,
                 notes = "Empty dataset with no files",
