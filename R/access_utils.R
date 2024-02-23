@@ -32,7 +32,7 @@ summarize_file_access <- function(principal_id, # 3378999 for NF-OSI
   tryCatch({
     view <- synapser::synTableQuery(glue::glue("SELECT id,type,benefactorId FROM {fileview_id}"))
   }, error = function(e) stop("Could not query view!"))
-  view <- as.data.table(view$asDataFrame())
+  view <- synapser::as.data.frame(view)
   files_by_benefactor <- view[type == "file", .N, by = .(benefactorId)]
   access <- view[, check_access(benefactorId, principal_id, access_type), by = .(benefactorId)]
   # files_by_benefactor can be smaller than access because there are folders without files
@@ -129,9 +129,8 @@ make_public <- function(id) {
 #' @param dataset_name Optional name for dataset to be created
 #' @export
 grant_specific_file_access <- function(principal_id, entity_ids, create_dataset = F, project_id = NULL, dataset_name = NULL) {
-  # .check_login()
 
-  if(create_dataset & is.null(project_id)){
+  if(create_dataset && is.null(project_id)){
     stop("project_id must be provided if create_dataset = T")
   }
 
@@ -142,12 +141,6 @@ grant_specific_file_access <- function(principal_id, entity_ids, create_dataset 
                                 accessType = list("READ","DOWNLOAD"))
    })
 
-  ##need to grab the current versions for dataset creation
-  dataset_items <- lapply(entity_ids, function(id){
-    vsn <- synapser::synGet(id, downloadFile = F)$versionNumber
-    list(entityId = id, versionNumber = vsn)
-  })
-
   if(is.null(dataset_name)){
     dataset_name <- glue::glue("Dataset {Sys.Date()} for {principal_id}")
   }
@@ -155,16 +148,24 @@ grant_specific_file_access <- function(principal_id, entity_ids, create_dataset 
   if(create_dataset){
     tryCatch({
       # First attempt with addAnnotationColumns = TRUE
-      dataset <- synapser::synStore(synapseclient$Dataset(name = dataset_name,
-                                                  parent = project_id, dataset_items = dataset_items, addAnnotationColumns = TRUE))
+      dataset <- new_dataset(name = dataset_name,
+                             parent = project_id,
+                             items = entity_ids,
+                             addAnnotationColumns = TRUE,
+                             dry_run = FALSE)
       message(glue::glue("{emoji::emoji(\"thumbsup\")} Dataset created with annotation columns at {dataset$properties$id}"))
     }, error = function(e) {
       # If error, retry with addAnnotationColumns = FALSE
-      dataset <- synapser::synStore(synapseclient$Dataset(name = dataset_name,
-                                                  parent = project_id, dataset_items = dataset_items, addAnnotationColumns = FALSE))
-      synapser::synSetPermissions(entity = dataset$properties$id, principalId = principal_id,
+      dataset <- new_dataset(name = dataset_name,
+                             parent = project_id,
+                             items = entity_ids,
+                             addAnnotationColumns = FALSE,
+                             dry_run = FALSE)
+      synapser::synSetPermissions(entity = dataset$properties$id,
+                                  principalId = principal_id,
                                   accessType = list("READ", "DOWNLOAD"))
-      message(glue::glue("{emoji::emoji(\"warning\")} Dataset created without annotation columns at {dataset$properties$id}. Annotation columns will need to be added manually."))
+      message(glue::glue("{emoji::emoji(\"warning\")} Dataset created without annotation columns at {dataset$properties$id}.
+                         Annotation columns will need to be added manually."))
     })
   }
 
