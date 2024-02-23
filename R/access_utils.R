@@ -30,9 +30,10 @@ summarize_file_access <- function(principal_id, # 3378999 for NF-OSI
                         ) {
 
   tryCatch({
-    view <- synapser::synTableQuery(glue::glue("SELECT id,type,benefactorId FROM {fileview_id}"))
+    view <- synapser::synTableQuery(glue::glue("SELECT id,type,benefactorId FROM {fileview_id}")) %>%
+      synapser::as.data.frame() %>%
+      as.data.table()
   }, error = function(e) stop("Could not query view!"))
-  view <- synapser::as.data.frame(view)
   files_by_benefactor <- view[type == "file", .N, by = .(benefactorId)]
   access <- view[, check_access(benefactorId, principal_id, access_type), by = .(benefactorId)]
   # files_by_benefactor can be smaller than access because there are folders without files
