@@ -67,7 +67,7 @@ grant_specific_file_access(principal_id = outside_collaborator,
 ```
 
 Clean up by removing the mock folder and files. You can delete the dataset through the UI.
-```{r}
+```{r, eval=F}
 synapser::synDelete(folder_id)
 ```
 

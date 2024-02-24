@@ -1,0 +1,129 @@
+---
+title: "Portal tables utils"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Portal tables}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup, eval=F}
+library(nfportalutils)
+synapser::synLogin(authToken = Sys.getenv("SYNAPSE_AUTH_TOKEN"))
+```
+
+## NF Portal Tables Overview
+
+
+
+
+These tables behind the NF Data Portal have grown over time and need maintenance like any other infrastructure.
+This walks through the original use cases for these utils to accomplish tasks such as:
+
+- Add new publications to Portal - Publications
+- Cleaning or migrating data, e.g. correcting an annotation "rnaSeq" to "RNA-seq" within Portal - Files
+- Add new people to Portal - People
+- Register a new study to Portal - Studies ** 
+- For each study in Portal - Studies, fill in related studies **
+
+Some tasks marked ** are no longer done manually much of the time (i.e. they may be automated as part of larger workflows), so they'll be covered more briefly.
+
+### How this will work
+
+We'll make copies of or use a sufficiently good representation of the relevant tables for update operations. 
+This also provides an example workflow to follow for contributors who need to update one of the utils and test changes. 
+
+If needed, update the project id, which will be the parent project to host table copies.
+```{r, eval=F}
+project_id <- "syn26462036" # this the NF-dev-playground project
+```
+
+### Portal - Publications updates
+
+There are actually two options for adding publications: `add_publication_from_pubmed` and `add_publication_from_unpaywall`.
+The `pubmed` option is the default, and `unpaywall` is an additional option if `pubmed` is unreachable or fails.
+In past experience, `add_publication_from_pubmed` works well enough in 98% of cases.
+
+First, create copy to work with.
+```{r, eval=F}
+PUBS_COPY <- copy_table("syn16857542", destination_id = project_id)
+```
+
+#### Adding 1-2 publications at a time
+
+The minimum information needed is `pmid` (the new pub to add) and `study_id` (the linked study).
+This can use `add_publication_from_pubmed`.
+The only arg that might need further explaination is `study_table_id` -- this is used to .
+
+```{r, eval=F}
+
+add_publication_from_pubmed(pmid = ,
+                            study_id = ,
+                            disease_focus = ,
+                            manifestation = ,
+                            publication_table_id = PUBS_COPY,
+                            study_table_id = ,
+                            dry_run = F)
+```
+
+#### Adding publications for larger batch or from a spreadsheet
+
+Larger batches that are compiled in a spreadsheet should instead use `add_publications_from_file`.
+The spreadsheet needs to have [`studyId`, `pmid`, `manifestation`, `diseaseFocus`] columns filled out.
+
+Let's create and show an example where we add a random publication to be associated with the NF-dev-playground project.
+```{r, eval=F}
+
+pubs_example_file <- ""
+```
+
+Write this example to a temp `.csv` file.
+```{r, eval=F}
+
+ 
+```
+
+```{r, eval=F}
+
+add_publications_from_file(
+  file = "new_pubs.csv",
+  publication_table_id = PUBS_COPY,
+  study_table_id = ,
+  list_sep = "|",
+  dry_run = FALSE
+)
+
+```
+
+
+Clean up the table copy.
+```{r, eval=F}
+synapser::synDelete(PUBS_COPY)
+
+```
+
+### Portal - Files corrections
+
+TO DO.
+
+### Portal - People updates
+
+TO DO.
+
+### Portal - Studies updates
+
+#### Register new study
+
+TO DO.
+
+#### Augment with 'related studies'
+
+TO DO.
+
