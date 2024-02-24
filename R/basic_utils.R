@@ -1,27 +1,19 @@
-#' Create copy of entity
+#' Copy a table
 #'
-#' Create a copy of syn entity; mostly used to create a copy on which to test out changes.
-#' See https://python-docs.synapse.org/build/html/synapseutils.html?highlight=copy#synapseutils.copy_functions.copy
-#' @param entity Entity to copy.
-#' @param destination_id Id of destination project/container that entity will be copied to.
-#' @param skip_copy_wiki_page Whether to skip copying wiki; defaults FALSE.
-#' @param skip_copy_annotations Whether to skip copying annotations; defaults FALSE.
-#' @keywords internal
-copy <- function(entity,
-                 destination_id,
-                 skip_copy_wiki_page = FALSE,
-                 skip_copy_annotations = FALSE) {
+#' Copy a table.
+#' @export
+copy_table <- function(table_id,
+                       destination_id) {
 
-  .check_login()
-  # load synapseutils as needed
-
-
-  synapseutils$copy(.syn,
-                    entity = entity,
-                    destinationId = destination_id,
-                    skipCopyWikiPage = skip_copy_wiki_page,
-                    skipCopyAnnotations = skip_copy_annotations)
-
+  message(glue::glue("Getting table {table_id}"))
+  schema <- synapser::synGet(table_id)
+  data <- synapser::synTableQuery(glue::glue("select * from {table_id}"), includeRowIdAndRowVersion = FALSE)
+  columns <- schema$columnIds
+  schema_copy <- synapser::Schema(name = schema$name, parent = destination_id, columns = columns)
+  table_copy <- synapser::Table(schema = schema_copy, values = data$filepath)
+  table_copy <- synapser::synStore(table_copy)
+  message(glue::glue("Copied table {table_id} to {table_copy$tableId}"))
+  table_copy$tableId
 }
 
 
