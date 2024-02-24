@@ -1,6 +1,9 @@
 #' Copy a table
 #'
-#' Copy a table.
+#' Copy a table. One of the most common use cases is testing, to avoid modifying a "production" table.
+#'
+#' @param table_id Id of table to copy.
+#' @param destination_id Parent project id for the copy.
 #' @export
 copy_table <- function(table_id,
                        destination_id) {
