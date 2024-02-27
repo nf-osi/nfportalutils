@@ -5,14 +5,18 @@
 .add_publication_from_pubmed <- function(batch = 0L, cache = batch) { # implement logging for batch?
   pmids <- new_data <- NULL
   counter <- 0L
-  function(pmid, study_id, disease_focus, manifestation,
+  function(pmid, study_id,
+           disease_focus = c(""), manifestation = c(""),
            publication_table_id, study_table_id, dry_run = T) {
 
     counter <<- counter + 1L
     # cat("current record:", counter) # make verbose?
     # Query only for data needed, i.e. PMID to check non-dup; result can be cached
     if(is.null(pmids)) {
-      pmids <- table_query(publication_table_id, "pmid") %>% unlist(use.names = F)
+      pmids <- synapser::synTableQuery(glue::glue("select pmid from {publication_table_id}")) %>%
+        synapser::as.data.frame() %>%
+        unlist(use.names = F)
+      pmids <- gsub("PMID:", "", pmids)
       if(cache) pmids <<- pmids
     }
 
@@ -23,9 +27,14 @@
       if(!length(record)) return()
 
       study_id_set <- glue::glue_collapse(glue::single_quote(study_id), sep = ", ")
-      study <- synapser::as.data.frame(synapser::synTableQuery(glue::glue("SELECT studyId, studyName, fundingAgency FROM {study_table_id} WHERE studyId IN ({study_id_set})")))
-      record <- cbind(record, diseaseFocus = I(list(disease_focus)), manifestation = I(list(manifestation)),
-                      studyId = I(list(study$studyId)), studyName = I(list(study$studyName)), fundingAgency = I(list(study$fundingAgency)))
+      study <- synapser::synTableQuery(glue::glue("SELECT studyId, studyName, fundingAgency FROM {study_table_id} WHERE studyId IN ({study_id_set})"), includeRowIdAndRowVersion = F)%>%
+        synapser::as.data.frame()
+      record <- cbind(record,
+                      diseaseFocus = I(list(disease_focus)),
+                      manifestation = I(list(manifestation)),
+                      studyId = I(list(study$studyId)),
+                      studyName = I(list(study$studyName)),
+                      fundingAgency = I(unique(sapply(study$fundingAgency, jsonlite::fromJSON))))
 
       # If batch mode, rbind and defer table schemafication until all records processed
       if(batch) {
@@ -36,7 +45,7 @@
       }
       if(!dry_run) {
         new_data <- synapser::synStore(new_data)
-        message(glue::glue('PMID:{new_data$asDataFrame()$pmid} added!'))
+        message(glue::glue('Added new pmid(s)!'))
       } else {
         new_data
       }
@@ -52,8 +61,8 @@
 #'
 #' @param pmid PubMed ID (*not* PMCID) of the publication to be added.
 #' @param study_id Synapse id(s) of the study that are associated with the publication.
-#' @param disease_focus The disease focus(s) that are associated with the publication.
-#' @param manifestation The manifestation(s) that are associated with the publication.
+#' @param disease_focus  (Optional) The disease focus(s) that are associated with the publication.
+#' @param manifestation (Optional) The manifestation(s) that are associated with the publication.
 #' @param publication_table_id Synapse id of the portal publication table. Must have write access.
 #' @param study_table_id Synapse id of the portal study table. Need read access.
 #' @param dry_run Default = TRUE. Skips upload to table and instead prints formatted publication metadata.
