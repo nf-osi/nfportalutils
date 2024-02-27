@@ -14,12 +14,12 @@ Currently, `develop` branch is default so package install and docs refer to code
 
 ## Installation
 
-You can install `nfportalutils` from here:
+You should first install `synapser` following the instructions [here](https://github.com/Sage-Bionetworks/synapser?tab=readme-ov-file#installation).
 
+Then you can install `nfportalutils` with:
 ``` r
 remotes::install_github("nf-osi/nfportalutils")
 ```
-
 
 
 ## Additional Notes for Users
@@ -30,7 +30,7 @@ remotes::install_github("nf-osi/nfportalutils")
 ## Additional Notes for Contributors 
 
 ### Contrib workflow
-- Branch of `develop` and make changes
+- Branch off `develop` and make changes
 - Run `devtools::check(vignettes = FALSE)` early and often, and definitely before submitting a PR
 - Make a pull request to `develop`; this will run `R-CMD-CHECK` and `pkgdown`
 - Request a reviewer if both checks pass
