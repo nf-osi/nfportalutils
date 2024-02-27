@@ -1,6 +1,8 @@
 ---
 title: "Portal tables utils"
-output: rmarkdown::html_vignette
+output: 
+  rmarkdown::html_vignette:
+    code_folding: show
 vignette: >
   %\VignetteIndexEntry{Portal tables}
   %\VignetteEngine{knitr::rmarkdown}
@@ -33,25 +35,25 @@ This walks through the original use cases for these utils to accomplish tasks su
 - Register a new study to Portal - Studies ** 
 - For each study in Portal - Studies, fill in related studies **
 
-Some tasks marked ** are no longer done manually much of the time (i.e. they may be automated as part of larger workflows), so they'll be covered more briefly.
+Some tasks marked ** are no longer done manually much of the time (having been automated as part of larger workflows), so they'll be covered more briefly.
+When requirements change, having a sense of what these utils do can help understand where, what, and how to update.
 
 ### How this will work
 
-We'll make copies of or use a sufficiently good representation of the relevant tables for update operations. 
-This also provides an example workflow to follow for contributors who need to update one of the utils and test changes. 
+We'll make copies of the relevant portal tables for update-type operations. 
+What this also provides is an example workflow to follow for contributors who need to develop these utils and do testing. 
 
-If needed, update the project id, which will be the parent project to host table copies.
+**First set your private development project id, which will be the parent project to host the table copies.**
 ```{r, eval=F}
-project_id <- "syn26462036" # this the NF-dev-playground project
+project_id <- "syn26462036" # the NF-dev-playground project
 ```
 
 ### Portal - Publications updates
 
 There are actually two options for adding publications: `add_publication_from_pubmed` and `add_publication_from_unpaywall`.
-The `pubmed` option is the default, and `unpaywall` is an additional option if `pubmed` is unreachable or fails.
-In past experience, `add_publication_from_pubmed` works well enough in 98% of cases.
+The `pubmed` option is the default, and `unpaywall` is an additional option if there is no `pmid`.
 
-First, create copy to work with.
+Start with creating a table copy to work with.
 ```{r, eval=F}
 PUBS_COPY <- copy_table("syn16857542", destination_id = project_id)
 ```
@@ -59,54 +61,83 @@ PUBS_COPY <- copy_table("syn16857542", destination_id = project_id)
 #### Adding 1-2 publications at a time
 
 The minimum information needed is `pmid` (the new pub to add) and `study_id` (the linked study).
-This can use `add_publication_from_pubmed`.
-The only arg that might need further explaination is `study_table_id` -- this is used to .
+This can use `add_publication_from_pubmed`, which pulls in author, journal, etc. from PubMed.
+What might need further explanation is the involvement of `study_table_id` -- 
+this needs to be a table where `studyId`, `studyName`, `fundingAgency` can be looked up to help fill `fundingAgency` with consistency.
+
+Since this is a demo, the papers are not actually related or accurately classified at all.
+Commands show adding papers with and without additional `disease_focus` and `manifestation` labels (which were once manually derived).
 
 ```{r, eval=F}
 
-add_publication_from_pubmed(pmid = ,
-                            study_id = ,
-                            disease_focus = ,
-                            manifestation = ,
+STUDY_TABLE <- "syn52694652" # we will READ ONLY from this table
+nfportalutils::add_publication_from_pubmed(pmid = 38383787,
+                            study_id = "syn11672851",
+                            disease_focus = "Neurofibromatosis type 1",
+                            manifestation = c("MPNST"),
                             publication_table_id = PUBS_COPY,
-                            study_table_id = ,
+                            study_table_id = STUDY_TABLE,
+                            dry_run = F)
+
+
+nfportalutils::add_publication_from_pubmed(pmid = 38383777,
+                            study_id = "syn11672851",
+                            publication_table_id = PUBS_COPY,
+                            study_table_id = STUDY_TABLE,
                             dry_run = F)
 ```
 
-#### Adding publications for larger batch or from a spreadsheet
 
-Larger batches that are compiled in a spreadsheet should instead use `add_publications_from_file`.
-The spreadsheet needs to have [`studyId`, `pmid`, `manifestation`, `diseaseFocus`] columns filled out.
+#### Adding publications in large batch, from a spreadsheet
 
-Let's create and show an example where we add a random publication to be associated with the NF-dev-playground project.
-```{r, eval=F}
+Large batches are often put in a spreadsheet and should instead use `add_publications_from_file`.
+The spreadsheet needs to have [`studyId`, `pmid`, `diseaseFocus`, `manifestation`] columns filled out.
+Other columns will be ignored.
 
-pubs_example_file <- ""
+An example of this format comes with the package and is shown below.
+```{r, eval=T}
+
+example_csv <- system.file("extdata", "pubs_example.csv", package = "nfportalutils")
+new_pubs <- read.csv(example_csv)
+knitr::kable(new_pubs)
 ```
 
-Write this example to a temp `.csv` file.
-```{r, eval=F}
+Several things to note:  
 
- 
-```
+- Rarely, there may be multiple studies associated with one publication, so they need to be listed with a "|" (pipe) separator.  
+- Indicating nulls is more nuanced for the spreadsheet version due to differences for STRING vs STRING_LIST -- for diseaseFocus, use "NA" while for manifestation can leave blank.  
+
 
 ```{r, eval=F}
 
 add_publications_from_file(
-  file = "new_pubs.csv",
+  file = example_csv,
   publication_table_id = PUBS_COPY,
-  study_table_id = ,
+  study_table_id = STUDY_TABLE,
   list_sep = "|",
   dry_run = FALSE
 )
 
 ```
 
+Check the new additions in the UI.
 
-Clean up the table copy.
+To conclude this part of the vignette, clean up the table copy.
 ```{r, eval=F}
 synapser::synDelete(PUBS_COPY)
+```
 
+
+For become even more erudite, review the source code or try some experiments regarding these concerns:
+
+1. What happens with trying to add a pmid that already exists in the table?
+2. What happens when the pmid is incorrect due to typo?
+
+
+Toggle the code block below to show expected results.
+```{r, class.source = 'fold-hide'}
+#1. A publication that already exists should be skipped with a message saying so. 
+#2. It fails.
 ```
 
 ### Portal - Files corrections
@@ -115,7 +146,21 @@ TO DO.
 
 ### Portal - People updates
 
-TO DO.
+Create the table copy.
+```{r, eval=F}
+PEOPLE_COPY <- copy_table("syn16857542", destination_id = project_id)
+```
+
+This relatively simple util finds new people that have made contributions and adds them to the people table. 
+```{r, eval=F}
+
+add_people_from_table(people_table_id = PEOPLE_COPY, 
+                      people_column = "ownerId", 
+                      source_table_id = "syn16858331", # READ ONLY from the source table, which is Portal - Files
+                      source_column = "createdBy",
+                      dry_run = F)
+```
+
 
 ### Portal - Studies updates
 
@@ -127,3 +172,13 @@ TO DO.
 
 TO DO.
 
+
+Here are some other things to get deeper via the source code and/or docs:
+
+1. Why is there both `n_k` and and `n_clust`. Why is this used with `n_k` instead of `n_clust`?
+
+Toggle the code block below to show asnwers.
+```{r, class.source = 'fold-hide'}
+# That's just because `n_clust` generates results as clusters with highly variable numbers of member studies, i.e. there could be 20 studies around this one mainstream topic vs 2-3 in this more arcane topic. The table breaks when list length exceeds a certain limit. Historically, clusters have been used and a max of four studies selected as a workaround. But using `n_k` can give better related results with more control.  
+
+```
