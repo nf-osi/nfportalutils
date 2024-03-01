@@ -8,6 +8,12 @@
 The goal of `nfportalutils` is to provide convenience functions for project and (meta)data management in the NF-OSI data portal scope. 
 Currently, `develop` branch is default so package install and docs refer to code in this branch.  
 
+> [!WARNING] 
+> For the last relatively stable version of `nfportalutils`, please install at https://github.com/nf-osi/nfportalutils/releases/tag/v0.9500-presynapser.
+>
+> Currently, the package is in a refactoring period where usage is complex because of the coexistence of both `synapser` and separate `synapseclient` import.
+> This will be updated when everything is 100% refactored to `synapser`. 
+
 ## Docs
 
 :point_right: [Package documentation!](https://nf-osi.github.io/nfportalutils/)  
