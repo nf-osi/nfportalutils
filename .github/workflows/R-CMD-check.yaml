@@ -46,12 +46,19 @@ jobs:
           extra-packages: any::rcmdcheck
           needs: check
       
-      - name: If source build fails on macOS or Windows, fall back to typical install
-        if: steps.install-deps.outcome == 'failure'
+      - name: Install working version for macOS
+        if: steps.install-deps.outcome == 'failure' && runner.os == 'macOS'
         shell: Rscript {0}
         run: |
           reticulate::install_miniconda()
-          install.packages("synapser", repos="http://ran.synapse.org")
+          install.packages("https://github.com/Sage-Bionetworks/synapser/archive/refs/tags/1.3.0.tar.gz", repos=NULL)
+
+      - name: Install working version for Windows
+        if: steps.install-deps.outcome == 'failure' && runner.os == 'Windows'
+        shell: Rscript {0}
+        run: |
+          reticulate::install_miniconda()
+          install.packages("https://github.com/Sage-Bionetworks/synapser/archive/refs/tags/1.3.0.zip", repos=NULL)
 
       - uses: r-lib/actions/check-r-package@v2
         with:

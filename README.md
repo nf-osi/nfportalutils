@@ -14,6 +14,10 @@ Currently, `develop` branch is default so package install and docs refer to code
 > Currently, the package is in a refactoring period where usage is complex because of the coexistence of both `synapser` and separate `synapseclient` import.
 > This will be updated when everything is 100% refactored to `synapser`. 
 
+> [!NOTE]
+> Underlying dependencies tested for this package are `synapser==1.3.0` and `synapseclient==3.1.1`.
+> There are known breaking issues for MacOS and Windows with the newer versions for now.
+
 ## Docs
 
 :point_right: [Package documentation!](https://nf-osi.github.io/nfportalutils/)  
