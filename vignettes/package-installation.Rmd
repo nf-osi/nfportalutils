@@ -141,11 +141,12 @@ TODO
 
 Restart R after adding your token. 
 Then to test that your installation is working, load package and try to log in. 
-If you set your authentication token successfully in the above, you should be greeted accordingly.
+If you have your authentication token set in the above recommended steps, you should be greeted accordingly. 
+Without a token, you are logged in as "Anonymous" and functionality will be limited. 
 
 ### Login
 
-```{r}
+```{r, eval=FALSE}
 
 library(nfportalutils)
 syn_login()
