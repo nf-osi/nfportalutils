@@ -40,11 +40,9 @@ add_publication_from_unpaywall <- function(publication_table_id,
 
   #TODO: Check schema up-front and convert metadata to json in correct format
 
-  .check_login()
+    schema <- synapser::synGet(entity = publication_table_id)
 
-    schema <- .syn$get(entity = publication_table_id)
-
-    pub_table <- .syn$tableQuery(glue::glue('select * from {publication_table_id}'))$filepath %>%
+    pub_table <- synapser::synTableQuery(glue::glue('select * from {publication_table_id}'))$filepath %>%
       readr::read_csv(na=character()) ##asDataFrame() & reticulate return rowIdAndRowVersion as concatenated rownames, read_csv reads them in as columns
 
     if(doi %in% pub_table$doi){

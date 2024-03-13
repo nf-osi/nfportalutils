@@ -1,0 +1,165 @@
+---
+title: "Package Installation"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{package-installation}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Installation {.tabset}
+
+THIS VERSION:
+This is the recommended installation for the [current release](https://github.com/nf-osi/nfportalutils/releases/tag/v0.9500-presynapser) of `nfportalutils` **that does not depend on `synapser`**.
+
+There *will* be a **newer version of `nfportalutils` with `synapser`** (i.e. see [this issue](https://github.com/nf-osi/nfportalutils/issues/94) on the roadmap), and instructions will be accordingly revised when the refactor is completed.
+
+Make sure you are in a new R session (in RStudio, go to `Session > Restart R` if necessary). 
+The trickiest part of the installation and package usage, for most R users, will be the Python interop. 
+
+### Windows
+
+#### Outside R
+
+- Install a supported `python` version (recommend Python 3.11) by downloading installation binary at https://www.python.org/downloads/windows/.
+- Install `synapseclient` following instructions at https://pypi.org/project/synapseclient/4.0.0/.
+
+#### With R
+- Install `remotes` to help install other packages: 
+`install.packages("remotes")`.
+
+- Check that you have the correct `reticulate` version: 
+`packageVersion("reticulate")`.  
+If the result is anything other than `1.28`, then go to the `reticulate` install step, otherwise skip to `nfportalutils` install.
+
+- Install `reticulate`:
+```
+> remotes::install_github("rstudio/reticulate@v1.28")
+Downloading GitHub repo rstudio/reticulate@v1.28
+Running `R CMD build`...
+* checking for file 'C:\Users\Erik\AppData\Local\Temp\Rtmporbql0\remotes322031ec7c50\rstudio-reticulate-3de77d1/DESCRIPTION' ... OK
+* preparing 'reticulate':
+* checking DESCRIPTION meta-information ... OK
+* cleaning src
+* checking for LF line-endings in source and make files and shell scripts
+* checking for empty or unneeded directories
+* building 'reticulate_1.28.tar.gz'
+Installing package into ‘C:/Users/Erik/AppData/Local/R/win-library/4.3’
+(as ‘lib’ is unspecified)
+* installing *source* package 'reticulate' ...
+** using staged installation
+** libs
+using C++ compiler: 'G__~1.EXE (GCC) 12.3.0'
+g++ -std=gnu++17  -I"C:/PROGRA~1/R/R-43~1.2/include" -DNDEBUG  -I'C:/Users/Erik/AppData/Local/R/win-library/4.3/Rcpp/include'   -I"C:/rtools43/x86_64-w64-mingw32.static.posix/include"     -O2 -Wall  -mfpmath=sse -msse2 -mstackrealign  -c RcppExports.cpp -o RcppExports.o
+g++ -std=gnu++17  -I"C:/PROGRA~1/R/R-43~1.2/include" -DNDEBUG  -I'C:/Users/Erik/AppData/Local/R/win-library/4.3/Rcpp/include'   -I"C:/rtools43/x86_64-w64-mingw32.static.posix/include"     -O2 -Wall  -mfpmath=sse -msse2 -mstackrealign  -c event_loop.cpp -o event_loop.o
+g++ -std=gnu++17  -I"C:/PROGRA~1/R/R-43~1.2/include" -DNDEBUG  -I'C:/Users/Erik/AppData/Local/R/win-library/4.3/Rcpp/include'   -I"C:/rtools43/x86_64-w64-mingw32.static.posix/include"     -O2 -Wall  -mfpmath=sse -msse2 -mstackrealign  -c libpython.cpp -o libpython.o
+g++ -std=gnu++17  -I"C:/PROGRA~1/R/R-43~1.2/include" -DNDEBUG  -I'C:/Users/Erik/AppData/Local/R/win-library/4.3/Rcpp/include'   -I"C:/rtools43/x86_64-w64-mingw32.static.posix/include"     -O2 -Wall  -mfpmath=sse -msse2 -mstackrealign  -c output.cpp -o output.o
+g++ -std=gnu++17  -I"C:/PROGRA~1/R/R-43~1.2/include" -DNDEBUG  -I'C:/Users/Erik/AppData/Local/R/win-library/4.3/Rcpp/include'   -I"C:/rtools43/x86_64-w64-mingw32.static.posix/include"     -O2 -Wall  -mfpmath=sse -msse2 -mstackrealign  -c python.cpp -o python.o
+g++ -std=gnu++17  -I"C:/PROGRA~1/R/R-43~1.2/include" -DNDEBUG  -I'C:/Users/Erik/AppData/Local/R/win-library/4.3/Rcpp/include'   -I"C:/rtools43/x86_64-w64-mingw32.static.posix/include"     -O2 -Wall  -mfpmath=sse -msse2 -mstackrealign  -c readline.cpp -o readline.o
+g++ -std=gnu++17  -I"C:/PROGRA~1/R/R-43~1.2/include" -DNDEBUG  -I'C:/Users/Erik/AppData/Local/R/win-library/4.3/Rcpp/include'   -I"C:/rtools43/x86_64-w64-mingw32.static.posix/include"     -O2 -Wall  -mfpmath=sse -msse2 -mstackrealign  -c signals.cpp -o signals.o
+g++ -std=gnu++17 -shared -s -static-libgcc -o reticulate.dll tmp.def RcppExports.o event_loop.o libpython.o output.o python.o readline.o signals.o -LC:/rtools43/x86_64-w64-mingw32.static.posix/lib/x64 -LC:/rtools43/x86_64-w64-mingw32.static.posix/lib -LC:/PROGRA~1/R/R-43~1.2/bin/x64 -lR
+installing to C:/Users/Erik/AppData/Local/R/win-library/4.3/00LOCK-reticulate/00new/reticulate/libs/x64
+** R
+** inst
+** byte-compile and prepare package for lazy loading
+** help
+*** installing help indices
+*** copying figures
+** building package indices
+** installing vignettes
+** testing if installed package can be loaded from temporary location
+** testing if installed package can be loaded from final location
+** testing if installed package keeps a record of temporary installation path
+* DONE (reticulate)
+```
+
+- Install `nfportalutils` (choose option `3 - None`): 
+```
+> remotes::install_github("nf-osi/nfportalutils@v0.9500-presynapser")
+Downloading GitHub repo nf-osi/nfportalutils@v0.9500-presynapser
+These packages have more recent versions available.
+It is recommended to update all of them.
+Which would you like to update?
+
+1: All                               
+2: CRAN packages only                
+3: None                              
+4: reticulate (1.28 -> 1.35.0) [CRAN]
+```
+
+```
+Running `R CMD build`...
+* checking for file 'C:\Users\Erik\AppData\Local\Temp\RtmpQzT2JT\remotes158c6d2c7833\nf-osi-nfportalutils-61636cd/DESCRIPTION' ... OK
+* preparing 'nfportalutils':
+* checking DESCRIPTION meta-information ... OK
+* checking for LF line-endings in source and make files and shell scripts
+* checking for empty or unneeded directories
+Omitted 'LazyData' from DESCRIPTION
+* building 'nfportalutils_0.9500.tar.gz'
+Installing package into ‘C:/Users/Erik/AppData/Local/R/win-library/4.3’
+(as ‘lib’ is unspecified)
+* installing *source* package 'nfportalutils' ...
+** using staged installation
+** R
+** inst
+** byte-compile and prepare package for lazy loading
+** help
+*** installing help indices
+** building package indices
+** installing vignettes
+** testing if installed package can be loaded from temporary location
+** testing if installed package can be loaded from final location
+** testing if installed package keeps a record of temporary installation path
+* DONE (nfportalutils)
+```
+
+
+#### Post-installation
+
+It is recommended to set your Synapse authentication token as an environment variable that R can access.
+You can create an `.Renviron` in your home. For example, create 'C:/Users/Erik/Documents/.Renviron'.
+
+In the file, add 
+```
+SYNAPSE_AUTH_TOKEN=xxx_your_token_here_xxx
+```
+
+### MacOS
+
+#### Outside R
+
+- If Python is not already installed, obtain Python3 via `brew` following suggested method here: https://docs.python-guide.org/starting/install3/osx/#doing-it-right.
+- Install `synapseclient` following instructions at https://pypi.org/project/synapseclient/4.0.0/.
+
+### Linux (Ubuntu)
+
+#### Outside R
+- Python is already included, so just need https://pypi.org/project/synapseclient/4.0.0/.  
+
+#### With R
+
+
+
+## Test Your Installation
+
+Restart R after adding your token. 
+Then to test that your installation is working, load package and try to log in. 
+If you have your authentication token set in the above recommended steps, you should be greeted accordingly. 
+Without a token, you are logged in as "Anonymous" and functionality will be limited. 
+
+### Login
+
+```
+library(nfportalutils)
+syn_login()
+```
+
+
+

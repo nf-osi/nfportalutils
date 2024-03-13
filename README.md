@@ -8,18 +8,28 @@
 The goal of `nfportalutils` is to provide convenience functions for project and (meta)data management in the NF-OSI data portal scope. 
 Currently, `develop` branch is default so package install and docs refer to code in this branch.  
 
+> [!WARNING] 
+> For the last relatively stable version of `nfportalutils`, please install at https://github.com/nf-osi/nfportalutils/releases/tag/v0.9500-presynapser.
+>
+> Currently, the package is in a refactoring period where usage is complex because of the coexistence of both `synapser` and separate `synapseclient` import.
+> This will be updated when everything is 100% refactored to `synapser`. 
+
+> [!NOTE]
+> Underlying dependencies tested for this package are `synapser==1.3.0` and `synapseclient==3.1.1`.
+> There are known breaking issues for MacOS and Windows with the newer versions for now.
+
 ## Docs
 
 :point_right: [Package documentation!](https://nf-osi.github.io/nfportalutils/)  
 
 ## Installation
 
-You can install `nfportalutils` from here:
+You should first install `synapser` following the instructions [here](https://github.com/Sage-Bionetworks/synapser?tab=readme-ov-file#installation).
 
+Then you can install `nfportalutils` with:
 ``` r
 remotes::install_github("nf-osi/nfportalutils")
 ```
-
 
 
 ## Additional Notes for Users
@@ -30,7 +40,7 @@ remotes::install_github("nf-osi/nfportalutils")
 ## Additional Notes for Contributors 
 
 ### Contrib workflow
-- Branch of `develop` and make changes
+- Branch off `develop` and make changes
 - Run `devtools::check(vignettes = FALSE)` early and often, and definitely before submitting a PR
 - Make a pull request to `develop`; this will run `R-CMD-CHECK` and `pkgdown`
 - Request a reviewer if both checks pass

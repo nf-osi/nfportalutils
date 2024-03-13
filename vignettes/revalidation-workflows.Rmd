@@ -17,7 +17,7 @@ First set up as usual.
 ```r
 
 library(nfportalutils)
-syn_login(Sys.getenv("SYNAPSE_AUTH_TOKEN"))
+synapser::synLogin(authToken = Sys.getenv("SYNAPSE_AUTH_TOKEN"))
 ```
 
 ## Basics with Schematic API service

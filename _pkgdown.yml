@@ -151,11 +151,12 @@ reference:
   - as_table_schema
   - make_folder
   - add_to_scope
+  - copy_table
   - new_view
   - list_project_datasets
   - latest_version
+  - mock_files
   - walk
-  - copy
   - convert_to_stringlist
   - bare_syn_id
   - bad_url

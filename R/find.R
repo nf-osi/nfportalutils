@@ -29,10 +29,10 @@ find_in <- function(scope, path) {
 #' @export
 find_child <- function(child_name, parent) {
 
-  q <- .syn$getChildren(parent)
+  q <- synapser::synGetChildren(parent)
   child_id <- NULL
   repeat {
-    x <- reticulate::iter_next(q)
+    x <- synapser::nextElem(q)
     if(is.null(x) || x$name == child_name) {
       child_id <- x$id
       break
@@ -52,8 +52,8 @@ find_child <- function(child_name, parent) {
 #' @export
 find_child_type <- function(parent, child_type = list("file")) {
 
-  x <- .syn$getChildren(parent, includeTypes = child_type)
-  y <- reticulate::iterate(x)
+  x <- synapser::synGetChildren(parent, includeTypes = child_type)
+  y <- synapser::as.list(x)
   if(!length(y)) return()
   z <- setNames(sapply(y, `[[`, "id"), sapply(y, `[[`, "name"))
   return(z)

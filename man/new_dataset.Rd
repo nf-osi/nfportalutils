@@ -4,7 +4,14 @@
 \alias{new_dataset}
 \title{Create new dataset with given items}
 \usage{
-new_dataset(name, parent, items, item_version = NULL, dry_run = TRUE)
+new_dataset(
+  name,
+  parent,
+  items,
+  item_version = NULL,
+  addAnnotationColumns = FALSE,
+  dry_run = TRUE
+)
 }
 \arguments{
 \item{name}{Name of the dataset. It should be unique within the \code{parent} project.}
@@ -17,8 +24,11 @@ Usually the same parent project storing the files, but in some cases it may be a
 \item{item_version}{Integer for version that will be used for all items, e.g. 1.
 Otherwise, "latest" or "stable_latest". See details.}
 
+\item{addAnnotationColumns}{Whether to add annotation columns, default \code{FALSE}.}
+
 \item{dry_run}{If TRUE, don't actually store dataset, just return the data object for inspection or further modification.}
 }
 \description{
-Create new dataset with given items
+Offers somewhat more convenient interface than the base \code{dataset} constructor:
+needs only item ids and creates structure needed + uses the LATEST version for items by default.
 }

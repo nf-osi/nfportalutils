@@ -7,8 +7,8 @@
 add_publication_from_pubmed(
   pmid,
   study_id,
-  disease_focus,
-  manifestation,
+  disease_focus = c(""),
+  manifestation = c(""),
   publication_table_id,
   study_table_id,
   dry_run = T
@@ -19,9 +19,9 @@ add_publication_from_pubmed(
 
 \item{study_id}{Synapse id(s) of the study that are associated with the publication.}
 
-\item{disease_focus}{The disease focus(s) that are associated with the publication.}
+\item{disease_focus}{(Optional) The disease focus(s) that are associated with the publication.}
 
-\item{manifestation}{The manifestation(s) that are associated with the publication.}
+\item{manifestation}{(Optional) The manifestation(s) that are associated with the publication.}
 
 \item{publication_table_id}{Synapse id of the portal publication table. Must have write access.}
 
