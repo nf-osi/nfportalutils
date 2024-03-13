@@ -19,10 +19,10 @@ knitr::opts_chunk$set(
 THIS VERSION:
 This is the recommended installation for the [current release](https://github.com/nf-osi/nfportalutils/releases/tag/v0.9500-presynapser) of `nfportalutils` **that does not depend on `synapser`**.
 
-
 There *will* be a **newer version of `nfportalutils` with `synapser`** (i.e. see [this issue](https://github.com/nf-osi/nfportalutils/issues/94) on the roadmap), and instructions will be accordingly revised when the refactor is completed.
 
-Make sure you are in a new R session (in RStudio, go to `Session > Restart R` if necessary).
+Make sure you are in a new R session (in RStudio, go to `Session > Restart R` if necessary). 
+The trickiest part of the installation and package usage, for most R users, will be the Python interop. 
 
 ### Windows
 
@@ -133,7 +133,17 @@ SYNAPSE_AUTH_TOKEN=xxx_your_token_here_xxx
 
 ### MacOS
 
-TODO
+#### Outside R
+
+- If Python is not already installed, obtain Python3 via `brew` following suggested method here: https://docs.python-guide.org/starting/install3/osx/#doing-it-right.
+- Install `synapseclient` following instructions at https://pypi.org/project/synapseclient/4.0.0/.
+
+### Linux (Ubuntu)
+
+#### Outside R
+- Python is already included, so just need https://pypi.org/project/synapseclient/4.0.0/.  
+
+#### With R
 
 
 
@@ -146,11 +156,10 @@ Without a token, you are logged in as "Anonymous" and functionality will be limi
 
 ### Login
 
-```{r, eval=FALSE}
-
+```
 library(nfportalutils)
 syn_login()
-
 ```
+
 
 
