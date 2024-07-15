@@ -82,21 +82,3 @@ walk <- function(syn_id, as_list = TRUE) {
 
 }
 
-
-#' Adds a row to a table.
-#' @param schema A synapse table Schema object.
-#' @param new_row A data frame of one or more rows that match the provided schema.
-#' @export
-.store_rows <- function(schema, new_row){
-
-  table <- synapser::synStore(synapser::Table(schema, new_row))
-
-}
-
-# .pluck_column_type_and_name <- function(column){
-#   coltype <- purrr::pluck(column, "columnType")
-#   name <- purrr::pluck(column, "name")
-#
-#   c(coltype, name)
-# }
-
