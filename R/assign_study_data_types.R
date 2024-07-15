@@ -26,8 +26,6 @@ assign_study_data_types <- function(study_table_id,
                                     attribute = "dataType",
                                     dry_run = TRUE) {
 
-  .check_login()
-
   # get studies within scope from study table
   studies <- table_query(table_id = study_table_id, columns = id_col) %>% unlist()
 
@@ -72,7 +70,7 @@ summarize_attribute <- function(summary_query,
                                 dry_run = TRUE,
                                 check_fun = NULL) {
 
-  values <- .syn$tableQuery(summary_query,includeRowIdAndRowVersion = F)$asDataFrame()
+  values <- synapser::synTableQuery(summary_query,includeRowIdAndRowVersion = F) %>% synapser::as.data.frame()
   meta <- lapply(values[[attribute]], function(x) unique(trimws(strsplit(x, split = ",")[[1]]))) # in case of stray whitespaces
   if(is_valid_syn_id(entity_id)) {
     names(meta) <- entity_id
@@ -82,14 +80,14 @@ summarize_attribute <- function(summary_query,
 
   result_list <- list()
   for(entity in names(meta)) {
-    entity_meta <- .syn$get_annotations(entity)
+    entity_meta <- synapser::synGetAnnotations(entity)
     entity_meta[attribute] <- meta[[entity]]
     result_list[[entity]] <- entity_meta
     if(!dry_run) {
       if(is.function(check_fun)) {
-        if(check_fun(meta[[entity]])) .syn$set_annotations(entity_meta) else message("Skipped update for {entity}.")
+        if(check_fun(meta[[entity]])) synapser::synSetAnnotations(entity_meta) else message("Skipped update for {entity}.")
       } else {
-        .syn$set_annotations(entity_meta)
+        synapser::synSetAnnotations(entity_meta)
         message(glue::glue("Updated {entity} {attribute}."))
       }
     }

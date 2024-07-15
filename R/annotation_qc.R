@@ -11,6 +11,7 @@
 #' @param output_format Format of 'excel', 'google_sheet', or 'dataframe'. Defaults to 'excel'.
 #' @param use_annotations Use annotations if filling out manifest for existing dataset. Defaults to TRUE for NF.
 #' @param service Service endpoint to use. Defaults to the schematic production endpoint.
+#' @param access_token Synapse auth token, defaults to `SYNAPSE_AUTH_TOKEN` set in env.
 #' @returns For excel, path to local file; for google_sheet, URL to sheet; for dataframe, JSON string of data.
 #' @export
 manifest_generate <- function(data_type,
@@ -20,11 +21,11 @@ manifest_generate <- function(data_type,
                               asset_view = "syn16858331",
                               output_format = "excel",
                               use_annotations = TRUE,
-                              service = "https://schematic.api.sagebionetworks.org/v1/manifest/generate") {
+                              service = "https://schematic.api.sagebionetworks.org/v1/manifest/generate",
+                              access_token = Sys.getenv("SYNAPSE_AUTH_TOKEN")) {
 
   # yes, param needs to be re-encoded like this for 'dataframe'
   output_format_param <- if (output_format == "dataframe") "dataframe (only if getting existing manifests)" else output_format
-  access_token <- .syn$credentials$secret
   use_annotations <- tolower(as.character(use_annotations))
 
   req <- httr::GET(service,
@@ -157,13 +158,13 @@ manifest_passed <- function(result) {
 #' @export
 infer_data_type <- function(dataset_id) {
 
-  children <- .syn$getChildren(dataset_id)
-  children <- reticulate::iterate(children)
+  children <- synapser::synGetChildren(dataset_id)
+  children <- synapser::as.list(children)
   if(!length(children)) return(list(result = NA, notes = "Empty dataset folder"))
   children <- first(children, 3)
   data_type <- c()
   for (entity in children) {
-    e <- .syn$getAnnotations(entity)
+    e <- synapser::synGetAnnotations(entity)
     data_type <- append(data_type, e$Component)
   }
   data_type <- unique(data_type)
@@ -202,9 +203,9 @@ meta_qc_dataset <- function(dataset_id,
                             schema_url = "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld",
                             cleanup = TRUE) {
 
-  dataset_name <- .syn$get(dataset_id)$properties$name
+  dataset_name <- synapser::synGet(dataset_id)$properties$name
 
-  files <- reticulate::iterate(.syn$getChildren(dataset_id))
+  files <-  synapser::as.list(synapser::synGetChildren(dataset_id))
   if(!length(files)) {
     return(list(result = NA,
                 notes = "Empty dataset with no files",
@@ -304,15 +305,15 @@ list_project_datasets <- function(project_id,
 
     } else {
 
-      in_data <- .syn$getChildren(data_root)
-      in_data <- reticulate::iterate(in_data)
+      in_data <- synapser::synGetChildren(data_root)
+      in_data <- synapser::as.list(in_data)
       datasets <- Filter(function(x) x$type == "org.sagebionetworks.repo.model.Folder", in_data)
       if(!length(datasets)) warning("No datasets found under data root.")
       datasets
     }
   } else {
-    children <- .syn$getChildren(project_id)
-    datasets <- reticulate::iterate(children)
+    children <- synapser::synGetChildren(project_id)
+    datasets <- synapser::as.list(children)
     datasets <- Filter(function(x) x$type == "org.sagebionetworks.repo.model.table.Dataset", datasets)
     if(!length(datasets)) warning("No dataset entities found in project.")
     datasets

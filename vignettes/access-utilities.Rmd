@@ -1,0 +1,95 @@
+---
+title: "Access utilities"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Surveying public files in the portal}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE }
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Intro
+
+This explains several access-related utilities and use cases where they're helpful.
+
+## Set up 
+
+```{r setup, eval=F}
+library(nfportalutils)
+synapser::synLogin(authToken = Sys.getenv("SYNAPSE_AUTH_TOKEN"))
+```
+
+## Give selected access to an individual or team
+
+Sometimes a selected set of private (embargoed) data needs to made available to a collaborator or other researcher outside the project. 
+One way to go about this is to identify the file ids, add the individual/team to the (this creates local sharing settings), and then collect those files into a dataset so a single dataset link can be shared (this makes it easier especially if files are spread across multiple folders).
+
+The main convenience util to do this is `grant_specific_file_access`.
+To test it out, we create a data folder, and then create and upload mock files.
+
+```{r, eval=F}
+
+project_id <- "syn26462036" # this the NF-dev-playground project, replace with your own dev project if needed
+folder <- synapser::Folder(name = paste("Demo Dataset -", Sys.Date()), parent = project_id)
+folder <- synapser::synStore(folder)
+folder_id <- folder$properties$id
+
+# create some temp files with same mock data
+file_paths <- mock_files(3)
+syn_files <- list()
+for(path in file_paths) {
+  file <- synapser::File(path = path, parent = folder_id)
+  sf <- synapser::synStore(file)
+  syn_files <- c(syn_files, sf)
+}
+
+file_ids <- sapply(syn_files, function(x) x$properties$id)
+```
+
+
+Now let's use the function to share with NF-OSI Team as the collaborator (replace example with appropriate project id that you own). 
+
+```{r, eval=F}
+
+outside_collaborator <- "3342573" # use another appropriate example id if needed
+grant_specific_file_access(principal_id = outside_collaborator,
+                           entity_ids = file_ids, 
+                           create_dataset = T, 
+                           project_id = project_id, 
+                           dataset_name = NULL) # optional 
+
+```
+
+Clean up by removing the mock folder and files. You can delete the dataset through the UI.
+```{r, eval=F}
+synapser::synDelete(folder_id)
+```
+
+## Survey files downloadable for Synapse registered users
+
+There's often reference to "public" files, which usually means files that are viewable + downloadable to Synapse users.
+If we just have a fileview with ids of the files, how do we know which ones are "public"?
+The group of Synapse users has id `273948`, and we can use a util called `summarize_file_access`, passing in this group id, the permissions we're checking, and the fileview id. 
+
+```{r query-1, eval=F}
+public_access <- summarize_file_access(principal_id = 273948, "DOWNLOAD", "syn16858331")
+public_access
+```
+
+The results should show that `summarize_file_access`'s first step is identifying all the unique benefactors (the parent container that sets the permissions on the child files) and the current permissions, then compiles a summary number of files under that benefactor.
+
+For an even more summarized breakdown as proportions:
+```{r summarize-1, eval=F}
+public_access[, .(n_files = sum(N)), by = access][, .(access, n_files, proportion = n_files / sum(n_files))]
+```
+
+### Some nuances
+
+Always use the most current fileview because of the benefactor lookup; inaccurate results might be returned otherwise.
+
