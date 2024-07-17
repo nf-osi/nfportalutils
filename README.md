@@ -20,14 +20,20 @@ You can install `nfportalutils` from here:
 remotes::install_github("nf-osi/nfportalutils")
 ```
 
+The package interops with the [Python synapse client](https://github.com/Sage-Bionetworks/synapsePythonClient) via reticulate.
+You will have to download the Python synapse client first.
 
-
-## Additional Notes for Users
+## For Users
 
 - View function reference on docs site at [Reference](https://nf-osi.github.io/nfportalutils/reference/index.html). 
 - An alternative to viewing vignettes as Articles on the [docs site](https://nf-osi.github.io/nfportalutils/index.html) is to download them with pkg install and load with e.g. `vignette("annotate-nf-processed-data", package = "nfportalutils")` to view.
 
-## Additional Notes for Contributors 
+## For Contributors 
+
+### General picture
+- Again, default development happens in `develop`.
+- But we have a side branch called `develop-synapser` where interop tries to transition to `synapser`. 
+However, current coexistence makes development a bit tricky so consult first before trying new developments there.
 
 ### Contrib workflow
 - Branch of `develop` and make changes
