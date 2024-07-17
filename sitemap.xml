@@ -1,504 +1,170 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>/404.html</loc>
-  </url>
-  <url>
-    <loc>/CODE_OF_CONDUCT.html</loc>
-  </url>
-  <url>
-    <loc>/LICENSE-text.html</loc>
-  </url>
-  <url>
-    <loc>/LICENSE.html</loc>
-  </url>
-  <url>
-    <loc>/articles/annotate-nf-processed-data.html</loc>
-  </url>
-  <url>
-    <loc>/articles/bringing-portal-data-to-other-platforms-cbioportal.html</loc>
-  </url>
-  <url>
-    <loc>/articles/index.html</loc>
-  </url>
-  <url>
-    <loc>/articles/revalidation-workflows.html</loc>
-  </url>
-  <url>
-    <loc>/articles/survey-public-files.html</loc>
-  </url>
-  <url>
-    <loc>/authors.html</loc>
-  </url>
-  <url>
-    <loc>/index.html</loc>
-  </url>
-  <url>
-    <loc>/reference/add_activity.html</loc>
-  </url>
-  <url>
-    <loc>/reference/add_activity_batch.html</loc>
-  </url>
-  <url>
-    <loc>/reference/add_default_fileview.html</loc>
-  </url>
-  <url>
-    <loc>/reference/add_default_folders.html</loc>
-  </url>
-  <url>
-    <loc>/reference/add_default_wiki.html</loc>
-  </url>
-  <url>
-    <loc>/reference/add_new_study_meta.html</loc>
-  </url>
-  <url>
-    <loc>/reference/add_people_from_table.html</loc>
-  </url>
-  <url>
-    <loc>/reference/add_publication_from_pubmed.html</loc>
-  </url>
-  <url>
-    <loc>/reference/add_publication_from_unpaywall.html</loc>
-  </url>
-  <url>
-    <loc>/reference/add_publications_from_file.html</loc>
-  </url>
-  <url>
-    <loc>/reference/add_study_summary.html</loc>
-  </url>
-  <url>
-    <loc>/reference/add_to_collection.html</loc>
-  </url>
-  <url>
-    <loc>/reference/add_to_scope.html</loc>
-  </url>
-  <url>
-    <loc>/reference/adjust_list_length.html</loc>
-  </url>
-  <url>
-    <loc>/reference/adjust_string_size.html</loc>
-  </url>
-  <url>
-    <loc>/reference/adjust_view.html</loc>
-  </url>
-  <url>
-    <loc>/reference/annotate_aligned_reads.html</loc>
-  </url>
-  <url>
-    <loc>/reference/annotate_called_variants.html</loc>
-  </url>
-  <url>
-    <loc>/reference/annotate_cnv.html</loc>
-  </url>
-  <url>
-    <loc>/reference/annotate_expression.html</loc>
-  </url>
-  <url>
-    <loc>/reference/annotate_reports_sarek.html</loc>
-  </url>
-  <url>
-    <loc>/reference/annotate_with_manifest.html</loc>
-  </url>
-  <url>
-    <loc>/reference/annotate_with_tool_stats.html</loc>
-  </url>
-  <url>
-    <loc>/reference/append_kv.html</loc>
-  </url>
-  <url>
-    <loc>/reference/as_coll_items.html</loc>
-  </url>
-  <url>
-    <loc>/reference/as_mmd_link.html</loc>
-  </url>
-  <url>
-    <loc>/reference/as_mmd_node.html</loc>
-  </url>
-  <url>
-    <loc>/reference/as_table_schema.html</loc>
-  </url>
-  <url>
-    <loc>/reference/assign_study_data_types.html</loc>
-  </url>
-  <url>
-    <loc>/reference/bad_url.html</loc>
-  </url>
-  <url>
-    <loc>/reference/bare_syn_id.html</loc>
-  </url>
-  <url>
-    <loc>/reference/bipartite_mmd_template.html</loc>
-  </url>
-  <url>
-    <loc>/reference/button_widget.html</loc>
-  </url>
-  <url>
-    <loc>/reference/byte_budget.html</loc>
-  </url>
-  <url>
-    <loc>/reference/calc_study_dist_dtm.html</loc>
-  </url>
-  <url>
-    <loc>/reference/calculate_related_studies.html</loc>
-  </url>
-  <url>
-    <loc>/reference/cbp_add_clinical.html</loc>
-  </url>
-  <url>
-    <loc>/reference/cbp_add_cna.html</loc>
-  </url>
-  <url>
-    <loc>/reference/cbp_add_expression.html</loc>
-  </url>
-  <url>
-    <loc>/reference/cbp_add_maf.html</loc>
-  </url>
-  <url>
-    <loc>/reference/cbp_datatypes.html</loc>
-  </url>
-  <url>
-    <loc>/reference/cbp_new_cancer_type.html</loc>
-  </url>
-  <url>
-    <loc>/reference/cbp_new_study.html</loc>
-  </url>
-  <url>
-    <loc>/reference/check_access.html</loc>
-  </url>
-  <url>
-    <loc>/reference/check_byte_budget_col_swap.html</loc>
-  </url>
-  <url>
-    <loc>/reference/check_cbp_study_id.html</loc>
-  </url>
-  <url>
-    <loc>/reference/check_readpair_validity.html</loc>
-  </url>
-  <url>
-    <loc>/reference/check_wiki_links.html</loc>
-  </url>
-  <url>
-    <loc>/reference/checked_message.html</loc>
-  </url>
-  <url>
-    <loc>/reference/cite_dataset.html</loc>
-  </url>
-  <url>
-    <loc>/reference/convert_to_stringlist.html</loc>
-  </url>
-  <url>
-    <loc>/reference/copy.html</loc>
-  </url>
-  <url>
-    <loc>/reference/copy_annotations.html</loc>
-  </url>
-  <url>
-    <loc>/reference/data_curator_app_subpage.html</loc>
-  </url>
-  <url>
-    <loc>/reference/delete_provenance.html</loc>
-  </url>
-  <url>
-    <loc>/reference/derive_annotations.html</loc>
-  </url>
-  <url>
-    <loc>/reference/dot-add_publication_from_pubmed.html</loc>
-  </url>
-  <url>
-    <loc>/reference/dot-check_login.html</loc>
-  </url>
-  <url>
-    <loc>/reference/dot-delim_string_to_vector.html</loc>
-  </url>
-  <url>
-    <loc>/reference/dot-modify_annotation.html</loc>
-  </url>
-  <url>
-    <loc>/reference/dot-replace_string_column_with_stringlist_column.html</loc>
-  </url>
-  <url>
-    <loc>/reference/dot-store_rows.html</loc>
-  </url>
-  <url>
-    <loc>/reference/dot-update_table_data.html</loc>
-  </url>
-  <url>
-    <loc>/reference/dot-update_view_data.html</loc>
-  </url>
-  <url>
-    <loc>/reference/dsp_dataset_mapping.html</loc>
-  </url>
-  <url>
-    <loc>/reference/dt_read.html</loc>
-  </url>
-  <url>
-    <loc>/reference/find_child.html</loc>
-  </url>
-  <url>
-    <loc>/reference/find_child_type.html</loc>
-  </url>
-  <url>
-    <loc>/reference/find_data_root.html</loc>
-  </url>
-  <url>
-    <loc>/reference/find_in.html</loc>
-  </url>
-  <url>
-    <loc>/reference/find_nf_asset.html</loc>
-  </url>
-  <url>
-    <loc>/reference/format_gene_expression_data.html</loc>
-  </url>
-  <url>
-    <loc>/reference/from_pubmed.html</loc>
-  </url>
-  <url>
-    <loc>/reference/gather_annotations.html</loc>
-  </url>
-  <url>
-    <loc>/reference/get_by_prop_from_json_schema.html</loc>
-  </url>
-  <url>
-    <loc>/reference/get_cbio_filename.html</loc>
-  </url>
-  <url>
-    <loc>/reference/get_dependency_from_json_schema.html</loc>
-  </url>
-  <url>
-    <loc>/reference/get_doi_meta.html</loc>
-  </url>
-  <url>
-    <loc>/reference/get_project_wiki.html</loc>
-  </url>
-  <url>
-    <loc>/reference/get_valid_values_from_json_schema.html</loc>
-  </url>
-  <url>
-    <loc>/reference/grant_specific_file_access.html</loc>
-  </url>
-  <url>
-    <loc>/reference/identify_read_pair.html</loc>
-  </url>
-  <url>
-    <loc>/reference/index.html</loc>
-  </url>
-  <url>
-    <loc>/reference/infer_data_type.html</loc>
-  </url>
-  <url>
-    <loc>/reference/is_dataset.html</loc>
-  </url>
-  <url>
-    <loc>/reference/is_dataset_collection.html</loc>
-  </url>
-  <url>
-    <loc>/reference/is_file.html</loc>
-  </url>
-  <url>
-    <loc>/reference/is_valid_syn_id.html</loc>
-  </url>
-  <url>
-    <loc>/reference/is_valid_team.html</loc>
-  </url>
-  <url>
-    <loc>/reference/is_valid_user.html</loc>
-  </url>
-  <url>
-    <loc>/reference/key_label_to_id.html</loc>
-  </url>
-  <url>
-    <loc>/reference/latest_version.html</loc>
-  </url>
-  <url>
-    <loc>/reference/list_project_datasets.html</loc>
-  </url>
-  <url>
-    <loc>/reference/make_admin.html</loc>
-  </url>
-  <url>
-    <loc>/reference/make_cbio_clinical_header.html</loc>
-  </url>
-  <url>
-    <loc>/reference/make_folder.html</loc>
-  </url>
-  <url>
-    <loc>/reference/make_meta_clinical_generic.html</loc>
-  </url>
-  <url>
-    <loc>/reference/make_meta_cna.html</loc>
-  </url>
-  <url>
-    <loc>/reference/make_meta_expression.html</loc>
-  </url>
-  <url>
-    <loc>/reference/make_meta_genomic_generic.html</loc>
-  </url>
-  <url>
-    <loc>/reference/make_meta_maf.html</loc>
-  </url>
-  <url>
-    <loc>/reference/make_meta_patient.html</loc>
-  </url>
-  <url>
-    <loc>/reference/make_meta_sample.html</loc>
-  </url>
-  <url>
-    <loc>/reference/make_meta_study_generic.html</loc>
-  </url>
-  <url>
-    <loc>/reference/make_public.html</loc>
-  </url>
-  <url>
-    <loc>/reference/make_public_viewable.html</loc>
-  </url>
-  <url>
-    <loc>/reference/manifest_generate.html</loc>
-  </url>
-  <url>
-    <loc>/reference/manifest_passed.html</loc>
-  </url>
-  <url>
-    <loc>/reference/manifest_validate.html</loc>
-  </url>
-  <url>
-    <loc>/reference/map_reports_sarek.html</loc>
-  </url>
-  <url>
-    <loc>/reference/map_sample_input_ss.html</loc>
-  </url>
-  <url>
-    <loc>/reference/map_sample_io.html</loc>
-  </url>
-  <url>
-    <loc>/reference/map_sample_output_rnaseq.html</loc>
-  </url>
-  <url>
-    <loc>/reference/map_sample_output_sarek.html</loc>
-  </url>
-  <url>
-    <loc>/reference/match_col.html</loc>
-  </url>
-  <url>
-    <loc>/reference/meta_qc_dataset.html</loc>
-  </url>
-  <url>
-    <loc>/reference/meta_qc_project.html</loc>
-  </url>
-  <url>
-    <loc>/reference/missing_annotation_email.html</loc>
-  </url>
-  <url>
-    <loc>/reference/new_col.html</loc>
-  </url>
-  <url>
-    <loc>/reference/new_dataset.html</loc>
-  </url>
-  <url>
-    <loc>/reference/new_project.html</loc>
-  </url>
-  <url>
-    <loc>/reference/new_project_strict.html</loc>
-  </url>
-  <url>
-    <loc>/reference/new_view.html</loc>
-  </url>
-  <url>
-    <loc>/reference/nf_cnv_dataset.html</loc>
-  </url>
-  <url>
-    <loc>/reference/nf_sarek_datasets.html</loc>
-  </url>
-  <url>
-    <loc>/reference/nf_star_salmon_datasets.html</loc>
-  </url>
-  <url>
-    <loc>/reference/nf_workflow_version.html</loc>
-  </url>
-  <url>
-    <loc>/reference/pipe.html</loc>
-  </url>
-  <url>
-    <loc>/reference/ppp_mmd_template.html</loc>
-  </url>
-  <url>
-    <loc>/reference/precheck_manifest.html</loc>
-  </url>
-  <url>
-    <loc>/reference/processing_flowchart.html</loc>
-  </url>
-  <url>
-    <loc>/reference/register_study.html</loc>
-  </url>
-  <url>
-    <loc>/reference/register_study_files.html</loc>
-  </url>
-  <url>
-    <loc>/reference/remanifest.html</loc>
-  </url>
-  <url>
-    <loc>/reference/remove_button.html</loc>
-  </url>
-  <url>
-    <loc>/reference/remove_wiki_subpage.html</loc>
-  </url>
-  <url>
-    <loc>/reference/save_manifest.html</loc>
-  </url>
-  <url>
-    <loc>/reference/schema_max_str_len.html</loc>
-  </url>
-  <url>
-    <loc>/reference/strlist_JSON.html</loc>
-  </url>
-  <url>
-    <loc>/reference/summarize_attribute.html</loc>
-  </url>
-  <url>
-    <loc>/reference/summarize_file_access.html</loc>
-  </url>
-  <url>
-    <loc>/reference/swap_col.html</loc>
-  </url>
-  <url>
-    <loc>/reference/syn_login.html</loc>
-  </url>
-  <url>
-    <loc>/reference/table_query.html</loc>
-  </url>
-  <url>
-    <loc>/reference/tersely.html</loc>
-  </url>
-  <url>
-    <loc>/reference/test_failed.html</loc>
-  </url>
-  <url>
-    <loc>/reference/test_passed.html</loc>
-  </url>
-  <url>
-    <loc>/reference/update_items.html</loc>
-  </url>
-  <url>
-    <loc>/reference/update_study_annotations.html</loc>
-  </url>
-  <url>
-    <loc>/reference/use_latest_in_collection.html</loc>
-  </url>
-  <url>
-    <loc>/reference/use_ref_map.html</loc>
-  </url>
-  <url>
-    <loc>/reference/walk.html</loc>
-  </url>
-  <url>
-    <loc>/reference/which_coll_type.html</loc>
-  </url>
-  <url>
-    <loc>/reference/wiki_mod.html</loc>
-  </url>
-  <url>
-    <loc>/reference/write_cbio_clinical.html</loc>
-  </url>
-  <url>
-    <loc>/reference/write_meta.html</loc>
-  </url>
+<urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
+<url><loc>/404.html</loc></url>
+<url><loc>/CODE_OF_CONDUCT.html</loc></url>
+<url><loc>/LICENSE-text.html</loc></url>
+<url><loc>/LICENSE.html</loc></url>
+<url><loc>/articles/annotate-nf-processed-data.html</loc></url>
+<url><loc>/articles/bringing-portal-data-to-other-platforms-cbioportal.html</loc></url>
+<url><loc>/articles/index.html</loc></url>
+<url><loc>/articles/revalidation-workflows.html</loc></url>
+<url><loc>/articles/survey-public-files.html</loc></url>
+<url><loc>/authors.html</loc></url>
+<url><loc>/index.html</loc></url>
+<url><loc>/reference/add_activity.html</loc></url>
+<url><loc>/reference/add_activity_batch.html</loc></url>
+<url><loc>/reference/add_default_fileview.html</loc></url>
+<url><loc>/reference/add_default_folders.html</loc></url>
+<url><loc>/reference/add_default_wiki.html</loc></url>
+<url><loc>/reference/add_new_study_meta.html</loc></url>
+<url><loc>/reference/add_people_from_table.html</loc></url>
+<url><loc>/reference/add_publication_from_pubmed.html</loc></url>
+<url><loc>/reference/add_publication_from_unpaywall.html</loc></url>
+<url><loc>/reference/add_publications_from_file.html</loc></url>
+<url><loc>/reference/add_study_summary.html</loc></url>
+<url><loc>/reference/add_to_collection.html</loc></url>
+<url><loc>/reference/add_to_scope.html</loc></url>
+<url><loc>/reference/adjust_list_length.html</loc></url>
+<url><loc>/reference/adjust_string_size.html</loc></url>
+<url><loc>/reference/adjust_view.html</loc></url>
+<url><loc>/reference/annotate_aligned_reads.html</loc></url>
+<url><loc>/reference/annotate_called_variants.html</loc></url>
+<url><loc>/reference/annotate_cnv.html</loc></url>
+<url><loc>/reference/annotate_expression.html</loc></url>
+<url><loc>/reference/annotate_reports_sarek.html</loc></url>
+<url><loc>/reference/annotate_with_manifest.html</loc></url>
+<url><loc>/reference/annotate_with_tool_stats.html</loc></url>
+<url><loc>/reference/append_kv.html</loc></url>
+<url><loc>/reference/as_coll_items.html</loc></url>
+<url><loc>/reference/as_mmd_link.html</loc></url>
+<url><loc>/reference/as_mmd_node.html</loc></url>
+<url><loc>/reference/as_table_schema.html</loc></url>
+<url><loc>/reference/assign_study_data_types.html</loc></url>
+<url><loc>/reference/bad_url.html</loc></url>
+<url><loc>/reference/bare_syn_id.html</loc></url>
+<url><loc>/reference/bipartite_mmd_template.html</loc></url>
+<url><loc>/reference/button_widget.html</loc></url>
+<url><loc>/reference/byte_budget.html</loc></url>
+<url><loc>/reference/calc_study_dist_dtm.html</loc></url>
+<url><loc>/reference/calculate_related_studies.html</loc></url>
+<url><loc>/reference/cbp_add_clinical.html</loc></url>
+<url><loc>/reference/cbp_add_cna.html</loc></url>
+<url><loc>/reference/cbp_add_expression.html</loc></url>
+<url><loc>/reference/cbp_add_maf.html</loc></url>
+<url><loc>/reference/cbp_datatypes.html</loc></url>
+<url><loc>/reference/cbp_new_cancer_type.html</loc></url>
+<url><loc>/reference/cbp_new_study.html</loc></url>
+<url><loc>/reference/check_access.html</loc></url>
+<url><loc>/reference/check_byte_budget_col_swap.html</loc></url>
+<url><loc>/reference/check_cbp_study_id.html</loc></url>
+<url><loc>/reference/check_readpair_validity.html</loc></url>
+<url><loc>/reference/check_wiki_links.html</loc></url>
+<url><loc>/reference/checked_message.html</loc></url>
+<url><loc>/reference/cite_dataset.html</loc></url>
+<url><loc>/reference/convert_to_stringlist.html</loc></url>
+<url><loc>/reference/copy.html</loc></url>
+<url><loc>/reference/copy_annotations.html</loc></url>
+<url><loc>/reference/data_curator_app_subpage.html</loc></url>
+<url><loc>/reference/delete_provenance.html</loc></url>
+<url><loc>/reference/derive_annotations.html</loc></url>
+<url><loc>/reference/dot-add_publication_from_pubmed.html</loc></url>
+<url><loc>/reference/dot-check_login.html</loc></url>
+<url><loc>/reference/dot-delim_string_to_vector.html</loc></url>
+<url><loc>/reference/dot-modify_annotation.html</loc></url>
+<url><loc>/reference/dot-replace_string_column_with_stringlist_column.html</loc></url>
+<url><loc>/reference/dot-store_rows.html</loc></url>
+<url><loc>/reference/dot-update_table_data.html</loc></url>
+<url><loc>/reference/dot-update_view_data.html</loc></url>
+<url><loc>/reference/dsp_dataset_mapping.html</loc></url>
+<url><loc>/reference/dt_read.html</loc></url>
+<url><loc>/reference/find_child.html</loc></url>
+<url><loc>/reference/find_child_type.html</loc></url>
+<url><loc>/reference/find_data_root.html</loc></url>
+<url><loc>/reference/find_in.html</loc></url>
+<url><loc>/reference/find_nf_asset.html</loc></url>
+<url><loc>/reference/format_gene_expression_data.html</loc></url>
+<url><loc>/reference/from_pubmed.html</loc></url>
+<url><loc>/reference/gather_annotations.html</loc></url>
+<url><loc>/reference/get_by_prop_from_json_schema.html</loc></url>
+<url><loc>/reference/get_cbio_filename.html</loc></url>
+<url><loc>/reference/get_dependency_from_json_schema.html</loc></url>
+<url><loc>/reference/get_doi_meta.html</loc></url>
+<url><loc>/reference/get_project_wiki.html</loc></url>
+<url><loc>/reference/get_valid_values_from_json_schema.html</loc></url>
+<url><loc>/reference/grant_specific_file_access.html</loc></url>
+<url><loc>/reference/identify_read_pair.html</loc></url>
+<url><loc>/reference/index.html</loc></url>
+<url><loc>/reference/infer_data_type.html</loc></url>
+<url><loc>/reference/is_dataset.html</loc></url>
+<url><loc>/reference/is_dataset_collection.html</loc></url>
+<url><loc>/reference/is_file.html</loc></url>
+<url><loc>/reference/is_valid_syn_id.html</loc></url>
+<url><loc>/reference/is_valid_team.html</loc></url>
+<url><loc>/reference/is_valid_user.html</loc></url>
+<url><loc>/reference/key_label_to_id.html</loc></url>
+<url><loc>/reference/latest_version.html</loc></url>
+<url><loc>/reference/list_project_datasets.html</loc></url>
+<url><loc>/reference/make_admin.html</loc></url>
+<url><loc>/reference/make_cbio_clinical_header.html</loc></url>
+<url><loc>/reference/make_folder.html</loc></url>
+<url><loc>/reference/make_meta_clinical_generic.html</loc></url>
+<url><loc>/reference/make_meta_cna.html</loc></url>
+<url><loc>/reference/make_meta_expression.html</loc></url>
+<url><loc>/reference/make_meta_genomic_generic.html</loc></url>
+<url><loc>/reference/make_meta_maf.html</loc></url>
+<url><loc>/reference/make_meta_patient.html</loc></url>
+<url><loc>/reference/make_meta_sample.html</loc></url>
+<url><loc>/reference/make_meta_study_generic.html</loc></url>
+<url><loc>/reference/make_public.html</loc></url>
+<url><loc>/reference/make_public_viewable.html</loc></url>
+<url><loc>/reference/manifest_generate.html</loc></url>
+<url><loc>/reference/manifest_passed.html</loc></url>
+<url><loc>/reference/manifest_validate.html</loc></url>
+<url><loc>/reference/map_reports_sarek.html</loc></url>
+<url><loc>/reference/map_sample_input_ss.html</loc></url>
+<url><loc>/reference/map_sample_io.html</loc></url>
+<url><loc>/reference/map_sample_output_rnaseq.html</loc></url>
+<url><loc>/reference/map_sample_output_sarek.html</loc></url>
+<url><loc>/reference/match_col.html</loc></url>
+<url><loc>/reference/meta_qc_dataset.html</loc></url>
+<url><loc>/reference/meta_qc_project.html</loc></url>
+<url><loc>/reference/missing_annotation_email.html</loc></url>
+<url><loc>/reference/new_col.html</loc></url>
+<url><loc>/reference/new_dataset.html</loc></url>
+<url><loc>/reference/new_project.html</loc></url>
+<url><loc>/reference/new_project_strict.html</loc></url>
+<url><loc>/reference/new_view.html</loc></url>
+<url><loc>/reference/nf_cnv_dataset.html</loc></url>
+<url><loc>/reference/nf_sarek_datasets.html</loc></url>
+<url><loc>/reference/nf_star_salmon_datasets.html</loc></url>
+<url><loc>/reference/nf_workflow_version.html</loc></url>
+<url><loc>/reference/pipe.html</loc></url>
+<url><loc>/reference/ppp_mmd_template.html</loc></url>
+<url><loc>/reference/precheck_manifest.html</loc></url>
+<url><loc>/reference/processing_flowchart.html</loc></url>
+<url><loc>/reference/register_study.html</loc></url>
+<url><loc>/reference/register_study_files.html</loc></url>
+<url><loc>/reference/remanifest.html</loc></url>
+<url><loc>/reference/remove_button.html</loc></url>
+<url><loc>/reference/remove_wiki_subpage.html</loc></url>
+<url><loc>/reference/save_manifest.html</loc></url>
+<url><loc>/reference/schema_max_str_len.html</loc></url>
+<url><loc>/reference/strlist_JSON.html</loc></url>
+<url><loc>/reference/summarize_attribute.html</loc></url>
+<url><loc>/reference/summarize_file_access.html</loc></url>
+<url><loc>/reference/swap_col.html</loc></url>
+<url><loc>/reference/syn_login.html</loc></url>
+<url><loc>/reference/table_query.html</loc></url>
+<url><loc>/reference/tersely.html</loc></url>
+<url><loc>/reference/test_failed.html</loc></url>
+<url><loc>/reference/test_passed.html</loc></url>
+<url><loc>/reference/update_items.html</loc></url>
+<url><loc>/reference/update_study_annotations.html</loc></url>
+<url><loc>/reference/use_latest_in_collection.html</loc></url>
+<url><loc>/reference/use_ref_map.html</loc></url>
+<url><loc>/reference/walk.html</loc></url>
+<url><loc>/reference/which_coll_type.html</loc></url>
+<url><loc>/reference/wiki_mod.html</loc></url>
+<url><loc>/reference/write_cbio_clinical.html</loc></url>
+<url><loc>/reference/write_meta.html</loc></url>
 </urlset>
+
