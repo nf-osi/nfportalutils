@@ -13,8 +13,7 @@
 #' @param name Name of the project/study.
 #' @param pi Name of the principal investigator.
 #' @param lead Name(s) of the project lead/data coordinator, comma-sep if multiple, e.g. "Jane Doe, John Doe".
-#' @param admin_user (Optional) Synapse username of specified user to be made admin.
-#' Currently, only takes one admin user, and the rest can be added via the UI.
+#' @param admin_user (Optional) Synapse username of specified user to be made admin. Can be single admin user or list of admin users.
 #' @param abstract Project abstract/description.
 #' @param institution Affiliated institution(s), **semicolon-sep if multiple**, e.g. "Stanford University; University of California, San Francisco".
 #' @param funder The funding agency. The relevant funder team will be made admin.
@@ -72,7 +71,7 @@ new_project <- function(name,
   if(publicview) {
     public_sharing <- make_public_viewable(project)
   }
-  
+
   # ASSETS ---------------------------------------------------------------------#
   # Create default upper-level folders
   folders <- add_default_folders(project)
@@ -179,11 +178,11 @@ make_admin <- function(entity, principal_id) {
 #' @return A list of the created folder object(s).
 #' @export
 #' @examples
-#' \dontrun{ 
+#' \dontrun{
 #' datasets <- list("sequencing data", "imaging data")
 #' assays <- c("rnaSeq", "immunohistochemistry")
-#' for(i in seq_along(datasets)) attr(datasets[[i]], "assay") <- assays[[i]] 
-#' make_folder(parent = "syn26462036", datasets)  
+#' for(i in seq_along(datasets)) attr(datasets[[i]], "assay") <- assays[[i]]
+#' make_folder(parent = "syn26462036", datasets)
 #'}
 make_folder <- function(parent, folders) {
 
@@ -251,7 +250,7 @@ add_default_folders <- function(project, folders = c("Analysis", "Milestone Repo
 #' @keywords internal
 is_valid_user <- function(id) {
   status <- tryCatch(
-    .syn$getUserProfile(id), error = function(e) return(NULL) 
+    .syn$getUserProfile(id), error = function(e) return(NULL)
     )
   if(length(status)) return(TRUE) else return(FALSE)
 }
@@ -260,7 +259,7 @@ is_valid_user <- function(id) {
 #' @keywords internal
 is_valid_team <- function(id) {
   status <- tryCatch(
-    .syn$getTeam(id), error = function(e) return(NULL) 
+    .syn$getTeam(id), error = function(e) return(NULL)
   )
   if(length(status)) return(TRUE) else return(FALSE)
 }
