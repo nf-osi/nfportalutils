@@ -13,7 +13,7 @@
 #' @param name Name of the project/study.
 #' @param pi Name of the principal investigator.
 #' @param lead Name(s) of the project lead/data coordinator, comma-sep if multiple, e.g. "Jane Doe, John Doe".
-#' @param admin_user (Optional) Synapse username of specified user to be made admin. Can be single admin user or list of admin users.
+#' @param admin_user (Optional) Single id or list of ids of users to be made admin(s).
 #' @param abstract Project abstract/description.
 #' @param institution Affiliated institution(s), **semicolon-sep if multiple**, e.g. "Stanford University; University of California, San Francisco".
 #' @param funder The funding agency. The relevant funder team will be made admin.
@@ -65,7 +65,7 @@ new_project <- function(name,
 
   # Set project lead/pi user to full admin user if given
   if(!is.null(admin_user)) {
-    user_sharing <- make_admin(project, admin_user)
+    user_sharing <- lapply(admin_user, function(user) make_admin(project, user))
   }
 
   if(publicview) {
