@@ -53,43 +53,30 @@ map_sample_output_rnaseq <- function(syn_out) {
 
 #' Map sample to output from nf-sarek
 #'
-#' See https://nf-co.re/sarek. Most processed outputs are nested by sample and variant callers, i.e.
-#' `*VariantCalling/<TUMOR_vs_NORMAL>/<CALLER>`. Other times the data is organized as
-#'  `*VariantCalling/<CALLER>/<TUMOR_vs_NORMAL>`.
-#' This walks through the output destination (URI of `*VariantCalling`)
-#' with similar intention to \code{\link{map_sample_output_rnaseq}}, but for Sarek outputs.
+#' See https://nf-co.re/sarek. Similar to \code{\link{map_sample_output_rnaseq}} but for Sarek outputs.
+#' Processed outputs have been seen to have variable organization, nested first by sample or by caller as
+#' `*VariantCalling/<TUMOR_vs_NORMAL>/<CALLER>` or as
+#' `*VariantCalling/<CALLER>/<TUMOR_vs_NORMAL>`.
+#' The hierarchy is used to extract meta, so this needs as inputs a fileview with `path` and
+#' the id of the relevant output folder (something called `VariantCalling` or `variant_calling` usually).
+#' Formerly, `walk` was used to get the hierarchy (`path` was not yet available),
+#' so the default of `2` for parameter `sample_level` simply indicated
+#' the first organization type in the example above (VariantCalling = 1).
+#' In the future, this might be auto-detected.
 #'
-#' Note: And additional step post-Sarek will create MAFs in the output subdirectory DeepVariant.
-#' If this is run _after_ the MAF creation step, this will return file indexes with those .maf files.
+#' Note: An additional step post-Sarek will create MAFs in the output subdirectory DeepVariant.
 #'
-#' @param syn_out Syn id of syn output destination with files of interest.
-#' @param sample_level If caller is organized by sample, use 2 (default), if samples organized by caller, use 3. See details.
+#' @param syn_out Syn id of variant calling output folder.
+#' @param sample_level Use `2L` specify sample as the second level under the variant calling directory.
+#' If samples organized by caller, use `3L`. See details.
+#' @param fileview An existing fileview (usually the local fileview) that covers the outputs and has default columns (includes `path`).
 #' @import data.table
 #' @return A `data.table` with cols `caller` `caller_path` `caller_syn` `output_name` `output_id` `sample` `workflow`
 #' @export
-map_sample_output_sarek <- function(syn_out, sample_level = 2) {
+map_sample_output_sarek <- function(syn_out, sample_level = 2L, fileview = NULL) {
 
-  workflow_level <- if(sample_level == 2) 3 else 2
 
-  # `walk` can be very slow
-  ls <- walk(syn_out)
 
-  outputs <- rbindlist(
-    lapply(ls[3:length(ls)], function(out) {
-      if(!length(out[[3]])) return()
-      as.data.table(
-        c(setNames(lapply(out[[1]], function(x) rep(x, length(out[[3]]))), c("caller_path", "caller_syn")),
-          output_name = list(sapply(out[[3]], `[[`, 1)),
-          output_id = list(sapply(out[[3]], `[[`, 2))
-        )
-      )
-    })
-  )
-  paths <- strsplit(outputs$caller_path, "/", fixed = TRUE)
-  outputs[, sample := sapply(paths, `[[`, sample_level)]
-  outputs[, sample := strsplit(sample, "_vs_")]
-  outputs[, workflow := sapply(paths, `[[`, workflow_level)]
-  return(outputs)
 }
 
 
