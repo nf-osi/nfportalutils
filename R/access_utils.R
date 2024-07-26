@@ -154,26 +154,25 @@ grant_specific_file_access <- function(principal_id, entity_ids, create_dataset 
   }
 
   if(create_dataset){
-    dataset <- .syn$store(
-      synapseclient$Dataset(
-      name=dataset_name,
-      parent=project_id,
-      dataset_items=dataset_items)
-      )
-
-    # Add/remove specific Synapse IDs to/from the Dataset
-
-    .syn$setPermissions(entity = dataset$properties$id,
-                      principalId = principal_id,
-                      accessType = list("READ","DOWNLOAD"))
-
-
-    message(glue::glue('{emoji::emoji("thumbsup")} Dataset created at {dataset$properties$id}'))
+    tryCatch({
+      # First attempt with addAnnotationColumns = TRUE
+      dataset <- .syn$store(synapseclient$Dataset(name = dataset_name, 
+                                                  parent = project_id, dataset_items = dataset_items, addAnnotationColumns = TRUE))
+      message(glue::glue("{emoji::emoji(\"thumbsup\")} Dataset created with annotation columns at {dataset$properties$id}"))
+    }, error = function(e) {
+      # If error, retry with addAnnotationColumns = FALSE
+      dataset <- .syn$store(synapseclient$Dataset(name = dataset_name, 
+                                                  parent = project_id, dataset_items = dataset_items, addAnnotationColumns = FALSE))
+      .syn$setPermissions(entity = dataset$properties$id, principalId = principal_id, 
+                          accessType = list("READ", "DOWNLOAD"))
+      message(glue::glue("{emoji::emoji(\"warning\")} Dataset created without annotation columns at {dataset$properties$id}. Annotation columns will need to be added manually."))
+    })
   }
 
   message(glue::glue('{emoji::emoji("astonished")} Principal {principal_id} added to {length(entity_ids)} entities'))
 
   #TODO: set schema programmatically? might be easier to add annotations to schema in web client as needed to support principal_id...
+  ## Note Dec 2023; schema is automatically defined unless there is an error caused by the way synapse detects annotation schemas, e.g. a type collision that causes duplicate columns with the same name. 
 
 }
 
