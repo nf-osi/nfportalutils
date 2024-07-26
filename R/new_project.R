@@ -78,14 +78,17 @@ new_project <- function(name,
 
   # ASSETS ---------------------------------------------------------------------#
 
-  # Folder structure looks something like this, where * elements are present depending on data given:
+  # Folder structure looks something like this,
+  # where * elements are conditionally present on data given:
   #├── Analysis
   #├── Milestone Reports
   #├── Protocols*
   #├── Raw Data
   #│   ├── IHC dataset*
   #│   └── RNA-seq dataset*
-  #└── Tools*
+  #└── Scripts*
+
+  # Note that all protocol files, etc. is expected to live in a single protocol folder and not further nested.
 
   # Create default upper-level folders
   folders <- add_default_folders(project)
