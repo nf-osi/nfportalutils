@@ -22,6 +22,7 @@
 #' @param datasets (Optional) List of datasets for which folders will be created under main data folder ("Raw Data").
 #' Attributes set on the list items become annotations on the dataset folders.
 #' @param other_resources (Optional) List of non-data resource types for which folders will be created.
+#' Attributes set on the list items become annotations on these folders.
 #' @param publicview Whether to put this project in the public view instead of staying private (registered or non-registered users can see project).
 #' @param webview Whether to open web browser to view newly created project. Defaults to FALSE.
 #' @param ... Additional arguments. Not used.
