@@ -67,6 +67,7 @@ Since this is intended for actual new projects, it will fail if a same existing 
 <span>  <span class="va">funder</span>,</span>
 <span>  <span class="va">initiative</span>,</span>
 <span>  datasets <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  other_resources <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  publicview <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  webview <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  <span class="va">...</span></span>
@@ -90,8 +91,7 @@ Since this is intended for actual new projects, it will fail if a same existing 
 
 
 <dt id="arg-admin-user">admin_user<a class="anchor" aria-label="anchor" href="#arg-admin-user"></a></dt>
-<dd><p>(Optional) Synapse username of specified user to be made admin.
-Currently, only takes one admin user, and the rest can be added via the UI.</p></dd>
+<dd><p>(Optional) Single id or list of ids of users to be made admin(s).</p></dd>
 
 
 <dt id="arg-abstract">abstract<a class="anchor" aria-label="anchor" href="#arg-abstract"></a></dt>
@@ -111,7 +111,13 @@ Currently, only takes one admin user, and the rest can be added via the UI.</p><
 
 
 <dt id="arg-datasets">datasets<a class="anchor" aria-label="anchor" href="#arg-datasets"></a></dt>
-<dd><p>(Optional) Datasets for which folders will be created under main data folder ("Raw Data").</p></dd>
+<dd><p>(Optional) List of datasets for which folders will be created under main data folder ("Raw Data").
+Attributes set on the list items become annotations on the dataset folders.</p></dd>
+
+
+<dt id="arg-other-resources">other_resources<a class="anchor" aria-label="anchor" href="#arg-other-resources"></a></dt>
+<dd><p>(Optional) List of non-data resource types for which folders will be created.
+Attributes set on the list items become annotations on these folders.</p></dd>
 
 
 <dt id="arg-publicview">publicview<a class="anchor" aria-label="anchor" href="#arg-publicview"></a></dt>
