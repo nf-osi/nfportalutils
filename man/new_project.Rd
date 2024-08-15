@@ -26,8 +26,7 @@ new_project(
 
 \item{lead}{Name(s) of the project lead/data coordinator, comma-sep if multiple, e.g. "Jane Doe, John Doe".}
 
-\item{admin_user}{(Optional) Synapse username of specified user to be made admin.
-Currently, only takes one admin user, and the rest can be added via the UI.}
+\item{admin_user}{(Optional) Single id or list of ids of users to be made admin(s).}
 
 \item{abstract}{Project abstract/description.}
 
