@@ -114,7 +114,7 @@ data_curator_app_subpage <- function(project_id, dry_run = TRUE) {
   subpage <- "NF Data Curator App"
   # Default buttons and links
   app_label <- "App"
-  app_url <- "https://shiny.synapse.org/users/rallaway/NF_data_curator"
+  app_url <- "https://dca.app.sagebionetworks.org/"
   app_btn <- button_widget(label = app_label, url = app_url)
 
   doc_label <- "Docs"
