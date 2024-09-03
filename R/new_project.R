@@ -92,11 +92,21 @@ new_project <- function(name,
 
   # Create default upper-level folders
   folders <- add_default_folders(project)
-  data_folder <- folders[["Raw Data"]]
+  data_folder_id <- folders[["Raw Data"]]$properties$id
+
+  # Bind JSON schema so children folders have NF's dataset schemas, see
+  # https://repo-prod.prod.sagebase.org/repo/v1/schema/type/registered/org.synapse.nf-superdataset
+  # and https://help.synapse.org/docs/JSON-Schemas.3107291536.html
+  bind_schema_request <- jsonlite::toJSON(list(entityId = data_folder_id,
+                                               `schema$id` = "org.synapse.nf-superdataset",
+                                               enableDerivedAnnotations = TRUE),
+                                          auto_unbox = TRUE)
+  binding_uri <- glue::glue("https://repo-prod.prod.sagebase.org/repo/v1/entity/{data_folder_id}/schema/binding")
+  try(.syn$restPUT(binding_uri, bind_schema_request))
 
   # Create data-specific folders in "Raw Data"
   if(length(datasets)) {
-    make_folder(parent = data_folder$properties$id, folders = datasets)
+    make_folder(parent = data_folder_id, folders = datasets)
   }
 
   # Create homes for non-data resources alongside "Raw Data"
