@@ -53,7 +53,7 @@ dt_read <- function(file) {
 bare_syn_id <- function(uri) {
   not_na <- which(!is.na(uri))
   x <- uri[not_na]
-  syn <- regmatches(x, regexpr("syn[0-9]{8,12}", x))
+  syn <- regmatches(x, regexpr("syn[0-9]{7,12}", x))
   uri[not_na] <- syn
   return(uri)
 }
@@ -64,7 +64,7 @@ bare_syn_id <- function(uri) {
 #' @param id Id string.
 #' @keywords internal
 is_valid_syn_id <- function(id) {
-  result <- grepl("^syn[0-9]{8,12}$", id)
+  result <- grepl("^syn[0-9]{7,12}$", id)
   result
 }
 
