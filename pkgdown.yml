@@ -1,9 +1,9 @@
 pandoc: 3.1.11
-pkgdown: 2.1.0
+pkgdown: 2.1.1
 pkgdown_sha: ~
 articles:
   annotate-nf-processed-data: annotate-nf-processed-data.html
   bringing-portal-data-to-other-platforms-cbioportal: bringing-portal-data-to-other-platforms-cbioportal.html
   revalidation-workflows: revalidation-workflows.html
   survey-public-files: survey-public-files.html
-last_built: 2024-09-13T17:29Z
+last_built: 2024-09-24T23:19Z
