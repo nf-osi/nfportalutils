@@ -95,7 +95,7 @@ add_study_summary <- function(study_id, summary, table_id = "syn16787123") {
   BASE_URL <- "https://repo-prod.prod.sagebase.org/repo/v1"
   url <- glue::glue("{BASE_URL}/entity/{table_id}/table/transaction/async/start")
 
-  studyId_col_model <- "82658"
+  studyId_col_model <- "82686"
   summary_col_model <- "82091"
 
   new_row <- list(etag = NULL,
