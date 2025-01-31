@@ -68,7 +68,8 @@
 
     
     
-<p>This vignette demonstrates variants of metadata revalidation workflows.</p>
+<p>This vignette demonstrates variants of metadata revalidation
+workflows.</p>
 <p>First set up as usual.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
@@ -77,11 +78,17 @@
 <div class="section level2">
 <h2 id="basics-with-schematic-api-service">Basics with Schematic API service<a class="anchor" aria-label="anchor" href="#basics-with-schematic-api-service"></a>
 </h2>
-<p>Schematic API only works with dataset folders currently. Find a dataset folder.</p>
+<p>Schematic API only works with dataset folders currently. Find a
+dataset folder.</p>
 <ol style="list-style-type: decimal">
-<li>To validate metadata, a manifest must be reconstituted. Type <code><a href="../reference/manifest_generate.html">?manifest_generate</a></code> to read the docs.</li>
+<li>To validate metadata, a manifest must be reconstituted. Type
+<code><a href="../reference/manifest_generate.html">?manifest_generate</a></code> to read the docs.</li>
 </ol>
-<p>As seen in the params below, you do need to know the <code>data_type</code> to validate against. The <code>data_type</code> is the same as the “Component” in the schematic data model (and so the exact term depends on the data model). If feeling lucky, try <code>infer_data_type</code>.</p>
+<p>As seen in the params below, you do need to know the
+<code>data_type</code> to validate against. The <code>data_type</code>
+is the same as the “Component” in the schematic data model (and so the
+exact term depends on the data model). If feeling lucky, try
+<code>infer_data_type</code>.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">my_dataset</span> <span class="op">&lt;-</span> <span class="st">"syn25386362"</span></span>
@@ -104,7 +111,9 @@
 <span><span class="co">#&gt; [[1]]</span></span>
 <span><span class="co">#&gt; [1] "https://docs.google.com/spreadsheets/d/11ymlnESzn7XhHS3vHzlRFsDPhafJJehlhuCL9HgICt8"</span></span></code></pre></div>
 <ol start="2" style="list-style-type: decimal">
-<li>Go to google_sheet and download as <code>.csv</code>. If Excel was chosen, open in some spreadsheet editor and resave file as <code>.csv</code>. Then validate.</li>
+<li>Go to google_sheet and download as <code>.csv</code>. If Excel was
+chosen, open in some spreadsheet editor and resave file as
+<code>.csv</code>. Then validate.</li>
 </ol>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/manifest_validate.html">manifest_validate</a></span><span class="op">(</span>data_type <span class="op">=</span> <span class="va">data_type</span>, </span>
@@ -496,16 +505,22 @@
 <span><span class="co">#&gt; $warnings[[9]][[4]]</span></span>
 <span><span class="co">#&gt; [1] ""</span></span></code></pre></div>
 <ol start="3" style="list-style-type: decimal">
-<li><p>Make corrections in the <code>.csv</code> according to validation laundry list.</p></li>
+<li><p>Make corrections in the <code>.csv</code> according to validation
+laundry list.</p></li>
 <li><p>Submit corrected manifest via DCA.</p></li>
 </ol>
 </div>
 <div class="section level2">
 <h2 id="alternative-with-dataset-entity">Alternative with dataset entity<a class="anchor" aria-label="anchor" href="#alternative-with-dataset-entity"></a>
 </h2>
-<p>For working with dataset entities or doing extra checks, this slightly different workflow can be applied instead. Dataset entities may be more complicated because they can combine files in different times and places (batches).</p>
+<p>For working with dataset entities or doing extra checks, this
+slightly different workflow can be applied instead. Dataset entities may
+be more complicated because they can combine files in different times
+and places (batches).</p>
 <ol style="list-style-type: decimal">
-<li>Generate a manifest for Synapse dataset entity. We need to use <code>remanifest</code>; to understand differences, read the docs by running <code><a href="../reference/remanifest.html">?remanifest</a></code>.</li>
+<li>Generate a manifest for Synapse dataset entity. We need to use
+<code>remanifest</code>; to understand differences, read the docs by
+running <code><a href="../reference/remanifest.html">?remanifest</a></code>.</li>
 </ol>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">datasets</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/list_project_datasets.html">list_project_datasets</a></span><span class="op">(</span>project_id <span class="op">=</span> <span class="st">"syn4939902"</span>, type <span class="op">=</span> <span class="st">"dataset"</span><span class="op">)</span></span>
@@ -515,7 +530,8 @@
 <code class="sourceCode R"><span><span class="va">test</span> <span class="op">&lt;-</span> <span class="va">new_datasets</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">id</span></span>
 <span><span class="fu"><a href="../reference/remanifest.html">remanifest</a></span><span class="op">(</span><span class="va">test</span>, file <span class="op">=</span> <span class="st">"manifest_rd1.csv"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; ✔️ Saved manifest as manifest_rd1.csv</span></span></code></pre></div>
-<p>For reproducibility this original manifest “manifest_rd1.csv” is in the vignettes folder.</p>
+<p>For reproducibility this original manifest “manifest_rd1.csv” is in
+the vignettes folder.</p>
 <ol start="2" style="list-style-type: decimal">
 <li>Run precheck.</li>
 </ol>
@@ -531,8 +547,12 @@
 <span><span class="co">#&gt; ℹ️ Custom attributes (not documented in data model) were found: 'entityId', '...1', 'Uuid', 'DNA_ID', 'RNA_ID', 'tissue', 'bodyPart', 'parentSpecimenId', 'eTag', '...44', '...46', 'accessTeam', 'accessType', 'sciDataRelease', 'specimenIdSource', 'timePointUnit', 'transplantationDonorTissue', 'transplantationDonorSpecies'. In general, custom attributes added by the researcher to help with data management are fine.</span></span>
 <span><span class="co">#&gt; Just check that they are not PHI or added by mistake. If they are deemed generally useful or important enough, they can also be documented officially in the data model for others to reference.</span></span></code></pre></div>
 <ol start="3" style="list-style-type: decimal">
-<li><p>Make a copy of “manifest_rd1.csv”, e.g. “manifest_rd1_corrected.csv” and use precheck notes to help make corrections.</p></li>
-<li><p>Validate “manifest_rd1_corrected.csv” using schematic service (same as above, not run since general validation output has already been shown).</p></li>
+<li><p>Make a copy of “manifest_rd1.csv”,
+e.g. “manifest_rd1_corrected.csv” and use precheck notes to help make
+corrections.</p></li>
+<li><p>Validate “manifest_rd1_corrected.csv” using schematic service
+(same as above, not run since general validation output has already been
+shown).</p></li>
 <li><p>Make <em>more</em> corrections as needed.</p></li>
 <li><p>Finally submit corrected manifest.</p></li>
 </ol>

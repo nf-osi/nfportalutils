@@ -72,7 +72,10 @@
 <div class="section level2">
 <h2 id="intro">Intro<a class="anchor" aria-label="anchor" href="#intro"></a>
 </h2>
-<p>This introduces the annotation utilities with typical examples. This is expected to be the more useful starting point for using nfportalutils for annotation tasks, to be followed by the more specialized vignetted for annotating NF processed data if needed.</p>
+<p>This introduces the annotation utilities with typical examples. This
+is expected to be the more useful starting point for using nfportalutils
+for annotation tasks, to be followed by the more specialized vignetted
+for annotating NF processed data if needed.</p>
 <div class="section level3">
 <h3 id="set-up">Set up<a class="anchor" aria-label="anchor" href="#set-up"></a>
 </h3>
@@ -97,7 +100,13 @@
 <span>                               annotations <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>foo <span class="op">=</span> <span class="st">"bar"</span>, favorites <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"raindrops"</span>, <span class="st">"whiskers"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">entity</span> <span class="op">&lt;-</span> <span class="va">.syn</span><span class="op">$</span><span class="fu">store</span><span class="op">(</span><span class="va">entity</span><span class="op">)</span></span></code></pre></div>
-<p><code>set_annotations</code> can be used to add new annotations or correct an existing annotation on an entity. This wraps the Python client to make it more intuitive to pass in an R list as the annotations as above. Here, add another annotation <em>and</em> correct the <code>favorites</code> to “chocolate”. The returned data shows the unchanged <code>foo</code>, the updated <code>favorites</code>, and a new <code>n</code>.</p>
+<p><code>set_annotations</code> can be used to add new annotations or
+correct an existing annotation on an entity. This wraps the Python
+client to make it more intuitive to pass in an R list as the annotations
+as above. Here, add another annotation <em>and</em> correct the
+<code>favorites</code> to “chocolate”. The returned data shows the
+unchanged <code>foo</code>, the updated <code>favorites</code>, and a
+new <code>n</code>.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/set_annotations.html">set_annotations</a></span><span class="op">(</span>id <span class="op">=</span> <span class="va">entity</span><span class="op">$</span><span class="va">properties</span><span class="op">$</span><span class="va">id</span>, annotations <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>favorites <span class="op">=</span> <span class="st">"chocolate"</span>, n <span class="op">=</span> <span class="fl">7L</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>Cleanup.</p>
@@ -107,12 +116,15 @@
 <div class="section level3">
 <h3 id="annotate-in-batch-using-a-manifest">Annotate in batch using a manifest<a class="anchor" aria-label="anchor" href="#annotate-in-batch-using-a-manifest"></a>
 </h3>
-<p>A better way to use <code>set_annotations</code> for a set of entities, usually files.</p>
-<p>First create multiple entities that need to be annotated or corrected in batch.</p>
+<p>A better way to use <code>set_annotations</code> for a set of
+entities, usually files.</p>
+<p>First create multiple entities that need to be annotated or corrected
+in batch.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">objs</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/make_folder.html">make_folder</a></span><span class="op">(</span>parent <span class="op">=</span> <span class="va">PARENT_TEST_PROJECT</span>, folders <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"mock_file_1"</span>, <span class="st">"mock_file_2"</span>, <span class="st">"mock_file_3"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">ids</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">sapply</a></span><span class="op">(</span><span class="va">objs</span>, <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="va">x</span><span class="op">$</span><span class="va">properties</span><span class="op">$</span><span class="va">id</span><span class="op">)</span></span></code></pre></div>
-<p>Create example manifest. Note: Another way includes reading in a shematic csv manifest with entityIds and Filenames.</p>
+<p>Create example manifest. Note: Another way includes reading in a
+shematic csv manifest with entityIds and Filenames.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">manifest</span> <span class="op">&lt;-</span> <span class="fu">data.table</span><span class="op">(</span></span>
 <span>     entityId <span class="op">=</span> <span class="va">ids</span>,</span>

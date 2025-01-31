@@ -71,7 +71,8 @@
 <div class="section level2">
 <h2 id="intro">Intro<a class="anchor" aria-label="anchor" href="#intro"></a>
 </h2>
-<p>This quick makes use of some functions to survey files in the portal and their access.</p>
+<p>This quick makes use of some functions to survey files in the portal
+and their access.</p>
 </div>
 <div class="section level2">
 <h2 id="set-up">Set up<a class="anchor" aria-label="anchor" href="#set-up"></a>
@@ -84,7 +85,9 @@
 <div class="section level2">
 <h2 id="files-downloadable-for-synapse-registered-users">Files downloadable for Synapse registered users<a class="anchor" aria-label="anchor" href="#files-downloadable-for-synapse-registered-users"></a>
 </h2>
-<p>When talking about “public” files, this usually means files that are viewable and downloadable to Synapse users. This group has id <code>273948</code>, so we use in the query below:</p>
+<p>When talking about “public” files, this usually means files that are
+viewable and downloadable to Synapse users. This group has id
+<code>273948</code>, so we use in the query below:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">public_access</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/summarize_file_access.html">summarize_file_access</a></span><span class="op">(</span>principal_id <span class="op">=</span> <span class="fl">273948</span>, <span class="st">"DOWNLOAD"</span>, <span class="st">"syn16858331"</span><span class="op">)</span></span>
 <span><span class="va">public_access</span></span></code></pre></div>
@@ -95,7 +98,12 @@
 <div class="section level2">
 <h2 id="some-nuances">Some Nuances<a class="anchor" aria-label="anchor" href="#some-nuances"></a>
 </h2>
-<p>While it would be nice to see the file access restrictions at different points in time, note that the underlying API only returns access control info at present. A file may have inherited from a benefactor at an earlier point, but then becomes its own benefactor later (i.e. more granular access control), so queries based on a past state will likely not work. Don’t try something like:</p>
+<p>While it would be nice to see the file access restrictions at
+different points in time, note that the underlying API only returns
+access control info at present. A file may have inherited from a
+benefactor at an earlier point, but then becomes its own benefactor
+later (i.e. more granular access control), so queries based on a past
+state will likely not work. Don’t try something like:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">public_access_q3_2022</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/summarize_file_access.html">summarize_file_access</a></span><span class="op">(</span>principal_id <span class="op">=</span> <span class="fl">273948</span>, <span class="st">"DOWNLOAD"</span>, <span class="st">"syn16858331.47"</span><span class="op">)</span></span></code></pre></div>
 </div>
