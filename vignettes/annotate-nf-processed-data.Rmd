@@ -263,6 +263,8 @@ wf_link <- c(FreeBayes = "https://nf-co.re/sarek/3.2.3/output#freebayes",
              Mutect2 = "https://nf-co.re/sarek/3.2.3/output#gatk-mutect2",
              Strelka2 = "https://nf-co.re/sarek/3.2.3/output#strelka2")
 
+sample_io <- sarek_meta$sample_io
+
 add_activity_batch(sample_io$output_id, 
                    sample_io$workflow, 
                    wf_link[sample_io$workflow], 
