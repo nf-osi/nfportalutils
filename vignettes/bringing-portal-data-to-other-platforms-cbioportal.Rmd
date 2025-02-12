@@ -53,6 +53,7 @@ Each study dataset combines multiple data types -- clinical, gene expression, ge
 
 cbp_new_study(cancer_study_identifier = "npst_nfosi_ntap_2022",
               name = "Plexiform Neurofibroma and Neurofibroma (Pratilas 2022)",
+              type_of_cancer = "nfib", # required -- see https://oncotree.mskcc.org/
               citation = "TBD")
 ```
 
@@ -77,7 +78,7 @@ Note that:
 
 maf_data <- "syn36553188"
 
-add_cbp_maf(maf_data)
+cbp_add_maf(maf_data)
 ```
 
 ### Add copy number alterations (CNA) data
@@ -108,14 +109,14 @@ cbp_add_expression(mrna_data,
 
 ### Add clinical data
 
-- `clinical_data` is a prepared clinical data table already subsetted to those released in this study, or pass in a query that can be used for subsetting if using a full clinical database table. For example, the full clinical cohort comprises patients 1-50, but this study dataset consists of available and releasable data only for patients 1-20 for expression data and data patients 15-20 for cna data. Here, `clinical_data` can be a smaller table of just those 1-30, or it can be the original table but pass in a suitable additional filter, e.g. `where release = 'batch1'`.
+- Clinical data **should be added last**, after all other data has been added, for sample checks to work properly. 
+- `clinical_data` is prepared from an existing Synapse table. The table can be a subsetted version of those released in the study dataset, or pass in a query that can be used for getting the subset. For example, the full clinical cohort comprises patients 1-50, but the dataset can only release data for patients 1-20 for expression data and data patients 15-20 for cna data. Here, `clinical_data` can be a smaller table of just those 1-30, or it can be the original table but pass in a suitable additional filter, e.g. `where release = 'batch1'`.
 - Clinical data requires mapping to be as consistent with other public datasets as possible. `ref_map` defines the mapping of clinical variables from the NF-OSI data dictionary to cBioPortal's. Only variables in the mapping are exported to cBioPortal. Follow link below to inspect the default file and format used.
-- Clinical data should be added last for overall sample checks to work. For example, if there is expression data for patients 1-20 and cna data patients 15-20,
-it can more informatively warn about any missing/mismatches. 
+- Clinical data **should be added last**, after all other data has been added, for sample checks to work properly.
 
 ```{r add_clinical, eval=FALSE}
 
-clinical_data <- "select * from syn43278088"
+clinical_data <- "select * from syn43278088" # query when the table already contains just the releasable patients
 ref_map <- "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/mappings/cBioPortal.yaml"
 
 cbp_add_clinical(clinical_data, ref_map)
