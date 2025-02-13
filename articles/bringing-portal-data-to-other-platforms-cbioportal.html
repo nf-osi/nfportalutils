@@ -112,6 +112,7 @@ gene expression, gene variants, etc.</p>
 <code class="sourceCode R"><span></span>
 <span><span class="fu"><a href="../reference/cbp_new_study.html">cbp_new_study</a></span><span class="op">(</span>cancer_study_identifier <span class="op">=</span> <span class="st">"npst_nfosi_ntap_2022"</span>,</span>
 <span>              name <span class="op">=</span> <span class="st">"Plexiform Neurofibroma and Neurofibroma (Pratilas 2022)"</span>,</span>
+<span>              type_of_cancer <span class="op">=</span> <span class="st">"nfib"</span>, <span class="co"># required -- see https://oncotree.mskcc.org/</span></span>
 <span>              citation <span class="op">=</span> <span class="st">"TBD"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
@@ -147,7 +148,7 @@ renaming.</li>
 <code class="sourceCode R"><span></span>
 <span><span class="va">maf_data</span> <span class="op">&lt;-</span> <span class="st">"syn36553188"</span></span>
 <span></span>
-<span><span class="fu">add_cbp_maf</span><span class="op">(</span><span class="va">maf_data</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="../reference/cbp_add_maf.html">cbp_add_maf</a></span><span class="op">(</span><span class="va">maf_data</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="add-copy-number-alterations-cna-data">Add copy number alterations (CNA) data<a class="anchor" aria-label="anchor" href="#add-copy-number-alterations-cna-data"></a>
@@ -187,29 +188,29 @@ have the required headers.</li>
 <h3 id="add-clinical-data">Add clinical data<a class="anchor" aria-label="anchor" href="#add-clinical-data"></a>
 </h3>
 <ul>
+<li>Clinical data <strong>should be added last</strong>, after all other
+data has been added, for sample checks to work properly.</li>
 <li>
-<code>clinical_data</code> is a prepared clinical data table already
-subsetted to those released in this study, or pass in a query that can
-be used for subsetting if using a full clinical database table. For
-example, the full clinical cohort comprises patients 1-50, but this
-study dataset consists of available and releasable data only for
-patients 1-20 for expression data and data patients 15-20 for cna data.
-Here, <code>clinical_data</code> can be a smaller table of just those
-1-30, or it can be the original table but pass in a suitable additional
-filter, e.g. <code>where release = 'batch1'</code>.</li>
+<code>clinical_data</code> is prepared from an existing Synapse
+table. The table can be a subsetted version of those released in the
+study dataset, or pass in a query that can be used for getting the
+subset. For example, the full clinical cohort comprises patients 1-50,
+but the dataset can only release data for patients 1-20 for expression
+data and data patients 15-20 for cna data. Here,
+<code>clinical_data</code> can be a smaller table of just those 1-30, or
+it can be the original table but pass in a suitable additional filter,
+e.g. <code>where release = 'batch1'</code>.</li>
 <li>Clinical data requires mapping to be as consistent with other public
 datasets as possible. <code>ref_map</code> defines the mapping of
 clinical variables from the NF-OSI data dictionary to cBioPortal’s. Only
 variables in the mapping are exported to cBioPortal. Follow link below
 to inspect the default file and format used.</li>
-<li>Clinical data should be added last for overall sample checks to
-work. For example, if there is expression data for patients 1-20 and cna
-data patients 15-20, it can more informatively warn about any
-missing/mismatches.</li>
+<li>Clinical data <strong>should be added last</strong>, after all other
+data has been added, for sample checks to work properly.</li>
 </ul>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
-<span><span class="va">clinical_data</span> <span class="op">&lt;-</span> <span class="st">"select * from syn43278088"</span></span>
+<span><span class="va">clinical_data</span> <span class="op">&lt;-</span> <span class="st">"select * from syn43278088"</span> <span class="co"># query when the table already contains just the releasable patients</span></span>
 <span><span class="va">ref_map</span> <span class="op">&lt;-</span> <span class="st">"https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/mappings/cBioPortal.yaml"</span></span>
 <span></span>
 <span><span class="fu"><a href="../reference/cbp_add_clinical.html">cbp_add_clinical</a></span><span class="op">(</span><span class="va">clinical_data</span>, <span class="va">ref_map</span><span class="op">)</span></span></code></pre></div>
