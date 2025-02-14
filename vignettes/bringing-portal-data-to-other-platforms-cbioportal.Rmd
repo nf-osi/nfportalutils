@@ -117,7 +117,7 @@ cbp_add_expression(mrna_data,
 ```{r add_clinical, eval=FALSE}
 
 clinical_data <- "select * from syn43278088" # query when the table already contains just the releasable patients
-ref_map <- "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/mappings/cBioPortal.yaml"
+ref_map <- "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/mappings/cBioPortal/cBioPortal.yaml"
 
 cbp_add_clinical(clinical_data, ref_map)
 ```
