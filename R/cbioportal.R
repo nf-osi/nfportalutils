@@ -188,6 +188,9 @@ cbp_add_maf <- function(maf_data, verbose = TRUE) {
 
   if(verbose) checked_message("Making maf meta file")
   make_meta_maf(cancer_study_identifier, verbose = verbose)
+  
+  if(verbose) checked_message("Making required _sequenced case list for mutation data")
+  make_case_list_maf(cancer_study_identifier)
 
   if(verbose) checked_message("Done with adding MAF data")
 

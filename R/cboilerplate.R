@@ -411,6 +411,31 @@ make_meta_study_generic <- function(cancer_study_identifier,
   return(meta)
 }
 
+#--- Generating case list files ------------------------------------------------ #
+
+#' Case lists for mutation samples
+#'
+#' https://docs.cbioportal.org/file-formats/#case-lists
+#' @keywords internal
+make_case_list_maf <- function(cancer_study_identifier, verbose = TRUE) {
+  
+  mut <- fread("data_mutations.txt")
+  mut_samples <- unique(mut$Tumor_Sample_Barcode)
+  n <- length(mut_samples)
+  case_list_ids <- paste(mut_samples,collapse = "\t")
+  meta <- glue::glue("cancer_study_identifier: {cancer_study_identifier}") %>%
+    append_kv("stable_id", paste0(cancer_study_identifier, "_sequenced")) %>%
+    append_kv("case_list_name", "Samples with mutation data from sequencing") %>%
+    append_kv("case_list_description", paste0("Samples with mutation data from sequencing ", "(", n, ")")) %>%
+    append_kv("case_list_ids", case_list_ids)
+  
+  if(!dir.exists("case_lists")) {
+    if(verbose) checked_message(glue::glue("Creating case_lists study directory"))
+    dir.create(glue::glue("./case_lists"))
+  }
+  
+  writeLines(meta, "case_lists/case-list.txt")
+}
 
 # --- Other utils -------------------------------------------------------------- #
 
@@ -443,3 +468,4 @@ use_ref_map <- function(ref_map, as_dt = TRUE) {
     return(ref_map_ls)
   }
 }
+
