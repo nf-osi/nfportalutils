@@ -33,10 +33,12 @@ The PATIENT file is actually optional, so there are only checks for making sure 
 (since NF data is not well-normalized and there is a single table with everything).
 }
 \details{
-This relies on a \code{ref_map} specification to know which clinical data to include for cBioPortal
+This depends on a \code{ref_map} specification to know which clinical data to include for cBioPortal
 and how to segregate the clinical attributes into the right files.
-For example, say \code{df} contains clinical variables A-X, but mappings are only specified for
-variables A-C, L-M and others are not meant to be surfaced/made public. This will subset the \code{df} to what's specified in the mapping.
-Conversely, if there is a mapping for variable Z that is \emph{not} in the clinical data, this \emph{will} throw error.
+Basically, \code{ref_map} decides what variables can be made public and how they should be represented in cBioPortal.
+For example, given a table \code{T} on Synapse with variables A-Z and mappings in \code{ref_map} for A-C + L-M,
+we take the intersection of variables present.
+But first, check that \emph{required} variables in \emph{ref_map} are present.
+So first the subset \code{df} is created from \code{T}.
 }
 \keyword{internal}

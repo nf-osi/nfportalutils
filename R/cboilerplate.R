@@ -65,11 +65,13 @@ get_cbio_filename <- function(clinical_type = c("SAMPLE", "PATIENT")) {
 #' `df` is expected to be a table containing clinical data available, and maybe even some irrelevant data
 #' (since NF data is not well-normalized and there is a single table with everything).
 #'
-#' This relies on a `ref_map` specification to know which clinical data to include for cBioPortal
-#' and how to segregate the clinical attributes into the right files.
-#' For example, say `df` contains clinical variables A-X, but mappings are only specified for
-#' variables A-C, L-M and others are not meant to be surfaced/made public. This will subset the `df` to what's specified in the mapping.
-#' Conversely, if there is a mapping for variable Z that is _not_ in the clinical data, this _will_ throw error.
+#' This depends on a `ref_map` specification to know which clinical data to include for cBioPortal
+#' and how to segregate the clinical attributes into the right files. 
+#' Basically, `ref_map` decides what variables can be made public and how they should be represented in cBioPortal.
+#' For example, given a table `T` on Synapse with variables A-Z and mappings in `ref_map` for A-C + L-M,
+#' we take the intersection of variables present.
+#' But first, check that *required* variables in *ref_map* are present.
+#' So first the subset `df` is created from `T`. 
 #'
 #' @inheritParams use_ref_map
 #' @inheritParams make_cbio_clinical_header
@@ -92,7 +94,9 @@ write_cbio_clinical <- function(df,
   # Attribute checks
   message("Clinical attributes present are: ", paste(present, collapse = ", "))
   if(!all(required %in% present)) stop("Missing required clinical element(s):", paste(setdiff(required, present), collapse = ", "))
-  if(!all(present %in% attributes)) stop("Missing mapping for:", paste(setdiff(present, attributes), collapse = ","))
+  if(!all(present %in% attributes)) {
+    warning("Variables not mapped with be ignored (potentially non-public/non-clinical data): ", paste(setdiff(present, attributes), collapse = ","))
+  }
 
   # Take care of list columns and NA
   .df <- data.table::copy(df)
@@ -108,13 +112,15 @@ write_cbio_clinical <- function(df,
   files <- list()
   m <- split(m, by = "attribute_type")
   if("individualID" %in% names(.df)) {
-    patient_df <- unique(.df[, c(names(.df) %in% m$PATIENT$source)])
+    patient_df <- .df[, c(names(.df) %in% m$PATIENT$source)]
+    patient_df <- unique(patient_df)
     header <- make_cbio_clinical_header(patient_df, m$PATIENT)
     patient_df <- rbind(header, patient_df)
     files[["PATIENT"]] <- patient_df
   }
   {
     sample_df <- .df[, c(names(.df) %in% m$SAMPLE$source)]
+    sample_df <- unique(sample_df)
     header <- make_cbio_clinical_header(sample_df, m$SAMPLE)
     sample_df <- rbind(header, sample_df)
     files[["SAMPLE"]] <- sample_df
@@ -405,6 +411,31 @@ make_meta_study_generic <- function(cancer_study_identifier,
   return(meta)
 }
 
+#--- Generating case list files ------------------------------------------------ #
+
+#' Case lists for mutation samples
+#'
+#' https://docs.cbioportal.org/file-formats/#case-lists
+#' @keywords internal
+make_case_list_maf <- function(cancer_study_identifier, verbose = TRUE) {
+  
+  mut <- fread("data_mutations.txt")
+  mut_samples <- unique(mut$Tumor_Sample_Barcode)
+  n <- length(mut_samples)
+  case_list_ids <- paste(mut_samples,collapse = "\t")
+  meta <- glue::glue("cancer_study_identifier: {cancer_study_identifier}") %>%
+    append_kv("stable_id", paste0(cancer_study_identifier, "_sequenced")) %>%
+    append_kv("case_list_name", "Samples with mutation data from sequencing") %>%
+    append_kv("case_list_description", paste0("Samples with mutation data from sequencing ", "(", n, ")")) %>%
+    append_kv("case_list_ids", case_list_ids)
+  
+  if(!dir.exists("case_lists")) {
+    if(verbose) checked_message(glue::glue("Creating case_lists study directory"))
+    dir.create(glue::glue("./case_lists"))
+  }
+  
+  writeLines(meta, "case_lists/case-list.txt")
+}
 
 # --- Other utils -------------------------------------------------------------- #
 
@@ -437,3 +468,4 @@ use_ref_map <- function(ref_map, as_dt = TRUE) {
     return(ref_map_ls)
   }
 }
+
