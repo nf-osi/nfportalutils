@@ -144,16 +144,25 @@ add_to_collection <- function(collection_id, items, check_items = FALSE, force =
 #' @inheritParams as_coll_items
 #' @param name Name of the dataset. It should be unique within the `parent` project.
 #' @param parent Synapse id of parent project where the dataset will live.
-#' @param items Id(s) of items to include.
+#' @param items A list of id(s) of items to include for adding items *a la carte* to dataset.
 #' Usually the same parent project storing the files, but in some cases it may be a different project.
+#' @param folders A list of folder ids for adding all items in some folder(s). Can be used with `items`.
+#' @param add_annotation_columns Whether to add annotation columns. Defaults to `TRUE`, same as the Python API.
 #' @param dry_run If TRUE, don't actually store dataset, just return the data object for inspection or further modification.
 #' @export
-new_dataset <- function(name, parent, items, item_version = NULL, dry_run = TRUE) {
+new_dataset <- function(name, 
+                        parent, 
+                        items = NULL, item_version = NULL, 
+                        folders = NULL, 
+                        add_annotation_columns = TRUE, 
+                        dry_run = TRUE) {
 
-  dataset_items <- as_coll_items(items, item_version)
+  dataset_items <-if(length(items)) as_coll_items(items, item_version) else NULL
   dataset <- synapseclient$Dataset(name = name,
                                    parent = parent,
-                                   dataset_items = dataset_items)
+                                   dataset_items = dataset_items,
+                                   folders = folders,
+                                   addAnnotationColumns = add_annotation_columns)
   if(dry_run) dataset else .syn$store(dataset)
 }
 
