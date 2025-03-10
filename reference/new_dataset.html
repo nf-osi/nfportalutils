@@ -46,7 +46,15 @@
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">new_dataset</span><span class="op">(</span><span class="va">name</span>, <span class="va">parent</span>, <span class="va">items</span>, item_version <span class="op">=</span> <span class="cn">NULL</span>, dry_run <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">new_dataset</span><span class="op">(</span></span>
+<span>  <span class="va">name</span>,</span>
+<span>  <span class="va">parent</span>,</span>
+<span>  items <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  item_version <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  folders <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  add_annotation_columns <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  dry_run <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -62,13 +70,21 @@
 
 
 <dt id="arg-items">items<a class="anchor" aria-label="anchor" href="#arg-items"></a></dt>
-<dd><p>Id(s) of items to include.
+<dd><p>A list of id(s) of items to include for adding items <em>a la carte</em> to dataset.
 Usually the same parent project storing the files, but in some cases it may be a different project.</p></dd>
 
 
 <dt id="arg-item-version">item_version<a class="anchor" aria-label="anchor" href="#arg-item-version"></a></dt>
 <dd><p>Integer for version that will be used for all items, e.g. 1.
 Otherwise, "latest" or "stable_latest". See details.</p></dd>
+
+
+<dt id="arg-folders">folders<a class="anchor" aria-label="anchor" href="#arg-folders"></a></dt>
+<dd><p>A list of folder ids for adding all items in some folder(s). Can be used with <code>items</code>.</p></dd>
+
+
+<dt id="arg-add-annotation-columns">add_annotation_columns<a class="anchor" aria-label="anchor" href="#arg-add-annotation-columns"></a></dt>
+<dd><p>Whether to add annotation columns. Defaults to <code>TRUE</code>, same as the Python API.</p></dd>
 
 
 <dt id="arg-dry-run">dry_run<a class="anchor" aria-label="anchor" href="#arg-dry-run"></a></dt>
