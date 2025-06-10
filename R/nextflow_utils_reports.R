@@ -98,7 +98,7 @@ annotate_reports_sarek <- function(syn_out, project, dry_run) {
                        MultiQC = "https://nf-co.re/sarek/2.7.1/output#multiqc") 
   
   dt$resourceType <- "workflow report"
-  dt$assay <- "Whole Exome Sequencing"
+  dt$assay <- "whole exome sequencing"
   dt$workflow <- parent_wf_name[dt$parentId]
   dt$workflow[grepl("fastqc", dt$name)] <- "FastQC"
   dt$workflow[dt$name %in% c("genome_results.txt", "qualimapReport.html")] <- "bamQC"
