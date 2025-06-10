@@ -373,7 +373,7 @@ annotate_aligned_reads <- function(metadata,
   format_as <- annotation_rule(outputFrom, "format_as")
   metadata[, Component := template]
   metadata[, fileFormat := format_as(Filename)]
-  metadata[, dataType := "AlignedReads"]
+  metadata[, dataType := "aligned reads"]
   metadata[, dataSubtype := "processed"]
   metadata[, workflowLink := workflow_link]
   metadata[, genomicReference := genomic_reference]
@@ -415,7 +415,7 @@ annotate_quantified_expression <- function(metadata,
 
   metadata[, Component := template]
   metadata[, fileFormat := format_as(Filename)]
-  metadata[, dataType := "geneExpression"]
+  metadata[, dataType := "gene expression"]
   metadata[, dataSubtype := "processed"]
   metadata[, expressionUnit := expression_unit]
   metadata[, workflowLink := workflow_link]
@@ -446,17 +446,17 @@ annotate_called_variants <- function(metadata,
     # vcfs can be annotated type, workflow stops at Variant Calling bc we run a custom nf-vcf2maf
     data_type_assign <- function(name, format) {
       if(grepl("_vs_", name) && format == "vcf") {
-        "SomaticVariants"
+        "somatic variants"
       } else if(!grepl("_vs_", name) && format == "vcf") {
-        "GermlineVariants"
+        "germline variants"
       } else if(grepl("_vs_", name) && format == "maf") {
-        "AnnotatedSomaticVariants"
+        "annotated somatic variants"
       } else if(!grepl("_vs_", name) && format == "maf") {
-        "AnnotatedGermlineVariants"
+        "annotated germline variants"
       } else if(format == "tbi") {
-        "dataIndex"
+        "data index"
       } else if(format %in% c("cns", "cnn", "cnr", "bed", "pdf", "png")) {
-        "CopyNumberVariants"
+        "copy number variants"
       } else {
         stop("Not recognizable with data assignment rules.")
       }
