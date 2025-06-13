@@ -1,5 +1,5 @@
 ---
-title: "Checkpoint Report: Closeout"
+title: "Checkpoint Report"
 output:
   github_document:
     html_preview: false
@@ -40,23 +40,15 @@ schema_url <- params$schema_url
 
 ---
 
-```{r, echo=FALSE, message=FALSE, results='asis', eval=is.null(dsp)}
-
-cat("> [!WARNING]\n", 
-    "*Data Sharing Plan data could not be retrieved.", 
-    "Some projects may not have a structured data sharing plan available.",
-    "However, check path or formatting if one was truly expected to exist.",
-    "Some checks will be skipped.*")
-
-```
-
 ## Datasets
 
 ### Data Sharing Plan vs Project Assets
 
 ```{r, echo=FALSE, message=FALSE, results='asis', eval=is.null(dsp)}
 
-cat("*Skipped comparison check because DSP could not be retrieved.*")
+cat("*Skipped comparison check because DSP could not be retrieved.*",
+    "Some projects may not have a structured data sharing plan available.",
+    "However, check path or formatting if one was truly expected to exist.")
 data_not_expected <- FALSE
 
 ```
