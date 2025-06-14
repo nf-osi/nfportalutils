@@ -159,15 +159,16 @@ infer_data_type <- function(dataset_id) {
 
   children <- find_child_type(parent = dataset_id)
   if(!length(children)) return(list(result = NA, data_type = NA, notes = "Empty dataset folder"))
-  children <- first(children, 3)
+  children <- head(children, 3)
   data_type <- c()
   for (entity in children) {
     e <- .syn$get_annotations(entity)
-    data_type <- append(data_type, e$Component)
+    component <- tryCatch(e$Component, error = function(e) NA)
+    data_type <- append(data_type, component)
   }
   data_type <- unique(data_type)
-  if(is.null(data_type)) return(list(result = NA, data_type = NA, notes = "Metadata insufficient to infer data type."))
-  if(length(data_type) > 1) return(list(result = NA, data_type = NA, notes = "Conflicting data types observed."))
+  if(length(data_type) == 1L && is.na(data_type)) return(list(data_type = NA, notes = "Can't validate with unknown data type, likely unannotated."))
+  if(length(data_type) > 1) return(list(data_type = NA, notes = "Conflicting data types observed."))
   return(list(data_type = data_type))
 }
 
@@ -180,7 +181,7 @@ infer_data_type <- function(dataset_id) {
 manifest_validate_wrapper <- function(csv_file, data_type = NULL, dataset_id = NULL, dataset_name = NULL) {
   if(is.null(data_type)) {
     csv <- read.csv(csv_file)
-    data_type <- first(csv$Component)
+    data_type <- head(csv$Component, 1)
   }
   results <- manifest_validate(data_type = data_type, file_name = csv_file)
   results <- manifest_passed(results)
@@ -241,10 +242,14 @@ meta_qc_dataset <- function(dataset_id,
           file.remove(csv_file)
           message(glue::glue("Temp manifest files removed for dataset {dataset_id}"))
         }
+        results
       } else { # Alternatively, reconstitute metadata manifest as excel
         message(glue::glue("Regenerating manifest file for dataset named '{dataset_name}' ({dataset_id})..."))
         partial_result <- infer_data_type(dataset_id)
-        if(is.na(partial_result$data_type)) return(partial_result) else data_type <- partial_result$data_type
+        
+        if(is.na(partial_result$data_type)) return(c(list(result = NA, dataset_id = dataset_id, dataset_name = dataset_name), partial_result))
+        
+        data_type <- partial_result$data_type
         xl_file <- manifest_generate(data_type, dataset_id, output_format = "excel")
         csv_file <-  glue::glue("manifest_{dataset_id}.csv")
         csv <- readxl::read_excel(xl_file, sheet = 1)
@@ -253,12 +258,12 @@ meta_qc_dataset <- function(dataset_id,
         if(cleanup) {
           file.remove(xl_file, csv_file)
           message(glue::glue("Temp manifest files removed for dataset {dataset_id}"))
-        }
+        } 
+        results
       }
-      return(results)
-    }, error = function(e) {
-      return(list(dataset_name = dataset_name, dataset_id = dataset_id, notes = e$message)) # API errors
-    })
+    }, 
+    error = function(e) { return(list(dataset_name = dataset_name, dataset_id = dataset_id, notes = e$message)) }) # API errors 
+
   } else if(depth) {
     nested_datasets <- find_child_type(parent = dataset_id, child_type = list("folder"))
     if(length(nested_datasets)) {
@@ -303,7 +308,7 @@ meta_qc_project <- function(project_id, result_file = NULL, ...) {
   datasets <- list_project_datasets(project_id, type = "folder")
   if(!length(datasets)) {
     stop("Problem with automatically detecting datasets. ",
-            "Check project structure or drop down to `meta_qc_dataset` for dataset-by-dataset assessment.")
+         "Check project structure or drop down to `meta_qc_dataset` for dataset-by-dataset assessment.")
   }
 
   dataset_ids <- sapply(datasets, `[[`, "id")
