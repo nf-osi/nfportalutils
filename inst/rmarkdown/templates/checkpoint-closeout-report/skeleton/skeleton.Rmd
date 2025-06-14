@@ -4,7 +4,6 @@ output:
   github_document:
     html_preview: false
 params:
-  dsp: NA
   project_id: NA # example syn26462036
   schema_url: https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld
 ---
@@ -21,7 +20,6 @@ syn_login(Sys.getenv("SYNAPSE_AUTH_TOKEN"))
 
 
 ```{r include=FALSE}
-dsp <- tryCatch({ jsonlite::read_json(path = params$dsp) }, error = function(e) NULL)
 
 project_id <- params$project_id
 schema_url <- params$schema_url
@@ -44,55 +42,55 @@ schema_url <- params$schema_url
 
 ### Data Sharing Plan vs Project Assets
 
-```{r, echo=FALSE, message=FALSE, results='asis', eval=is.null(dsp)}
+```{r, echo=FALSE, message=FALSE, results='asis'}
 
-cat("*Skipped comparison check because DSP could not be retrieved.*",
-    "Some projects may not have a structured data sharing plan available.",
-    "However, check path or formatting if one was truly expected to exist.")
-data_not_expected <- FALSE
+base <- "https://dsp.nf.synapse.org/api/"
+endpoint <- glue::glue(base, "dsp/json/{project_id}")
+data <- httr::GET(endpoint)
+if(httr::status_code(data) == 200) {
+  dsp <- tryCatch(jsonlite::parse_json(data), error = function(e) NULL)
+} else {
+  dsp <- NULL
+}
 
-```
-
-
-```{r, echo=FALSE, message=FALSE, results='asis', eval=!is.null(dsp)}
-
-tryCatch({
-  if(!is.null(dsp$dataSharingWaived)) {
-    data_not_expected <- dsp$dataSharingWaived == TRUE
-  } else if(!length(dsp$dataDeposit)) {
-     data_not_expected <- TRUE
-  }
+if(is.null(dsp)) {
   
-  if(data_not_expected) {
-    cat("*Skipped comparison check because DSP indicates **Data Not Expected** or there are no datasets listed.*")
+  cat("*Skipped comparison check because DSP could not be retrieved.*",
+      "Some projects may not have a structured data sharing plan available.",
+      "However, check path or formatting if one was truly expected to exist.")
+  data_not_expected <- FALSE
+  
+} else {
+  
+  if( (!is.null(dsp$dataSharingWaived) && dsp$dataSharingWaived == TRUE) || !length(dsp$dataDeposit) ) {
+      data_not_expected <- TRUE
+      cat("*Skipped comparison check because DSP indicates **Data Not Expected** or there are no datasets listed.*")
   } else {
-    expectation <- data.table::rbindlist(dsp$dataDeposit, fill = T)
-    dsp_datasets <- setNames(paste0("D", 1:nrow(expectation)),  expectation$dataLabel)
-    in_project <- data.table::rbindlist(list_project_datasets(project_id), fill = T)
-    project_datasets <- setNames(in_project$id, in_project$name)
-    cat(
-      "```mermaid",
-      dsp_dataset_mapping(dsp_datasets, project_datasets),
-      "```",
-      sep = "\n")
+    data_not_expected <- FALSE
+    # Try to compare DSP with project
+    tryCatch({
+      expectation <- data.table::rbindlist(dsp$dataDeposit, fill = T)
+      dsp_datasets <- setNames(paste0("D", 1:nrow(expectation)),  expectation$dataLabel)
+      in_project <- data.table::rbindlist(list_project_datasets(project_id), fill = T)
+      project_datasets <- setNames(in_project$id, in_project$name)
+      cat(
+        "```mermaid",
+        dsp_dataset_mapping(dsp_datasets, project_datasets),
+        "```",
+        sep = "\n")
+    }, error = function(e) cat("Something went wrong with comparing DSP and project. Error:\n", e$message))
   }
-},
-error = function(e) cat("Something went wrong with comparing DSP and project. Error:\n", e$message))
+}
 
 ```
 
 
 ### Metadata Revalidation
 
-```{r, echo=FALSE, message=FALSE, results='asis', eval=is.null(dsp)}
-  
-cat("*Defaulting to metadata revalidation without DSP information.*")
-```
 
+```{r, echo=FALSE, message=FALSE, results='asis', eval=data_not_expected}
 
-```{r, echo=FALSE, message=FALSE, results='asis', eval=!is.null(dsp)}
-
-if(data_not_expected) cat("*Skipped revalidation check because data sharing plan indicates **Data Not Expected**.*")
+cat("*Skipped revalidation check because data sharing plan indicates **Data Not Expected**.*")
 
 ```
 
@@ -133,8 +131,8 @@ if(outside_us) {
 }
 
 ext_gov <- dsp$governance$contributorDUO$DUOPX_details
-if(!is.null(ext_gov) || ext_gov != "") {
-  items <- htmltools::tagAppendChild(items, htmltools::tags$li("This project has an extended governance request:", htmltools::tags$em(ext_gov)))
+if(!is.null(ext_gov)) {
+  items <- htmltools::tagAppendChild(items, htmltools::tags$li("Extra governance request found:", htmltools::tags$em(ext_gov)))
 }
 
 if(length(items)) {
@@ -146,7 +144,7 @@ if(length(items)) {
     )
   )
 } else {
-  htmltools::div("Project does not indicate special governance items qualifying for review.")
+  htmltools::div("There doesn't appear to be special governance items to be highlighted.")
 }
 
 
