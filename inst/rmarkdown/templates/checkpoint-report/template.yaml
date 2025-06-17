@@ -1,4 +1,4 @@
-name: "Checkpoint Report: Closeout"
+name: "Checkpoint Report"
 description: >
-   Helper report for closeout checkpoint.
+   Helper report that can be run at any pertinent checkpoint (grant closeout, data release, etc).
 create_dir: FALSE
