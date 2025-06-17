@@ -19,7 +19,7 @@ syn_login(Sys.getenv("SYNAPSE_AUTH_TOKEN"))
 ```
 
 
-```{r include=FALSE}
+```{r set_parameters, include=FALSE}
 
 project_id <- params$project_id
 schema_url <- params$schema_url
@@ -42,10 +42,10 @@ schema_url <- params$schema_url
 
 ### Data Sharing Plan vs Project Assets
 
-```{r, echo=FALSE, message=FALSE, results='asis'}
+```{r diagram_dsp_expected_vs_project_reality, echo=FALSE, message=FALSE, results='asis'}
 
 base <- "https://dsp.nf.synapse.org/api/"
-endpoint <- glue::glue(base, "dsp/json/{project_id}")
+endpoint <- paste0(base, "dsp/json/{project_id}")
 data <- httr::GET(endpoint)
 if(httr::status_code(data) == 200) {
   dsp <- tryCatch(jsonlite::parse_json(data), error = function(e) NULL)
@@ -88,14 +88,14 @@ if(is.null(dsp)) {
 ### Metadata Revalidation
 
 
-```{r, echo=FALSE, message=FALSE, results='asis', eval=data_not_expected}
+```{r skip_revalidate_metadata_data_not_expected, echo=FALSE, message=FALSE, results='asis', eval=data_not_expected}
 
 cat("*Skipped revalidation check because data sharing plan indicates **Data Not Expected**.*")
 
 ```
 
 
-```{r, echo=FALSE, message=FALSE, warning=FALSE, eval=!data_not_expected}
+```{r revalidate_metadata, echo=FALSE, message=FALSE, warning=FALSE, eval=!data_not_expected}
 
 tryCatch({
   results <- meta_qc_project(project_id, schema_url = schema_url)
@@ -116,12 +116,12 @@ tryCatch({
 
 ## Governance
 
-```{r, echo=FALSE, results='asis', eval=is.null(dsp)}
+```{r skip_gov_highlight_no_dsp, echo=FALSE, results='asis', eval=is.null(dsp)}
 
 cat("*Skipped governance check because DSP could not be retrieved.*")
 ```
 
-```{r, echo=FALSE, eval=!is.null(dsp)}
+```{r gov_highlight, echo=FALSE, eval=!is.null(dsp)}
 
 items <- htmltools::tagList()
 

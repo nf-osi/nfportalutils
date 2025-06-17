@@ -182,6 +182,8 @@ manifest_validate_wrapper <- function(csv_file, data_type = NULL, dataset_id = N
   if(is.null(data_type)) {
     csv <- read.csv(csv_file)
     data_type <- head(csv$Component, 1)
+    # Don't send to validation if Component not in manifest, mark as fail
+    if(is.null(data_type)) return(list(dataset_id = dataset_id, dataset_name = dataset_name, data_type = NA, result = FALSE, notes = "Component is missing in manifest. This manifest instance has likely not been validated recently."))  
   }
   results <- manifest_validate(data_type = data_type, file_name = csv_file)
   results <- manifest_passed(results)
@@ -218,7 +220,7 @@ manifest_validate_wrapper <- function(csv_file, data_type = NULL, dataset_id = N
 #' @export
 meta_qc_dataset <- function(dataset_id,
                             data_type = NULL,
-                            asset_view = "syn16787123",
+                            asset_view = "syn16858331",
                             schema_url = "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld",
                             cleanup = TRUE,
                             depth = 1L) {
@@ -237,7 +239,7 @@ meta_qc_dataset <- function(dataset_id,
         message(glue::glue("Found synapse_storage_manifest for dataset named '{dataset_name}' ({dataset_id})!"))
         manifest_id <- files[stored_manifest]
         csv_file <- .syn$get(manifest_id)$path
-        results <- manifest_validate_wrapper(csv_file, dataset_id = dataset_id, dataset_name = dataset_name)
+        results <- manifest_validate_wrapper(csv_file, data_type = data_type, dataset_id = dataset_id, dataset_name = dataset_name)
         if(cleanup) {
           file.remove(csv_file)
           message(glue::glue("Temp manifest files removed for dataset {dataset_id}"))
@@ -269,7 +271,7 @@ meta_qc_dataset <- function(dataset_id,
     if(length(nested_datasets)) {
       message(glue::glue("Trying instead: {glue::glue_collapse(names(nested_datasets), '; ')}"))
       results <- lapply(nested_datasets, function(x) meta_qc_dataset(dataset_id = x, depth = depth - 1))
-      results <- rbindlist(results, fill = TRUE)
+      results <- rbindlist(results, fill = TRUE, ignore.attr=TRUE)
       return(results)
     } else {
       return(
@@ -316,7 +318,7 @@ meta_qc_project <- function(project_id, result_file = NULL, ...) {
   message("Datasets found for QC:\n", glue::glue_collapse(dataset_names, sep = "\n"))
 
   results <- lapply(dataset_ids, meta_qc_dataset, ...)
-  report <- rbindlist(results, fill = TRUE)
+  report <- rbindlist(results, fill = TRUE, ignore.attr=TRUE)
   if(!is.null(result_file)) write.csv(report, file = result_file, row.names = T)
   report
 
