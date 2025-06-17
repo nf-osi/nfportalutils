@@ -271,7 +271,7 @@ meta_qc_dataset <- function(dataset_id,
     if(length(nested_datasets)) {
       message(glue::glue("Trying instead: {glue::glue_collapse(names(nested_datasets), '; ')}"))
       results <- lapply(nested_datasets, function(x) meta_qc_dataset(dataset_id = x, depth = depth - 1))
-      results <- rbindlist(results, fill = TRUE, ignore.attr=TRUE)
+      results <- data.table::rbindlist(results, fill = TRUE, ignore.attr=TRUE)
       return(results)
     } else {
       return(
@@ -318,7 +318,7 @@ meta_qc_project <- function(project_id, result_file = NULL, ...) {
   message("Datasets found for QC:\n", glue::glue_collapse(dataset_names, sep = "\n"))
 
   results <- lapply(dataset_ids, meta_qc_dataset, ...)
-  report <- rbindlist(results, fill = TRUE, ignore.attr=TRUE)
+  report <- data.table::rbindlist(results, fill = TRUE, ignore.attr=TRUE)
   if(!is.null(result_file)) write.csv(report, file = result_file, row.names = T)
   report
 

@@ -13,6 +13,7 @@ params:
 knitr::opts_chunk$set(echo = TRUE)
 
 library(nfportalutils)
+library(data.table)
 library(DiagrammeR)
 
 syn_login(Sys.getenv("SYNAPSE_AUTH_TOKEN"))
