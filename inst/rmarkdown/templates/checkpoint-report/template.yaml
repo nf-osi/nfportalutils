@@ -1,4 +1,3 @@
 name: "Checkpoint Report"
-description: >
-   Helper report that can be run at any pertinent checkpoint (grant closeout, data release, etc).
+description: Helper report that can be run at any pertinent checkpoint (grant closeout, data release, etc).
 create_dir: FALSE

@@ -163,11 +163,14 @@ infer_data_type <- function(dataset_id) {
   data_type <- c()
   for (entity in children) {
     e <- .syn$get_annotations(entity)
-    component <- tryCatch(e$Component, error = function(e) NA)
+    # older versions of schematic submit as "Component" while newer versions can use "component"
+    component <- tryCatch({
+      if ("Component" %in% names(e)) e$Component else e$component
+    }, error = function(err) NA)
     data_type <- append(data_type, component)
   }
   data_type <- unique(data_type)
-  if(length(data_type) == 1L && is.na(data_type)) return(list(data_type = NA, notes = "Can't validate with unknown data type, likely unannotated."))
+  if(length(data_type) == 1L && is.na(data_type)) return(list(data_type = NA, notes = "Unable to guess data type; dataset likely has incomplete annotations"))
   if(length(data_type) > 1) return(list(data_type = NA, notes = "Conflicting data types observed."))
   return(list(data_type = data_type))
 }
