@@ -31,6 +31,7 @@ schema_url <- params$schema_url
 
 **Project:** `r project_id`  
 **Report run date:** `r Sys.Date()`
+**Report version**: 25.06.24
 
 
 **Data sharing plan**: `r params$dsp`  
