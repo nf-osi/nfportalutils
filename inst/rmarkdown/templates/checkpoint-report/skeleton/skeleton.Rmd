@@ -72,15 +72,11 @@ if(is.null(dsp)) {
     data_not_expected <- FALSE
     # Try to compare DSP with project
     tryCatch({
-      expectation <- data.table::rbindlist(dsp$dataDeposit, fill = T)
+      expectation <- data.table::rbindlist(dsp$dataDeposit, fill = T, ignore.attr = T)
       dsp_datasets <- setNames(paste0("D", 1:nrow(expectation)),  expectation$dataLabel)
-      in_project <- data.table::rbindlist(list_project_datasets(project_id), fill = T)
+      in_project <- data.table::rbindlist(list_project_datasets(project_id), fill = T, ignore.attr = T)
       project_datasets <- setNames(in_project$id, in_project$name)
-      cat(
-        "```mermaid",
-        dsp_dataset_mapping(dsp_datasets, project_datasets),
-        "```",
-        sep = "\n")
+      cat(dsp_dataset_mapping(dsp_datasets, project_datasets))
     }, error = function(e) cat("Something went wrong with comparing DSP and project. Error:\n", e$message))
   }
 }
@@ -119,7 +115,7 @@ tryCatch({
 
 ## Governance
 
-```{r skip_gov_highlight_no_dsp, echo=FALSE, results='asis', eval=is.null(dsp)}
+```{r skip_gov_highlight_no_dsp, echo=FALSE, results='asis', message=FALSE, eval=is.null(dsp)}
 
 cat("*Skipped governance check because DSP could not be retrieved.*")
 ```
