@@ -7,7 +7,7 @@
 meta_qc_dataset(
   dataset_id,
   data_type = NULL,
-  asset_view = "syn16787123",
+  asset_view = "syn16858331",
   schema_url =
     "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld",
   cleanup = TRUE,

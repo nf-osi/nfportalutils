@@ -117,14 +117,17 @@ dsp_dataset_mapping <- function(dsp_datasets, project_datasets) {
     links <- as_mmd_link(dsp_datasets[!is.na(pairings)],
                          project_datasets[match_index],
                          style = "dash")
+    paste("```mermaid\n",
+          bipartite_mmd_template(nodeset1 = dsp_nodes,
+                                 nodeset2 = project_nodes,
+                                 nodeset1_title = "DSP",
+                                 nodeset2_title = "Project",
+                                 links = links),
+          "```\n")
+     
+  } else {
+    "There appears to be significant discrepancy in naming/organization; please manually review what's in the data sharing plan vs project."
   }
-
-  bipartite_mmd_template(nodeset1 = dsp_nodes,
-                         nodeset2 = project_nodes,
-                         nodeset1_title = "DSP",
-                         nodeset2_title = "Project",
-                         links = links)
-
 }
 
 # Helpers ----------------------------------------------------------------------#

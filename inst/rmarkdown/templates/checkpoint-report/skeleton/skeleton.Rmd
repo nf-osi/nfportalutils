@@ -1,0 +1,151 @@
+---
+title: "Checkpoint Report"
+output:
+  github_document:
+    html_preview: false
+params:
+  project_id: NA # example syn26462036
+  schema_url: https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(nfportalutils)
+library(data.table)
+library(DiagrammeR)
+
+syn_login(Sys.getenv("SYNAPSE_AUTH_TOKEN"))
+```
+
+
+```{r set_parameters, include=FALSE}
+
+project_id <- params$project_id
+schema_url <- params$schema_url
+
+base <- "https://dsp.nf.synapse.org/api"
+endpoint <- glue::glue("{base}/dsp/json/{project_id}")
+data <- httr::GET(endpoint)
+if(httr::status_code(data) == 200) {
+  dsp <- tryCatch(jsonlite::parse_json(data), error = function(e) NULL)
+} else {
+  dsp <- NULL
+}
+
+dsp_link <- if(is.null(dsp)) "not available" else glue::glue("https://dsp.nf.synapse.org/dsp/{dsp$fundingAgency}?onfile={dsp$NFID}")
+```
+
+### Parameters
+
+**Project:** `r project_id`  
+**Report run date:** `r Sys.Date()`  
+**Report version**: 25.06.24
+
+
+**Data sharing plan**: `r dsp_link`  
+**NF data model:** `r schema_url`  
+**Schematic API service:** https://schematic.api.sagebionetworks.org/v1/
+
+---
+
+## Datasets
+
+### Data Sharing Plan vs Project Assets
+
+```{r diagram_dsp_expected_vs_project_reality, echo=FALSE, message=FALSE, results='asis'}
+
+if(is.null(dsp)) {
+  
+  cat("*Skipped comparison check because DSP could not be retrieved.*",
+      "Some projects may not have a structured data sharing plan available.",
+      "However, check path or formatting if one was truly expected to exist.")
+  data_not_expected <- FALSE
+  
+} else {
+  
+  if( (!is.null(dsp$dataSharingWaived) && dsp$dataSharingWaived == TRUE) || !length(dsp$dataDeposit) ) {
+      data_not_expected <- TRUE
+      cat("*Skipped comparison check because DSP indicates **Data Not Expected** or there are no datasets listed.*")
+  } else {
+    data_not_expected <- FALSE
+    # Try to compare DSP with project
+    tryCatch({
+      expectation <- data.table::rbindlist(dsp$dataDeposit, fill = T, ignore.attr = T)
+      dsp_datasets <- setNames(paste0("D", 1:nrow(expectation)),  expectation$dataLabel)
+      in_project <- data.table::rbindlist(list_project_datasets(project_id), fill = T, ignore.attr = T)
+      project_datasets <- setNames(in_project$id, in_project$name)
+      cat(dsp_dataset_mapping(dsp_datasets, project_datasets))
+    }, error = function(e) cat("Something went wrong with comparing DSP and project. Error:\n", e$message))
+  }
+}
+
+```
+
+
+### Metadata Revalidation
+
+
+```{r skip_revalidate_metadata_data_not_expected, echo=FALSE, message=FALSE, results='asis', eval=data_not_expected}
+
+cat("*Skipped revalidation check because data sharing plan indicates **Data Not Expected**.*")
+
+```
+
+
+```{r revalidate_metadata, echo=FALSE, message=FALSE, warning=FALSE, eval=!data_not_expected}
+
+tryCatch({
+  results <- meta_qc_project(project_id, schema_url = schema_url)
+  if(!is.null(results)) {
+    results$result <- ifelse(results$result, ":thumbsup:", ":x:")
+    knitr::kable(results)
+  } else {
+    htmltools::div("Datasets could not be detected. Check project structure.")
+  }},
+  error = function(e) {
+    htmltools::div("Something went wrong with project dataset review. Error message:", 
+                   htmltools::code(e$message)) 
+  }
+)
+
+```
+
+
+## Governance
+
+```{r skip_gov_highlight_no_dsp, echo=FALSE, results='asis', message=FALSE, eval=is.null(dsp)}
+
+cat("*Skipped governance check because DSP could not be retrieved.*")
+```
+
+```{r gov_highlight, echo=FALSE, eval=!is.null(dsp)}
+
+items <- htmltools::tagList()
+
+outside_us <- dsp$governance$dataCharacterization$dataIsOutsideUSA$response
+if(outside_us) {
+  items <- htmltools::tagAppendChild(items, htmltools::tags$li("Yes, data is outside US"))
+}
+
+ext_gov <- dsp$governance$contributorDUO$DUOPX_details
+if(!is.null(ext_gov)) {
+  items <- htmltools::tagAppendChild(items, htmltools::tags$li("Extra governance request found:", htmltools::tags$em(ext_gov)))
+}
+
+if(length(items)) {
+  htmltools::tagList(
+    htmltools::div(
+      htmltools::tags$ul(
+        items
+      )
+    )
+  )
+} else {
+  htmltools::div("There doesn't appear to be special governance items to be highlighted.")
+}
+
+
+```
+
