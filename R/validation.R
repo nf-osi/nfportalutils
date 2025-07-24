@@ -47,20 +47,34 @@ is_file <- function(id) {
 
 # -- Metadata schema-based validation ------------------------------------------------#
 
+#' Validate a **schema-bound** entity
+#' 
+#' This will error for unbound entities.
+#' 
+#' @param id Entity id.
+#' @export
+validate_bound_entity <- function(id) {
+  .syn$restGET(glue::glue("https://repo-prod.prod.sagebase.org/repo/v1/entity/{id}/schema/validation"))
+}
+
 #' Validate metadata of items in a collection
 #' 
 #' This is usually used with a dataset collection.
 #' For each item in the collection, check first that it is bound to the expected schema.
 #' Then check that the item's annotations validate against the schema, using Synapse's native validation services. 
 #' 
-#' The result is a list of ids for `bound_schema_error` and for `validation_error`. 
+#' The result partitions any `bound_schema_error` and `validation_error` in a list. 
 #' 
 #' @param collection_id Collection id.
 #' @param schema_id Id of schema that items are expected to be bound to, e.g. "org.synapse.nf-portaldataset".
+#' @export
 validate_collection_items <- function(collection_id, schema_id) {
-  coll <- .syn$get("syn50913342")
+  coll <- .syn$get(collection_id)
   items <- coll$properties$datasetItems
-  if(!length(items)) stop("Collection has no items.")
+  if(!length(items)) {
+    warning("Collection has no items.")
+    return()
+  }
   item_ids <- sapply(items, `[[`, "entityId")
   results <- list()
   results$bound_schema_error <- list()
@@ -75,7 +89,7 @@ validate_collection_items <- function(collection_id, schema_id) {
       if(bound_schema_id != schema_id) { 
         results$bound_schema_error[[id]] <- "Wrong schema bound"
       } else {
-        entity_val_result <- .syn$restGET(glue::glue("https://repo-prod.prod.sagebase.org/repo/v1/entity/{id}/schema/validation"))
+        entity_val_result <- validate_bound_entity(id)
         if(entity_val_result$isValid == FALSE) {
           results$validation_error[[id]] <- entity_val_result
         }
@@ -84,4 +98,5 @@ validate_collection_items <- function(collection_id, schema_id) {
   }
   results
 }
+
 

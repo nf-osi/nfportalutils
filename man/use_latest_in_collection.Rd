@@ -21,3 +21,13 @@ use_latest_in_collection(
 Update an \emph{existing} collection so that all items or a subset of items reference their latest version.
 Should work for both datasets (collection of files) and dataset collections (collection of datasets).
 }
+\details{
+Semantics of "latest" -- "abs" vs "stable":
+Datasets and dataset collections always start out as draft, so unlike other entities
+there is a concept of a "stable" version which is the \emph{real} latest, but which might not always exist
+(i.e. there is only draft version because no stable version has ever been created).
+For datasets/dataset collections the latest version refers to a DRAFT, so latest stable version is \code{versionNumber} - 1
+under the condition that the \code{versionNumber} is greater or equal to 2.
+When \code{versionNumber} = 1 and \code{isLatestVersion} is TRUE, this means there is not yet a stable version.
+When using stable version semantics, if a stable version does not exist an error will be thrown.
+}
