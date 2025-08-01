@@ -19,7 +19,7 @@ knitr::opts_chunk$set(
 
 ## Special acknowledgments 
 
-The code supporting this functionality heavily adapted some code originally written by [hhunterzinck](https://github.com/hhunterzinck).
+This workflow heavily adapted some code originally written by [hhunterzinck](https://github.com/hhunterzinck), a former Senior Data Scientist at Sage.
 
 ## Important notes
 
@@ -65,20 +65,17 @@ cbp_new_study(cancer_study_identifier = "npst_nfosi_ntap_2022",
 
 ## Add data types to study
 
-Data types can be most easily added _in any order_ using the `cbp_add*` functions. 
-Data types can vary in how much additional work is needed in remapping, reformatting, custom sanity checks, etc. 
-These functions download data files and create the meta for them. 
-If needed, the meta can be edited after the file has been created. 
+Data types can be added _in any order_ using the `cbp_add*` functions, which try to do all that is needed for a data type. 
+A `cbp_add*` function downloads data, may implement light reformatting, creates the data file, create the meta files, may create other accessory files, and may run data type-specific sanity checks. 
 
-Note that:
+If needed, the meta can be edited after the file has been created. Defaults are for known NF-OSI processed data outputs. If these defaults don't apply because this was ad hoc processing or some variation in the SOP, it is recommended to take a look at the lower-level utils `make_meta_*` or understand how to edit the files manually.
 
-- (Reminder) These should be run with the working directory set to the study directory as set up above to ensure consistent metadata.
-- Defaults are for known NF-OSI processed data outputs. If these defaults don't apply because this was ad hoc processing or some variation in the SOP, it is recommended to take a look at the lower-level utils `make_meta_*` or understand how to edit the files manually.
+(Reminder) These should be run with the working directory set to the study directory as set up above to ensure consistent metadata.
 
 ### Add mutations data
 
 - `maf_data` references a final merged maf output file from the NF-OSI processing pipeline (vcf2maf) OK for public release. 
-- Under the hood, a required case list file is also generated.
+- Under the hood, a required case list accessory file is also generated.
 
 ```{r add_maf, eval=FALSE}
 
@@ -117,27 +114,26 @@ cbp_add_expression(mrna_data,
 
 Clinical data can include both Patient and Sample clinical data, where Sample file is required, whereas the Patient file is optional (https://docs.cbioportal.org/file-formats/#clinical-data). However, some attributes are considered Patient-only so a Patient file must be created. 
 
-Thus, `clinical_data` is usually prepared from an existing Synapse table. Most NF clinical data is in a single table -- `individualId`, `specimenID`, `age`, `sex`, `tumorType`, etc. all in one table because of the current annotation approach. 
-The workflow handles creating a Patient file if some Patient-specific attributes are detected in the table. 
-However, projects may have both Patient and Sample, which is fine. 
-The examples below will show how to work with both options. 
+Thus, `clinical_data` is typically prepared from an existing Synapse table. Most NF clinical data -- `individualId`, `specimenID`, `age`, `sex`, `tumorType`, etc. -- are in one table because of the current annotation approach, so we treat this like a Sample table. The workflow will handle creating a Patient file if some Patient-specific attributes are detected. 
+However, in cases where patient:sample is not 1:1 (multiple samples per patient) or the project already has both Patient and Sample tables set up by the contributor, then using two tables is natural and relatively straightforward. One need not worry about using materialized view for 1:1 data to get to a single table. The examples below will show how to work with both options. 
 
-Important to this step is a global export list (mapping) of clinical variables that clinical data export relies on. 
+Important to clinical data addition is a global export list (mapping) of clinical variables that clinical data export relies on. 
 In the below examples, this list is referred to as `ref_map`. 
-This resource serves two purposes: 
+This resource serves several purposes: 
+
 - Provides a mapping that keeps up-to-date with what cBioPortal, e.g. what is patient-only and what is the closest standard variable an NF variable should map to. Sincere effort is given to make data comparable across different public datasets. 
-- Serves as export control; only variables in the list will be exported. Clinical data requires thoughtful selection and documentation of what clinical variables to be made public. The original clinical data on Synapse may possibly contain variables more sensitive than appropriate for cBioPortal, or the original clinical data may contain variables not super relevant for visualization on cBioPortal (e.g. `link_to_sample_report` or `used_in_fig_A`).  
+- Serves as export control; only variables in the list will be exported. Clinical data requires thoughtful selection and documentation of what clinical variables to be made public. The original clinical data on Synapse may possibly contain variables more sensitive than appropriate for cBioPortal, or the original clinical data may contain variables not super relevant for visualization on cBioPortal (e.g. `link_to_WGS_file`).  
 
-If the current dataset to be exported contains new clinical data, the variables should be reviewed and added to [`ref_map`](https://github.com/nf-osi/nf-metadata-dictionary/blob/main/mappings/cBioPortal/cBioPortal.yaml) as appropriate.
+**If the current dataset to be exported contains new clinical data, the variables should be reviewed and added to [`ref_map`](https://github.com/nf-osi/nf-metadata-dictionary/blob/main/mappings/cBioPortal/cBioPortal.yaml) as appropriate.** 
 
-While `ref_map` controls the selection of clinical variables, the selection of patients/samples appropriate for the current dataset is done via the query used during this process. That is, the clinical table(s) must sometimes be subsetted to match what is actually released in the current study dataset. For example, if the full clinical cohort table comprises patients 1-50, but the dataset can only release data for patients 1-20 for expression data and data patients 15-20 for CNA data, then use a query that makes selection for patients 1-20 only. In other cases, the selection query is clearer in what patient/samples can be released, such as `where batch = 'batch1'`.
+While `ref_map` controls the selection of clinical variables, the selection of patients/samples appropriate for the current dataset is done via the query used during this process. That is, the clinical table(s) must sometimes be subsetted to match what is actually released in the current study dataset. For example, if the full clinical cohort table comprises patients 1-50, but the dataset can only release data for patients 1-20 for expression data and data patients 15-20 for CNA data, then use a query that makes selection for patients 1-20 only. In other cases, the selection query may look more like `where batch = 'batch1'`.
 
-So let's create `ref_map`. Follow link to understand more the default file and format used.
+First specify `ref_map`. It may be helpful to follow the link to better understand the file.
 ```
 ref_map <- "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/mappings/cBioPortal/cBioPortal.yaml"
 ```
 
-#### Export using single source clinical data table
+#### (Option 1) Export using single source clinical data table
 
 ```{r add_clinical_option_1, eval=FALSE}
 
@@ -147,16 +143,16 @@ clinical_data <- "select * from syn43278088 where batch = 'batch1'"
 cbp_add_clinical(clinical_data, ref_map)
 ```
 
-#### Export using both Patient and Sample clinical data table
+#### (Option 2) Export using both Patient and Sample clinical data table
 
 ```{r add_clinical_option_2, eval=FALSE}
 
 # example queries when all patients/samples are releasable
-clinical_data_sample <- "select * from syn1111111"
-clinical_data_patient <- "select * from syn2222222"
+cd_sample <- "select * from syn5556216"
+cd_patient <- "select * from syn7342635"
 
-cbp_add_clinical(clinical_data_sample, ref_map, type = "sample")
-cbp_add_clinical(clinical_data_patient, ref_map, type = "patient")
+cbp_add_clinical(cd_sample, ref_map, type = "sample")
+cbp_add_clinical(cd_patient, ref_map, type = "patient")
 
 ```
 
