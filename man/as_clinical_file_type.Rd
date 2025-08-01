@@ -26,3 +26,4 @@ as_clinical_file_type(
 \description{
 Export specific type of clinical data
 }
+\keyword{internal}

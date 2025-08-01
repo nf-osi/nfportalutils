@@ -89,6 +89,7 @@ with_selected_elements <- function(df, selectable_elements) {
 #' @inheritParams write_cbio_clinical
 #' @param m A reference mapping object. See `use_ref_map`.
 #' @param clinical_type `SAMPLE` or `PATIENT`
+#' @keywords internal
 as_clinical_file_type <- function(df,
                                   clinical_type = c("SAMPLE", "PATIENT"),
                                   m,
