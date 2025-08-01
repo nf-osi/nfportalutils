@@ -59,6 +59,15 @@ update_items <- function(current, update) {
 #'
 #' Update an _existing_ collection so that all items or a subset of items reference their latest version.
 #' Should work for both datasets (collection of files) and dataset collections (collection of datasets).
+#' 
+#' Semantics of "latest" -- "abs" vs "stable":
+#' Datasets and dataset collections always start out as draft, so unlike other entities
+#' there is a concept of a "stable" version which is the *real* latest, but which might not always exist 
+#' (i.e. there is only draft version because no stable version has ever been created).
+#' For datasets/dataset collections the latest version refers to a DRAFT, so latest stable version is `versionNumber` - 1
+#' under the condition that the `versionNumber` is greater or equal to 2.
+#' When `versionNumber` = 1 and `isLatestVersion` is TRUE, this means there is not yet a stable version.
+#' When using stable version semantics, if a stable version does not exist an error will be thrown.
 #'
 #' @inheritParams latest_version
 #' @param collection_id Collection id.
@@ -197,53 +206,4 @@ latest_version <- function(id, version_semantics = c("abs", "stable")) {
 }
 
 
-
-# -- Checks------------- -------------------------------------------------------#
-
-# TODO Potentially move these type checks somewhere else like basic_utils
-# TODO Better composition to reduce code, esp. if more will be added
-
-#' Check whether entity is dataset
-#'
-#' @keywords internal
-is_dataset <- function(id) {
-  tryCatch({
-    entity <- .syn$get(id, downloadFile = FALSE)
-    entity$properties$concreteType == "org.sagebionetworks.repo.model.table.Dataset"
-  },
-  error = function(e) FALSE)
-}
-
-#' Check whether entity is dataset collection
-#'
-#' @keywords internal
-is_dataset_collection <- function(id) {
-  tryCatch({
-    entity <- .syn$get(id, downloadFile = FALSE)
-    entity$properties$concreteType == "org.sagebionetworks.repo.model.table.DatasetCollection"
-  },
-  error = function(e) FALSE)
-}
-
-
-#' Which collection type
-#'
-#' Checks for a valid collection type or returns error
-#'
-#' @keywords internal
-which_coll_type <- function(coll) {
-  coll_type <- c("dataset", "dataset collection")[c(is_dataset(coll), is_dataset_collection(coll))]
-  if(length(coll_type)) coll_type else stop("Entity is not a dataset or dataset collection.")
-}
-
-#' Check whether entity is file
-#'
-#' @keywords internal
-is_file <- function(id) {
-  tryCatch({
-    entity <- .syn$get(id, downloadFile = FALSE)
-    entity$properties$concreteType == "org.sagebionetworks.repo.model.FileEntity"
-  },
-  error = function(e) FALSE)
-}
 

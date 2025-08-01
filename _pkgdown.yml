@@ -62,6 +62,10 @@ reference:
   - annotate_with_samtools_stats
   - processed_meta
   - nf_workflow_version
+- subtitle: Validate metadata
+- contents:
+  - validate_bound_entity
+  - validate_collection_items
 
 - title: Dataset Creation and Management
 - subtitle: General dataset creation and citation
