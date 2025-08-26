@@ -77,7 +77,7 @@ if(is.null(dsp)) {
       in_project <- data.table::rbindlist(list_project_datasets(project_id), fill = T, ignore.attr = T)
       project_datasets <- setNames(in_project$id, in_project$name)
       cat(dsp_dataset_mapping(dsp_datasets, project_datasets))
-    }, error = function(e) cat("Something went wrong with comparing DSP and project. Error:\n", e$message))
+    }, error = function(e) cat("Something went wrong with comparing DSP and project, likely because of non-standard project structure."))
   }
 }
 
@@ -125,7 +125,7 @@ cat("*Skipped governance check because DSP could not be retrieved.*")
 items <- htmltools::tagList()
 
 outside_us <- dsp$governance$dataCharacterization$dataIsOutsideUSA$response
-if(outside_us) {
+if(!is.null(outside_us) && outside_us) {
   items <- htmltools::tagAppendChild(items, htmltools::tags$li("Yes, data is outside US"))
 }
 
