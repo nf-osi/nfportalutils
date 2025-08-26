@@ -112,11 +112,13 @@ cbp_new_study <- function(cancer_study_identifier,
 #'
 #' @param clinical_data Clinical table query.
 #' @param ref_map YAML file specifying the mapping of (NF) clinical metadata to cBioPortal model. See details.
+#' @param clinical_type (Optional) Add as "Sample" or "Patient" clinical data. If not given, will infer which files need to be written.
 #' @param verbose Whether to provide informative messages throughout.
 #'
 #' @export
 cbp_add_clinical <- function(clinical_data,
                              ref_map,
+                             clinical_type = NULL,
                              verbose = TRUE) {
 
   cancer_study_identifier <- check_cbp_study_id()
@@ -125,14 +127,12 @@ cbp_add_clinical <- function(clinical_data,
   if(verbose) checked_message("Retrieved clinical data from Synapse")
 
   if(verbose) checked_message("Formatting and making clinical data file(s)")
-  checked_message("Spaces in specimen IDs will be replaced with _ per cBioPortal specifications")
-  df$specimenID <- gsub(" ", "_", df$specimenID)
-  write_cbio_clinical(df, ref_map = ref_map, verbose = verbose)
+  write_cbio_clinical(df, ref_map = ref_map, clinical_type = clinical_type, verbose = verbose)
 
-  if(verbose) checked_message("Making sample clinical meta file")
+  if(verbose) checked_message("Making meta file(s)")
   make_meta_sample(cancer_study_identifier, verbose = verbose)
 
-  # Before making meta, check that the optional patient data file was written
+  # Before making meta, check whether the optional patient data file was written
   if(file.exists("data_clinical_patient.txt")) {
     if(verbose) checked_message("Making patient clinical meta file")
     make_meta_patient(cancer_study_identifier, verbose = verbose)
@@ -188,7 +188,7 @@ cbp_add_maf <- function(maf_data, verbose = TRUE) {
 
   if(verbose) checked_message("Making maf meta file")
   make_meta_maf(cancer_study_identifier, verbose = verbose)
-  
+
   if(verbose) checked_message("Making required _sequenced case list for mutation data")
   make_case_list_maf(cancer_study_identifier)
 

@@ -7,6 +7,7 @@
 write_cbio_clinical(
   df,
   ref_map,
+  clinical_type = NULL,
   na_recode = c("NA", "NaN", "unknown", "Unknown"),
   delim = "\\t",
   publish_dir = ".",
@@ -18,7 +19,10 @@ write_cbio_clinical(
 
 \item{ref_map}{YAML or JSON mapping. See details.}
 
-\item{na_recode}{Possible NA values to replace with a blank string (which seems to be standard) in exported file.}
+\item{clinical_type}{(Optional) Export \code{df} \emph{only} as either \code{SAMPLE} or \code{PATIENT} file?
+When not specified, one or both is inferred and created based on the data.}
+
+\item{na_recode}{NA values should be replaced with a blank string (which seems to be standard) in exported file.}
 
 \item{delim}{Delimiter character used for writing file, defaults to tab-delimited per cBioPortal specs.}
 
@@ -27,10 +31,10 @@ write_cbio_clinical(
 \item{verbose}{Report where file has been written.}
 }
 \description{
-Wrapper function for creating clinical files. There are two: PATIENT and SAMPLE.
-The PATIENT file is actually optional, so there are only checks for making sure SAMPLE can be created.
+Wrapper function for creating clinical files. There are two: \code{PATIENT} and \code{SAMPLE}.
+The \code{PATIENT} file is actually optional, so there are only checks for making sure \code{SAMPLE} can be created.
 \code{df} is expected to be a table containing clinical data available, and maybe even some irrelevant data
-(since NF data is not well-normalized and there is a single table with everything).
+(since NF data is not well-normalized and there may be custom meta from the contributor).
 }
 \details{
 This depends on a \code{ref_map} specification to know which clinical data to include for cBioPortal
