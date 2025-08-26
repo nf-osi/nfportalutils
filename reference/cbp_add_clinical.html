@@ -20,7 +20,7 @@
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/annotate-data-intro.html">Introduction to utils for annotating data</a></li>
     <li><a class="dropdown-item" href="../articles/annotate-nf-processed-data.html">Annotating nextflow processed data</a></li>
-    <li><a class="dropdown-item" href="../articles/bringing-portal-data-to-other-platforms-cbioportal.html">Bringing Portal Data to Other Platforms: cBioPortal</a></li>
+    <li><a class="dropdown-item" href="../articles/exporting-data-to-other-platforms-cbioportal.html">Exporting Data to Other Platforms: cBioPortal</a></li>
     <li><a class="dropdown-item" href="../articles/revalidation-workflows.html">Revalidation workflows</a></li>
     <li><a class="dropdown-item" href="../articles/survey-public-files.html">Surveying public files in the portal</a></li>
   </ul></li>
@@ -46,7 +46,7 @@
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">cbp_add_clinical</span><span class="op">(</span><span class="va">clinical_data</span>, <span class="va">ref_map</span>, verbose <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">cbp_add_clinical</span><span class="op">(</span><span class="va">clinical_data</span>, <span class="va">ref_map</span>, clinical_type <span class="op">=</span> <span class="cn">NULL</span>, verbose <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -59,6 +59,10 @@
 
 <dt id="arg-ref-map">ref_map<a class="anchor" aria-label="anchor" href="#arg-ref-map"></a></dt>
 <dd><p>YAML file specifying the mapping of (NF) clinical metadata to cBioPortal model. See details.</p></dd>
+
+
+<dt id="arg-clinical-type">clinical_type<a class="anchor" aria-label="anchor" href="#arg-clinical-type"></a></dt>
+<dd><p>(Optional) Add as "Sample" or "Patient" clinical data. If not given, will infer which files need to be written.</p></dd>
 
 
 <dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>

@@ -4,7 +4,7 @@ pkgdown_sha: ~
 articles:
   annotate-data-intro: annotate-data-intro.html
   annotate-nf-processed-data: annotate-nf-processed-data.html
-  bringing-portal-data-to-other-platforms-cbioportal: bringing-portal-data-to-other-platforms-cbioportal.html
+  exporting-data-to-other-platforms-cbioportal: exporting-data-to-other-platforms-cbioportal.html
   revalidation-workflows: revalidation-workflows.html
   survey-public-files: survey-public-files.html
-last_built: 2025-08-01T17:02Z
+last_built: 2025-08-26T16:40Z

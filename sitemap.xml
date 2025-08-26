@@ -5,7 +5,7 @@
 <url><loc>/LICENSE.html</loc></url>
 <url><loc>/articles/annotate-data-intro.html</loc></url>
 <url><loc>/articles/annotate-nf-processed-data.html</loc></url>
-<url><loc>/articles/bringing-portal-data-to-other-platforms-cbioportal.html</loc></url>
+<url><loc>/articles/exporting-data-to-other-platforms-cbioportal.html</loc></url>
 <url><loc>/articles/index.html</loc></url>
 <url><loc>/articles/revalidation-workflows.html</loc></url>
 <url><loc>/articles/survey-public-files.html</loc></url>
@@ -36,6 +36,7 @@
 <url><loc>/reference/annotate_with_samtools_stats.html</loc></url>
 <url><loc>/reference/annotation_rule.html</loc></url>
 <url><loc>/reference/append_kv.html</loc></url>
+<url><loc>/reference/as_clinical_file_type.html</loc></url>
 <url><loc>/reference/as_coll_items.html</loc></url>
 <url><loc>/reference/as_mmd_link.html</loc></url>
 <url><loc>/reference/as_mmd_node.html</loc></url>
@@ -134,6 +135,7 @@
 <url><loc>/reference/map_sample_output_rnaseq.html</loc></url>
 <url><loc>/reference/map_sample_output_sarek.html</loc></url>
 <url><loc>/reference/match_col.html</loc></url>
+<url><loc>/reference/match_exactly_one.html</loc></url>
 <url><loc>/reference/meta_qc_dataset.html</loc></url>
 <url><loc>/reference/meta_qc_project.html</loc></url>
 <url><loc>/reference/missing_annotation_email.html</loc></url>
@@ -175,6 +177,7 @@
 <url><loc>/reference/walk.html</loc></url>
 <url><loc>/reference/which_coll_type.html</loc></url>
 <url><loc>/reference/wiki_mod.html</loc></url>
+<url><loc>/reference/with_selected_elements.html</loc></url>
 <url><loc>/reference/write_cbio_clinical.html</loc></url>
 <url><loc>/reference/write_meta.html</loc></url>
 </urlset>
