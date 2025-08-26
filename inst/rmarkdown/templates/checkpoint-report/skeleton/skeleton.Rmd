@@ -4,7 +4,7 @@ output:
   github_document:
     html_preview: false
 params:
-  project_id: syn26238964 # example syn26462036
+  project_id: NA # example syn26462036
   schema_url: https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld
 ---
 
