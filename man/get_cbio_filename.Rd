@@ -16,6 +16,6 @@ string
 This is called from the wrapper \code{write_cbio_clinical}.
 Adapted from https://github.com/Sage-Bionetworks/genie-erbb2-cbio/blob/develop/create_clinical.R#L411.
 Note that of the clinical file types, the PATIENT type can actually be optional,
-and because we (NF) currently don't use the TIMELINE type, the options have been simplified.
+and we (NF) currently don't use the TIMELINE type, so options have been simplified.
 }
 \keyword{internal}

@@ -45,7 +45,7 @@ make_cbio_clinical_header <- function(df, mapping) {
 #' This is called from the wrapper `write_cbio_clinical`.
 #' Adapted from https://github.com/Sage-Bionetworks/genie-erbb2-cbio/blob/develop/create_clinical.R#L411.
 #' Note that of the clinical file types, the PATIENT type can actually be optional,
-#' and because we (NF) currently don't use the TIMELINE type, the options have been simplified.
+#' and we (NF) currently don't use the TIMELINE type, so options have been simplified.
 #' @param clinical_type String representing cBioPortal clinical data type.
 #' @return string
 #' @keywords internal
@@ -58,141 +58,88 @@ get_cbio_filename <- function(clinical_type = c("SAMPLE", "PATIENT")) {
   return(mapping)
 }
 
-#' Helper to check for and get exactly one matching target element with given data
-#'
-#' @keywords internal
-match_exactly_one <- function(target, df, m) {
-  matches <- unlist(m[m$label == target, "source"])
-  intersect(matches, names(df))
-}
-
-#' Subset with selected data elements
-#'
-#' Warns if some elements present will be excluded.
-#'
-#' @param df Data.
-#' @param selectable_elements Selectable elements.
-#' @keywords internal
-with_selected_elements <- function(df, selectable_elements) {
-
-  df_elements <- names(df)
-  if(!all(df_elements %in% selectable_elements)) {
-    warning("Data contains elements not in reference. These will not be released: ",
-            paste(setdiff(df_elements, selectable_elements), collapse = ","))
-  }
-  selected <- intersect(df_elements, selectable_elements)
-  return(df[, selected])
-}
-
-#' Export specific type of clinical data
-#'
-#' @inheritParams write_cbio_clinical
-#' @param m A reference mapping object. See `use_ref_map`.
-#' @param clinical_type `SAMPLE` or `PATIENT`
-#' @keywords internal
-as_clinical_file_type <- function(df,
-                                  clinical_type = c("SAMPLE", "PATIENT"),
-                                  m,
-                                  publish_dir = ".",
-                                  verbose = TRUE) {
-
-  clinical_type <- match.arg(clinical_type)
-  m_clinical_type <- m[attribute_type == clinical_type]
-  id <- match_exactly_one(glue::glue("{clinical_type}_ID"), df, m)
-  if(length(id) != 1L) {
-    stop(glue::glue("{clinical_type} file cannot be created because an appropriate identifier is missing or ambiguous in data"))
-  }
-  .df <- with_selected_elements(df, m_clinical_type$source)
-
-  # Reformat 1:
-  checked_message("Any spaces in IDs will be replaced with _ per cBioPortal specifications")
-  .df[[id]] <- gsub(" ", "_", .df[[id]])
-
-  # Reformat 2: list columns and NA
-  for(col in names(.df)) {
-    if(class(.df[[col]]) == "list") {
-      .df[[col]] <- sapply(.df[[col]], function(x) paste0(x, collapse = "-"))
-      checked_message(glue::glue("{col} field was stored as a list has been coerced for export; review output."))
-    }
-    # Use actual NA's so that `write.table` can write out "" consistently
-    .df[.df[[col]] %in% na_recode, col ] <- NA_character_
-  }
-  if(clinical_type == "PATIENT") .df <- unique(.df) # since data may be repeated
-  header <- make_cbio_clinical_header(.df, m_clinical_type)
-  .df <- rbind(header, .df)
-  filename <- get_cbio_filename(clinical_type)
-  path <- glue::glue("{publish_dir}/{filename}")
-  write.table(.df,
-              file = path,
-              sep = "\t",
-              na = "",
-              col.names = F,
-              row.names = F,
-              quote = F)
-  if(verbose) message(glue::glue("{clinical_type} data written to: {path}"))
-}
-
-
 #' Write cBioPortal clinical file
 #'
-#' Wrapper function for creating clinical files. There are two: `PATIENT` and `SAMPLE`.
-#' The `PATIENT` file is actually optional, so there are only checks for making sure `SAMPLE` can be created.
+#' Wrapper function for creating clinical files. There are two: PATIENT and SAMPLE.
+#' The PATIENT file is actually optional, so there are only checks for making sure SAMPLE can be created.
 #' `df` is expected to be a table containing clinical data available, and maybe even some irrelevant data
-#' (since NF data is not well-normalized and there may be custom meta from the contributor).
+#' (since NF data is not well-normalized and there is a single table with everything).
 #'
 #' This depends on a `ref_map` specification to know which clinical data to include for cBioPortal
-#' and how to segregate the clinical attributes into the right files.
+#' and how to segregate the clinical attributes into the right files. 
 #' Basically, `ref_map` decides what variables can be made public and how they should be represented in cBioPortal.
 #' For example, given a table `T` on Synapse with variables A-Z and mappings in `ref_map` for A-C + L-M,
 #' we take the intersection of variables present.
 #' But first, check that *required* variables in *ref_map* are present.
-#' So first the subset `df` is created from `T`.
+#' So first the subset `df` is created from `T`. 
 #'
 #' @inheritParams use_ref_map
 #' @inheritParams make_cbio_clinical_header
 #' @inheritParams write_meta
-#' @param clinical_type (Optional) Export `df` *only* as either `SAMPLE` or `PATIENT` file?
-#' When not specified, one or both is inferred and created based on the data.
-#' @param na_recode NA values should be replaced with a blank string (which seems to be standard) in exported file.
+#' @param na_recode Possible NA values to replace with a blank string (which seems to be standard) in exported file.
 #' @param delim Delimiter character used for writing file, defaults to tab-delimited per cBioPortal specs.
 #' @keywords internal
 write_cbio_clinical <- function(df,
                                 ref_map,
-                                clinical_type = NULL,
                                 na_recode = c("NA", "NaN", "unknown", "Unknown"),
                                 delim = "\t",
                                 publish_dir = ".",
                                 verbose = TRUE) {
 
   m <- use_ref_map(ref_map)
-  data_elements <- names(df)
+  present <- names(df)
+  required <- m$source[m$required]
+  attributes <- unique(m$source)
 
   # Attribute checks
-  message(glue::glue("{length(data_elements)} elements present: "), paste(data_elements, collapse = ", "))
-
-  if(is.null(clinical_type)) {
-
-    as_clinical_file_type(df, clinical_type = "SAMPLE", m, publish_dir, verbose = TRUE)
-
-    patient_id <- match_exactly_one("PATIENT_ID", data_elements, m)
-    if(length(sample_id) == 1L) {
-      as_clinical_file_type(df, clinical_type = "patient", m, publish_dir, verbose = TRUE)
-    }
-
-  } else if(clinical_type == "SAMPLE") {
-
-    as_clinical_file_type(df, clinical_type = "SAMPLE", m, publish_dir, verbose = TRUE)
-
-  } else if(clinical_type == "PATIENT") {
-
-    as_clinical_file_type(df, clinical_type = "PATIENT", m, publish_dir, verbose = TRUE)
-    message("Please also remember to add required SAMPLE clinical data if this hasn't already been added.")
-
-  } else {
-
-    stop(glue::glue("Unknown type: {clinical_type}"))
-
+  message("Clinical attributes present are: ", paste(present, collapse = ", "))
+  if(!all(required %in% present)) stop("Missing required clinical element(s):", paste(setdiff(required, present), collapse = ", "))
+  if(!all(present %in% attributes)) {
+    warning("Variables not mapped with be ignored (potentially non-public/non-clinical data): ", paste(setdiff(present, attributes), collapse = ","))
   }
+
+  # Take care of list columns and NA
+  .df <- data.table::copy(df)
+  for(col in names(.df)) {
+    if(class(.df[[col]]) == "list") {
+      .df[[col]] <- sapply(.df[[col]], function(x) paste0(x, collapse = "-"))
+      warning(glue::glue("The {col} field was stored as a list has been coerced for export, you may want to check output."), call. = F)
+    }
+    # Use actual NA's so that `write.table` can write out "" consistently
+    .df[.df[[col]] %in% na_recode, col ] <- NA_character_
+  }
+
+  files <- list()
+  m <- split(m, by = "attribute_type")
+  if("individualID" %in% names(.df)) {
+    patient_df <- .df[, c(names(.df) %in% m$PATIENT$source)]
+    patient_df <- unique(patient_df)
+    header <- make_cbio_clinical_header(patient_df, m$PATIENT)
+    patient_df <- rbind(header, patient_df)
+    files[["PATIENT"]] <- patient_df
+  }
+  {
+    sample_df <- .df[, c(names(.df) %in% m$SAMPLE$source)]
+    sample_df <- unique(sample_df)
+    header <- make_cbio_clinical_header(sample_df, m$SAMPLE)
+    sample_df <- rbind(header, sample_df)
+    files[["SAMPLE"]] <- sample_df
+  }
+
+  for(clinical_type in names(files)) {
+    filename <- get_cbio_filename(clinical_type)
+    path <- glue::glue("{publish_dir}/{filename}")
+    write.table(files[[clinical_type]],
+                file = path,
+                sep = delim,
+                na = "",
+                col.names = F,
+                row.names = F,
+                quote = F)
+    if(verbose) message(glue::glue("{clinical_type} data written to: {path}"))
+  }
+
+  invisible(files)
 }
 
 # -- META FILES ---------------------------------------------------------------- #
@@ -471,7 +418,7 @@ make_meta_study_generic <- function(cancer_study_identifier,
 #' https://docs.cbioportal.org/file-formats/#case-lists
 #' @keywords internal
 make_case_list_maf <- function(cancer_study_identifier, verbose = TRUE) {
-
+  
   mut <- fread("data_mutations.txt")
   mut_samples <- unique(mut$Tumor_Sample_Barcode)
   n <- length(mut_samples)
@@ -481,12 +428,12 @@ make_case_list_maf <- function(cancer_study_identifier, verbose = TRUE) {
     append_kv("case_list_name", "Samples with mutation data from sequencing") %>%
     append_kv("case_list_description", paste0("Samples with mutation data from sequencing ", "(", n, ")")) %>%
     append_kv("case_list_ids", case_list_ids)
-
+  
   if(!dir.exists("case_lists")) {
     if(verbose) checked_message(glue::glue("Creating case_lists study directory"))
     dir.create(glue::glue("./case_lists"))
   }
-
+  
   writeLines(meta, "case_lists/case-list.txt")
 }
 
@@ -521,3 +468,4 @@ use_ref_map <- function(ref_map, as_dt = TRUE) {
     return(ref_map_ls)
   }
 }
+

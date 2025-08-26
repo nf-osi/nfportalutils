@@ -4,14 +4,12 @@
 \alias{cbp_add_clinical}
 \title{Export and add clinical data to cBioPortal dataset}
 \usage{
-cbp_add_clinical(clinical_data, ref_map, clinical_type = NULL, verbose = TRUE)
+cbp_add_clinical(clinical_data, ref_map, verbose = TRUE)
 }
 \arguments{
 \item{clinical_data}{Clinical table query.}
 
 \item{ref_map}{YAML file specifying the mapping of (NF) clinical metadata to cBioPortal model. See details.}
-
-\item{clinical_type}{(Optional) Add as "Sample" or "Patient" clinical data. If not given, will infer which files need to be written.}
 
 \item{verbose}{Whether to provide informative messages throughout.}
 }
