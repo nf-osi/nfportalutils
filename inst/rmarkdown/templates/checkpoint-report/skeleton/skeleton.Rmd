@@ -4,7 +4,7 @@ output:
   github_document:
     html_preview: false
 params:
-  project_id: NA # example syn26462036
+  project_id: syn26238964 # example syn26462036
   schema_url: https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld
 ---
 
@@ -125,7 +125,7 @@ cat("*Skipped governance check because DSP could not be retrieved.*")
 items <- htmltools::tagList()
 
 outside_us <- dsp$governance$dataCharacterization$dataIsOutsideUSA$response
-if(outside_us) {
+if(!is.null(outside_us) && outside_us) {
   items <- htmltools::tagAppendChild(items, htmltools::tags$li("Yes, data is outside US"))
 }
 
