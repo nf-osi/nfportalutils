@@ -112,7 +112,7 @@ cbp_new_study <- function(cancer_study_identifier,
 #'
 #' @param clinical_data Clinical table query.
 #' @param ref_map YAML file specifying the mapping of (NF) clinical metadata to cBioPortal model. See details.
-#' @param clinical_type (Optional) Add as "Sample" or "Patient" clinical data. If not given, will infer which files need to be written.
+#' @param clinical_type (Optional) Add as "SAMPLE" or "PATIENT" clinical data. If not given, will infer which files need to be written.
 #' @param verbose Whether to provide informative messages throughout.
 #'
 #' @export
