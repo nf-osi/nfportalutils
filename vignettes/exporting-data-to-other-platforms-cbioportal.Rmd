@@ -124,13 +124,27 @@ This resource serves several purposes:
 - Provides a mapping that keeps up-to-date with what cBioPortal, e.g. what is patient-only and what is the closest standard variable an NF variable should map to. Sincere effort is given to make data comparable across different public datasets. 
 - Serves as export control; only variables in the list will be exported. Clinical data requires thoughtful selection and documentation of what clinical variables to be made public. The original clinical data on Synapse may possibly contain variables more sensitive than appropriate for cBioPortal, or the original clinical data may contain variables not super relevant for visualization on cBioPortal (e.g. `link_to_WGS_file`).  
 
-**If the current dataset to be exported contains new clinical data, the variables should be reviewed and added to [`ref_map`](https://github.com/nf-osi/nf-metadata-dictionary/blob/main/mappings/cBioPortal/cBioPortal.yaml) as appropriate.** 
-
 While `ref_map` controls the selection of clinical variables, the selection of patients/samples appropriate for the current dataset is done via the query used during this process. That is, the clinical table(s) must sometimes be subsetted to match what is actually released in the current study dataset. For example, if the full clinical cohort table comprises patients 1-50, but the dataset can only release data for patients 1-20 for expression data and data patients 15-20 for CNA data, then use a query that makes selection for patients 1-20 only. In other cases, the selection query may look more like `where batch = 'batch1'`.
 
-First specify `ref_map`. It may be helpful to follow the link to better understand the file.
+Remember to specify `ref_map`. It may be helpful to follow the link to better understand the file.
 ```
 ref_map <- "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/mappings/cBioPortal/cBioPortal.yaml"
+```
+
+##### New clinical variables
+
+If the current dataset to be exported contains new clinical data variables, the variables should be reviewed and added to [`ref_map`](https://github.com/nf-osi/nf-metadata-dictionary/blob/main/mappings/cBioPortal/cBioPortal.yaml) as appropriate.
+
+##### NA value recoding
+
+By default, the package converts a comprehensive set of missing/unknown values to cBioPortal's preferred empty string format. Users can customize which values are treated as NA by setting the package option:
+
+```r
+# View current NA recode values
+getOption("nfportalutils.na_recode")
+
+# Customize NA values (example)
+options(nfportalutils.na_recode = c("NA", "NULL", "missing", "custom_value"))
 ```
 
 #### (Option 1) Export using single source clinical data table
@@ -158,13 +172,16 @@ cbp_add_clinical(cd_patient, ref_map, type = "patient")
 
 ## Validation
 
-Validation has to be done with a cBioPortal instance. Each portal may have specific configurations (such as genomic reference) to validate against.
+Validation has to be done with a cBioPortal instance (use their official Docker image).
 
-For an example simple *offline* validation, assuming you are at `~/datahub/public` and a study folder called `npst_nfosi_ntap_2022` has been placed into it, mount the dataset into the container and run validation like:  
+For an example simple validation, assuming your current wording directory is something like `~/sage/submissions` with a study folder called `npst_nfosi_ntap_2022` run validation like:  
 ```
 STUDY=npst_nfosi_ntap_2022
-sudo docker run --rm -v $(pwd):/datahub cbioportal/cbioportal:6.0.25 validateData.py -s datahub/$STUDY -n -v
+sudo docker run --rm --user $(id -u):$(id -g) -v $(pwd):/studies cbioportal/cbioportal:6.3.2  validateStudies.py -d /studies -n -html /studies -l $STUDY
 ```
+
+A log .txt file as well as prettier .html file for human consumption will be outputted containing validation results. 
+Submission can proceed as along as there are no errors.
 
 **See the [general docs for dataset validation](https://docs.cbioportal.org/using-the-dataset-validator) for more examples.**
 

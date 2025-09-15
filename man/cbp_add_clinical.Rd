@@ -11,7 +11,7 @@ cbp_add_clinical(clinical_data, ref_map, clinical_type = NULL, verbose = TRUE)
 
 \item{ref_map}{YAML file specifying the mapping of (NF) clinical metadata to cBioPortal model. See details.}
 
-\item{clinical_type}{(Optional) Add as "Sample" or "Patient" clinical data. If not given, will infer which files need to be written.}
+\item{clinical_type}{(Optional) Add as "SAMPLE" or "PATIENT" clinical data. If not given, will infer which files need to be written.}
 
 \item{verbose}{Whether to provide informative messages throughout.}
 }
