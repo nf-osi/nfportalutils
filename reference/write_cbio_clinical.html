@@ -13,7 +13,7 @@ df is expected to be a table containing clinical data available, and maybe even 
 
     <a class="navbar-brand me-2" href="../index.html">nfportalutils</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9700</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9701</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -59,7 +59,7 @@ The <code>PATIENT</code> file is actually optional, so there are only checks for
 <span>  <span class="va">df</span>,</span>
 <span>  <span class="va">ref_map</span>,</span>
 <span>  clinical_type <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  na_recode <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"NA"</span>, <span class="st">"NaN"</span>, <span class="st">"unknown"</span>, <span class="st">"Unknown"</span><span class="op">)</span>,</span>
+<span>  na_recode <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">getOption</a></span><span class="op">(</span><span class="st">"nfportalutils.na_recode"</span><span class="op">)</span>,</span>
 <span>  delim <span class="op">=</span> <span class="st">"\t"</span>,</span>
 <span>  publish_dir <span class="op">=</span> <span class="st">"."</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span></span>

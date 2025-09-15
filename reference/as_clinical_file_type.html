@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">nfportalutils</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9700</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9701</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -50,6 +50,7 @@
 <span>  <span class="va">df</span>,</span>
 <span>  clinical_type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"SAMPLE"</span>, <span class="st">"PATIENT"</span><span class="op">)</span>,</span>
 <span>  <span class="va">m</span>,</span>
+<span>  na_recode <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">getOption</a></span><span class="op">(</span><span class="st">"nfportalutils.na_recode"</span><span class="op">)</span>,</span>
 <span>  publish_dir <span class="op">=</span> <span class="st">"."</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -69,6 +70,10 @@
 
 <dt id="arg-m">m<a class="anchor" aria-label="anchor" href="#arg-m"></a></dt>
 <dd><p>A reference mapping object. See <code>use_ref_map</code>.</p></dd>
+
+
+<dt id="arg-na-recode">na_recode<a class="anchor" aria-label="anchor" href="#arg-na-recode"></a></dt>
+<dd><p>Values considered NA that will be blank strings in cBioPortal's preferred format.</p></dd>
 
 
 <dt id="arg-publish-dir">publish_dir<a class="anchor" aria-label="anchor" href="#arg-publish-dir"></a></dt>
