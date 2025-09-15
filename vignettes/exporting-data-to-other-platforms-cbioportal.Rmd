@@ -172,13 +172,16 @@ cbp_add_clinical(cd_patient, ref_map, type = "patient")
 
 ## Validation
 
-Validation has to be done with a cBioPortal instance. Each portal may have specific configurations (such as genomic reference) to validate against.
+Validation has to be done with a cBioPortal instance (use their official Docker image).
 
-For an example simple *offline* validation, assuming you are at `~/datahub/public` and a study folder called `npst_nfosi_ntap_2022` has been placed into it, mount the dataset into the container and run validation like:  
+For an example simple validation, assuming your current wording directory is something like `~/sage/submissions` with a study folder called `npst_nfosi_ntap_2022` run validation like:  
 ```
 STUDY=npst_nfosi_ntap_2022
-sudo docker run --rm -v $(pwd):/datahub cbioportal/cbioportal:6.0.25 validateData.py -s datahub/$STUDY -n -v
+sudo docker run --rm --user $(id -u):$(id -g) -v $(pwd):/studies cbioportal/cbioportal:6.3.2  validateStudies.py -d /studies -n -html /studies -l $STUDY
 ```
+
+A log .txt file as well as prettier .html file for human consumption will be outputted containing validation results. 
+Submission can proceed as along as there are no errors.
 
 **See the [general docs for dataset validation](https://docs.cbioportal.org/using-the-dataset-validator) for more examples.**
 
