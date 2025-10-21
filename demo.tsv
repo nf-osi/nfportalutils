@@ -1,0 +1,16 @@
+path	entityId	diagnosis	assay	tumorType
+dataset/d14.txt	syn64595622	NF1	WEX	pNF
+dataset/d8.txt	syn64595607	neurofibromatosis type 1	WES	MPNST
+dataset/d6.txt	syn64595625	ORPHA:636	WGS	MPN tumor
+dataset/d5.txt	syn64595614	Von Recklinghausen's neurofibromatosis	MRI	NOS
+dataset/d11.txt	syn64595618	does not apply	IHC	cNF
+dataset/d4.txt	syn64595612	NF-1	cell survival assay	dermal neurofibroma
+dataset/d3.txt	syn64595611	neurofibromatosis 1	ICC	skin neurofibroma
+dataset/d2.txt	syn64595624	Neurofibromatosis-1	magnetic resonance imaging	not determined
+dataset/d7.txt	syn64595616	NF2	RNA sequencing	benign neurilemmoma
+dataset/d1.txt	syn64595613	Nonmosaic NF1	3D microtissue survival assay	neurofibrosarcoma
+dataset/d13.txt	syn64595620	Watson Syndrome	SDS page	Normal
+dataset/d10.txt	syn64595610  	Not applicable	Whole Exome Sequencing	None
+dataset/d9.txt	syn64595615	N/A	whole exome sequencing	Atypical neurofibromatous neoplasm
+dataset/d15.txt	syn64595626	NF2	wholeGenomeSeq	Unspecified tumor
+dataset/d12.txt	syn64595619	Neurofibromatosis type II	Oxigen compustion rate	Schwannoma affecting balance
