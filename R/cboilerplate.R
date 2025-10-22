@@ -89,10 +89,12 @@ with_selected_elements <- function(df, selectable_elements) {
 #' @inheritParams write_cbio_clinical
 #' @param m A reference mapping object. See `use_ref_map`.
 #' @param clinical_type `SAMPLE` or `PATIENT`
+#' @param na_recode Values considered NA that will be blank strings in cBioPortal's preferred format.
 #' @keywords internal
 as_clinical_file_type <- function(df,
                                   clinical_type = c("SAMPLE", "PATIENT"),
                                   m,
+                                  na_recode = getOption("nfportalutils.na_recode"),
                                   publish_dir = ".",
                                   verbose = TRUE) {
 
@@ -159,7 +161,7 @@ as_clinical_file_type <- function(df,
 write_cbio_clinical <- function(df,
                                 ref_map,
                                 clinical_type = NULL,
-                                na_recode = c("NA", "NaN", "unknown", "Unknown"),
+                                na_recode = getOption("nfportalutils.na_recode"),
                                 delim = "\t",
                                 publish_dir = ".",
                                 verbose = TRUE) {
@@ -172,20 +174,20 @@ write_cbio_clinical <- function(df,
 
   if(is.null(clinical_type)) {
 
-    as_clinical_file_type(df, clinical_type = "SAMPLE", m, publish_dir, verbose = TRUE)
+    as_clinical_file_type(df, clinical_type = "SAMPLE", m, na_recode, publish_dir, verbose = TRUE)
 
-    patient_id <- match_exactly_one("PATIENT_ID", data_elements, m)
-    if(length(sample_id) == 1L) {
-      as_clinical_file_type(df, clinical_type = "patient", m, publish_dir, verbose = TRUE)
+    patient_id <- match_exactly_one("PATIENT_ID", df, m)
+    if(length(patient_id) == 1L) {
+      as_clinical_file_type(df, clinical_type = "PATIENT", m, na_recode, publish_dir, verbose = TRUE)
     }
 
   } else if(clinical_type == "SAMPLE") {
 
-    as_clinical_file_type(df, clinical_type = "SAMPLE", m, publish_dir, verbose = TRUE)
+    as_clinical_file_type(df, clinical_type = "SAMPLE", m, na_recode, publish_dir, verbose = TRUE)
 
   } else if(clinical_type == "PATIENT") {
 
-    as_clinical_file_type(df, clinical_type = "PATIENT", m, publish_dir, verbose = TRUE)
+    as_clinical_file_type(df, clinical_type = "PATIENT", m, na_recode, publish_dir, verbose = TRUE)
     message("Please also remember to add required SAMPLE clinical data if this hasn't already been added.")
 
   } else {

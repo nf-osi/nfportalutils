@@ -8,6 +8,7 @@ as_clinical_file_type(
   df,
   clinical_type = c("SAMPLE", "PATIENT"),
   m,
+  na_recode = getOption("nfportalutils.na_recode"),
   publish_dir = ".",
   verbose = TRUE
 )
@@ -18,6 +19,8 @@ as_clinical_file_type(
 \item{clinical_type}{\code{SAMPLE} or \code{PATIENT}}
 
 \item{m}{A reference mapping object. See \code{use_ref_map}.}
+
+\item{na_recode}{Values considered NA that will be blank strings in cBioPortal's preferred format.}
 
 \item{publish_dir}{Directory path to write to, defaults to current.}
 

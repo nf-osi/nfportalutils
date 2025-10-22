@@ -8,7 +8,7 @@ write_cbio_clinical(
   df,
   ref_map,
   clinical_type = NULL,
-  na_recode = c("NA", "NaN", "unknown", "Unknown"),
+  na_recode = getOption("nfportalutils.na_recode"),
   delim = "\\t",
   publish_dir = ".",
   verbose = TRUE
