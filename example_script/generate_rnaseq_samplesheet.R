@@ -9,35 +9,40 @@ INPUT_DATASET <- "syn70366294"
 OUTPUT_FILE <- "samplesheet.csv"
 
 ## Login to Synapse
-nfportalutils::syn_login()
+# nfportalutils::syn_login()
 
 ## Query dataset
 dt <- table_query(INPUT_DATASET)
 dt <- as.data.table(dt)
 
-## Create samplesheet with required columns:
-# 1st column = sample
-# 2nd column = single_end # if dt$runType == "pairedEnd" then 0 else 1
-# 3rd column = fastq_1 # determine pairs via dt$specimenID, then assign first fastq based on dt$readPair == 1
-# 4th column = fastq_2 # dt$readPair == 2
-# 5th column = strandedness # default auto
+## Or use test_dt.csv instead
+## dt <- fread("test_dt.csv")
+
+## Create samplesheet with required columns per nf-core/rnaseq schema:
+# 1st column = sample (unique identifier without spaces)
+# 2nd column = fastq_1 (syn:// URI to first read file)
+# 3rd column = fastq_2 (syn:// URI to second read file, empty for single-end)
+# 4th column = strandedness (forward, reverse, unstranded, or auto)
 
 samplesheet <- dt[, .(
-  sample = specimenID,
-  single_end = ifelse(runType == "pairedEnd", 0, 1),
-  fastq_1 = id[readPair == 1],
-  fastq_2 = id[readPair == 2],
-  strandedness = "auto"
+  sample = unique(specimenID),
+  fastq_1 = paste0("syn://", id[readPair == 1]),
+  fastq_2 = paste0("syn://", id[readPair == 2]),
+  strandedness = "auto",
+  runType = unique(runType)
 ), by = specimenID][, specimenID := NULL]
 
 ## Remove duplicates
 samplesheet <- unique(samplesheet)
 
-## Remove any samples that don't have both read pairs (if paired-end)
-samplesheet <- samplesheet[!(single_end == 0 & (is.na(fastq_1) | is.na(fastq_2)))]
+## For paired-end data, remove any samples missing either read pair
+samplesheet <- samplesheet[!(runType == "pairedEnd" & (is.na(fastq_1) | is.na(fastq_2)))]
 
 ## For single-end data, set fastq_2 to empty string
-samplesheet[single_end == 1, fastq_2 := ""]
+samplesheet[runType != "pairedEnd", fastq_2 := ""]
+
+## Remove the runType helper column
+samplesheet[, runType := NULL]
 
 ## Write samplesheet to CSV
 fwrite(samplesheet, OUTPUT_FILE, quote = FALSE)
