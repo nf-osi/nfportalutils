@@ -87,7 +87,7 @@ extract_syn_id_from_ss <- function(x) {
 #' @import data.table
 #' @export
 map_sample_input_ss <- function(samplesheet,
-                                parse_fun = function(x) gsub("_T[0-9]$", "", x)) {
+                                parse_fun = function(x) gsub("_T[0-9]+$", "", x)) {
 
   ss <- dt_read(samplesheet)
   # Annoyingly, headers are not standard and can use fastq or fastq1 instead of fastq_1
@@ -298,11 +298,15 @@ map_sample_io <- function(input,
 #' This controls which attributes are relevant for transfer/keep.
 #' If not given, will use whatever is set for the attribute "template".
 #' @param schema Reference to data model source.
+#' @param use_sample_as_specimen_id If TRUE, sets specimenID from the sample column
+#' (parsed from directory structure/filenames) instead of inheriting from input files.
+#' Useful when directory structure provides more accurate specimen identifiers.
 #' @param verbose Whether to output detailed messages.
 #' @keywords internal
 derive_annotations <- function(sample_io,
                                template = NULL,
                                schema = "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld",
+                               use_sample_as_specimen_id = FALSE,
                                verbose = TRUE) {
 
   outputFrom <- attr(sample_io, "outputFrom")
@@ -324,12 +328,25 @@ derive_annotations <- function(sample_io,
     rbindlist(fill = T, idcol = "entityId")
 
   metadata <- merge(annotations,
-                    sample_io[, .(entityId = output_id, Filename = output_name, workflow)],
+                    sample_io[, .(entityId = output_id, Filename = output_name, workflow, sample)],
                     by = "entityId")
+
+  # Optionally override specimenID with sample from directory structure
+  if(use_sample_as_specimen_id) {
+    metadata[, specimenID := sample]
+    if(verbose) message("  * specimenID set from sample column (directory structure)")
+  }
+
+  # Keep 'sample' column temporarily for SAMtools stats merging
+  # It will be removed later in annotate_processed after all annotation steps are complete
 
   setattr(metadata, "outputFrom", attr(sample_io, "outputFrom"))
   setattr(metadata, "workflow", attr(sample_io, "workflow"))
   setattr(metadata, "template", template)
+  # Propagate publishDir if it exists
+  if(!is.null(attr(sample_io, "publishDir"))) {
+    setattr(metadata, "publishDir", attr(sample_io, "publishDir"))
+  }
   return(metadata)
 }
 
@@ -345,7 +362,15 @@ annotate_processed <- function(metadata, ...) {
   outputFrom <- attr(metadata, "outputFrom")
   annotate_as <- annotation_rule(outputFrom, "annotate_as")
   params <- list(...)
-  annotate_as(metadata, workflow_link = params$workflow_link)
+  result <- annotate_as(metadata, workflow_link = params$workflow_link)
+
+  # Remove the 'sample' column from final output to avoid confusion/redundancy
+  # (it was kept temporarily for SAMtools stats merging, but specimenID is the standard identifier)
+  if("sample" %in% names(result)) {
+    result[, sample := NULL]
+  }
+
+  return(result)
 
 }
 
@@ -373,7 +398,8 @@ annotate_aligned_reads <- function(metadata,
   format_as <- annotation_rule(outputFrom, "format_as")
   metadata[, Component := template]
   metadata[, fileFormat := format_as(Filename)]
-  metadata[, dataType := "aligned reads"]
+  # BAI files are index files, not aligned reads
+  metadata[, dataType := ifelse(fileFormat == "bai", "data index", "aligned reads")]
   metadata[, dataSubtype := "processed"]
   metadata[, workflowLink := workflow_link]
   metadata[, genomicReference := genomic_reference]
@@ -382,9 +408,16 @@ annotate_aligned_reads <- function(metadata,
 
   # aligned reads will attempt to add other stats
   if(attr(metadata, "workflow") == "nf-rnaseq") {
-    syn_out <- attr(metadata, "outputDir")
-    samtools_stats_file <- find_nf_asset(find_parent(syn_out), asset = "samtools_stats", workflow = "nf-rnaseq")
-    metadata <- annotate_with_samtools_stats(metadata, samtools_stats_file)
+    # Use publishDir attribute if available, otherwise fall back to outputDir
+    # publishDir is the top-level directory, outputDir might be a subdirectory like star_salmon
+    publish_dir <- attr(metadata, "publishDir")
+    if(is.null(publish_dir)) {
+      publish_dir <- attr(metadata, "outputDir")
+    }
+    if(verbose) message("  * ", "Looking for SAMtools stats in publish_dir: ", publish_dir)
+    samtools_stats_file <- find_nf_asset(publish_dir, asset = "samtools_stats", workflow = "nf-rnaseq")
+    if(verbose) message("  * ", "SAMtools stats file found: ", ifelse(is.null(samtools_stats_file), "NULL", samtools_stats_file))
+    metadata <- annotate_with_samtools_stats(metadata, samtools_stats_file, verbose = verbose)
   }
 
   return(metadata)
@@ -409,6 +442,9 @@ annotate_quantified_expression <- function(metadata,
   if(verbose) message("Running annotate_quantified_expression for ", outputFrom)
 
   format_as <- annotation_rule(outputFrom, "format_as")
+  # Note: Salmon .sf files contain both TPM and NumReads (counts) columns
+  # (see https://salmon.readthedocs.io/en/latest/file_formats.html)
+  # We annotate with the primary/recommended unit for each output type
   expression_unit <- switch(outputFrom,
                             "STAR and Salmon" = "TPM",
                             "featureCounts" = "Counts")
@@ -481,15 +517,55 @@ annotate_called_variants <- function(metadata,
 #'
 #' @param meta Data to which tool stats will be added as additional meta.
 #' @param samtools_stats_file Path to file/syn id of file with samtools stats produced by the workflow.
+#' @param verbose Whether to output detailed debugging messages.
 #' @export
 annotate_with_samtools_stats <- function(meta,
-                                         samtools_stats_file = NULL) {
+                                         samtools_stats_file = NULL,
+                                         verbose = TRUE) {
   if(is.null(samtools_stats_file)) {
     message("  * ", "SAMtools stats not identified, skipping...")
   } else {
+    if(verbose) message("  * ", "Reading SAMtools stats from: ", samtools_stats_file)
     sam_stats <- dt_read(samtools_stats_file)
+    if(verbose) message("  * ", "SAMtools stats loaded: ", nrow(sam_stats), " samples")
+
+    # Debug: Show available columns in metadata
+    if(verbose) {
+      message("  * ", "Columns in metadata: ", paste(names(meta), collapse = ", "))
+      message("  * ", "Has 'sample' column: ", "sample" %in% names(meta))
+      message("  * ", "Has 'specimenID' column: ", "specimenID" %in% names(meta))
+    }
+
+    # Determine merge key intelligently:
+    # - If specimenID exists and matches the sample pattern (granular level), use it
+    # - Otherwise use 'sample' which comes from parsing output filenames/paths
+    # This handles both use_sample_as_specimen_id=TRUE and =FALSE cases
+    merge_key <- if("specimenID" %in% names(meta) &&
+                    "sample" %in% names(meta) &&
+                    any(meta$specimenID == meta$sample, na.rm = TRUE)) {
+      "specimenID"
+    } else if("sample" %in% names(meta)) {
+      "sample"
+    } else {
+      warning("Neither 'sample' nor 'specimenID' column found in metadata - SAMtools stats will not be merged.")
+      return(meta)
+    }
+
+    if(verbose) message("  * ", "Selected merge key: ", merge_key)
+
+    # Debug: Show values being used for merge
+    if(verbose) {
+      if(merge_key == "specimenID") {
+        message("  * ", "Sample specimenID values: ", paste(head(unique(meta$specimenID), 5), collapse = ", "))
+      } else {
+        message("  * ", "Sample 'sample' values: ", paste(head(unique(meta$sample), 5), collapse = ", "))
+      }
+      message("  * ", "SAMtools Sample values: ", paste(head(sam_stats$Sample, 5), collapse = ", "))
+    }
+
+    # Prepare sam_stats with appropriate column name for merging
     sam_stats <- sam_stats[,
-                           .(specimenID = Sample,
+                           .(merge_col = Sample,
                              averageInsertSize = insert_size_average,
                              averageReadLength = average_length,
                              averageBaseQuality = average_quality,
@@ -497,9 +573,170 @@ annotate_with_samtools_stats <- function(meta,
                              readsDuplicatedPercent = reads_duplicated_percent,
                              readsMappedPercent = reads_mapped_percent,
                              totalReads = raw_total_sequences)]
-    meta <- merge(meta, sam_stats, all.x = TRUE, by = "specimenID")
-    message("  * ", "SAMtools stats added")
+
+    setnames(sam_stats, "merge_col", merge_key)
+
+    # Perform merge
+    meta_before <- nrow(meta)
+    meta <- merge(meta, sam_stats, all.x = TRUE, by = merge_key)
+    meta_after <- nrow(meta)
+
+    # Check merge success
+    n_with_stats <- sum(!is.na(meta$totalReads))
+    message("  * ", "SAMtools stats added (merged by '", merge_key, "')")
+    if(verbose) {
+      message("  * ", "Rows before merge: ", meta_before, ", after merge: ", meta_after)
+      message("  * ", "Files with QC metrics: ", n_with_stats, " out of ", meta_after)
+    }
+
+    if(n_with_stats == 0) {
+      warning("No QC metrics were successfully merged! Check that merge key values match between metadata and SAMtools stats.")
+    }
   }
+  return(meta)
+}
+
+
+#' Annotate nextflow workflow outputs
+#'
+#' High-level wrapper that automatically generates annotation manifests for nextflow workflow outputs.
+#' This function handles the complete workflow: extracting version info, parsing inputs/outputs,
+#' and generating manifests with proper metadata.
+#'
+#' @param publish_dir Synapse ID of the top-level workflow output directory (publishDir).
+#' This directory should contain the \code{pipeline_info} folder with workflow metadata.
+#' @param fileview Synapse ID of a fileview that includes the workflow output files.
+#' The fileview must have the \code{path} column enabled to support output discovery.
+#' @param workflow Type of workflow: "nf-rnaseq" or "nf-sarek".
+#' @param samplesheet Synapse ID or local path to the samplesheet CSV file.
+#' If NULL (default), will automatically search for \code{pipeline_info/samplesheet.valid.csv}.
+#' Only specify this if using a custom samplesheet location or a manually corrected version.
+#' @param output_types Optional character vector specifying which output types to process.
+#' If NULL, processes all available output types for the workflow.
+#' For nf-rnaseq: "STAR and Salmon", "featureCounts", "SAMtools".
+#' For nf-sarek: "CNVkit", "DeepVariant", "Strelka2", "Mutect2", "FreeBayes".
+#' @param parse_fun Optional function to parse sample names from samplesheet.
+#' Defaults to removing \code{"_T[0-9]+$"} suffix (removes trailing technical replicate numbers like _T1, _T2, _T10, etc.).
+#' @param use_sample_as_specimen_id If TRUE, sets specimenID from the sample column
+#' (parsed from directory structure/filenames) instead of inheriting from input files.
+#' Useful when directory structure provides more granular/accurate specimen identifiers than input file annotations.
+#' Defaults to FALSE (inherits specimenID from input files).
+#' @param syn_out Synapse ID of the specific output folder to annotate.
+#' For nf-rnaseq, this is typically the \code{star_salmon} folder within publish_dir.
+#' For nf-sarek, this is typically the \code{variant_calling} folder.
+#' If NULL (default), will use publish_dir as the output folder for standard workflow organization.
+#' @return List with three elements:
+#' \itemize{
+#'   \item `manifests`: Named list of data.tables, one manifest per output type
+#'   \item `sample_io`: data.table linking inputs to outputs for provenance
+#'   \item `workflow_info`: List with workflow name and version
+#' }
+#'
+#' @export
+#' @examples
+#' \dontrun{
+#' # Simplest usage - auto-detects samplesheet and uses standard folders
+#' result <- annotate_nf_workflow(
+#'   publish_dir = "syn51476810",
+#'   fileview = "syn11601481",
+#'   workflow = "nf-rnaseq"
+#' )
+#'
+#' # With custom samplesheet (e.g., manually corrected)
+#' result <- annotate_nf_workflow(
+#'   publish_dir = "syn51476810",
+#'   fileview = "syn11601481",
+#'   workflow = "nf-rnaseq",
+#'   samplesheet = "~/corrected_samplesheet.csv"
+#' )
+#'
+#' # Advanced: Custom output folder structure
+#' result <- annotate_nf_workflow(
+#'   publish_dir = "syn51476810",
+#'   fileview = "syn11601481",
+#'   workflow = "nf-rnaseq",
+#'   syn_out = "syn51476811"  # Custom star_salmon folder
+#' )
+#'
+#' # Use sample names from directory structure as specimenID
+#' # (useful when input files have specimenID at higher level than samplesheet)
+#' result <- annotate_nf_workflow(
+#'   publish_dir = "syn51476810",
+#'   fileview = "syn11601481",
+#'   workflow = "nf-rnaseq",
+#'   use_sample_as_specimen_id = TRUE
+#' )
+#' }
+annotate_nf_workflow <- function(publish_dir,
+                                 fileview,
+                                 workflow = c("nf-rnaseq", "nf-sarek"),
+                                 samplesheet = NULL,
+                                 output_types = NULL,
+                                 parse_fun = function(x) gsub("_T[0-9]+$", "", x),
+                                 use_sample_as_specimen_id = FALSE,
+                                 syn_out = NULL) {
+
+  workflow <- match.arg(workflow)
+
+  # If syn_out not provided, use publish_dir (standard organization)
+  if(is.null(syn_out)) {
+    syn_out <- publish_dir
+    message("Using publish_dir as output folder (assuming standard organization)")
+  }
+
+  # Extract workflow version information from publish_dir
+  message("Extracting workflow version from pipeline_info...")
+  wf_info <- nf_workflow_version(publish_dir)
+
+  # Construct workflow link based on workflow type
+  if(workflow == "nf-rnaseq") {
+    wf_link <- sprintf("https://nf-co.re/rnaseq/%s/output#star-and-salmon", wf_info$version)
+  } else {
+    wf_link <- sprintf("https://nf-co.re/sarek/%s/output", wf_info$version)
+  }
+
+  # Find samplesheet if not provided
+  if(is.null(samplesheet)) {
+    message("No samplesheet provided, attempting to find in pipeline_info...")
+    samplesheet <- find_nf_asset(publish_dir, asset = "samplesheet", workflow = workflow)
+    if(is.null(samplesheet)) {
+      stop("Could not find samplesheet automatically in pipeline_info/samplesheet.valid.csv. Please provide samplesheet parameter.")
+    }
+    message("Found samplesheet: ", samplesheet)
+  } else {
+    message("Using provided samplesheet: ", samplesheet)
+  }
+
+  # Parse input samplesheet
+  message("Parsing input samplesheet...")
+  input <- map_sample_input_ss(samplesheet, parse_fun = parse_fun)
+
+  # Map outputs based on workflow type
+  message("Mapping workflow outputs...")
+  if(workflow == "nf-rnaseq") {
+    if(is.null(output_types)) {
+      output <- map_sample_output_rnaseq(syn_out, fileview)
+    } else {
+      output <- map_sample_output_rnaseq(syn_out, fileview, output = output_types)
+    }
+  } else {
+    if(is.null(output_types)) {
+      output <- map_sample_output_sarek(syn_out, fileview)
+    } else {
+      output <- map_sample_output_sarek(syn_out, fileview, output = output_types)
+    }
+  }
+
+  # Generate manifests
+  message("Generating annotation manifests...")
+  meta <- processed_meta(input, output, workflow_link = wf_link,
+                         use_sample_as_specimen_id = use_sample_as_specimen_id,
+                         publish_dir = publish_dir)
+
+  # Add workflow info to result
+  meta$workflow_info <- wf_info
+
+  message("Complete! Generated ", length(meta$manifests), " manifest(s).")
   return(meta)
 }
 
@@ -510,20 +747,29 @@ annotate_with_samtools_stats <- function(meta,
 #'
 #' @inheritParams map_sample_io
 #' @param workflow_link Workflow link.
+#' @param use_sample_as_specimen_id If TRUE, sets specimenID from the sample column
+#' (parsed from directory structure/filenames) instead of inheriting from input files.
+#' @param publish_dir Top-level publish directory for finding workflow assets like SAMtools stats.
 #' @export
 #' @return List `manifest` with manifests for each processed dataset,
 #' and `sample_io` with linked inputs and outputs (should be used for provenance annotation).
 processed_meta <- function(input,
                            output,
-                           workflow_link) {
+                           workflow_link,
+                           use_sample_as_specimen_id = FALSE,
+                           publish_dir = NULL) {
 
   sample_io_list <- lapply(output, function(o) map_sample_io(input, o))
   sample_io <- rbindlist(sample_io_list)
   sample_io[, workflowLink := workflow_link]
 
   manifests <- lapply(sample_io_list, function(sample_io) {
+    # Set publishDir attribute if provided
+    if(!is.null(publish_dir)) {
+      setattr(sample_io, "publishDir", publish_dir)
+    }
     sample_io |>
-      derive_annotations() |>
+      derive_annotations(use_sample_as_specimen_id = use_sample_as_specimen_id) |>
       annotate_processed(workflow_link = workflow_link)
   })
   return(
