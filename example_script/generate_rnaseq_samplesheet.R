@@ -9,7 +9,7 @@ INPUT_DATASET <- "syn70366294"
 OUTPUT_FILE <- "samplesheet.csv"
 
 ## Login to Synapse
-# nfportalutils::syn_login()
+nfportalutils::syn_login()
 
 ## Query dataset
 dt <- table_query(INPUT_DATASET)
