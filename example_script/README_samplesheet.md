@@ -2,7 +2,7 @@
 
 ## Overview
 
-This script generates a samplesheet for the nf-core/rnaseq pipeline from a Synapse dataset. It validates the input dataset annotations, transforms the metadata to the required format, and uploads the resulting CSV to Synapse.
+This script generates a samplesheet for the nf-core/rnaseq pipeline from a Synapse dataset.
 
 **Related Issue:** #236 - Samplesheet convenience script
 
@@ -23,24 +23,25 @@ The input dataset must have the following annotations on its files:
 
 ### Samplesheet Format
 
-The script generates a CSV file with the following columns per [nf-core/rnaseq v3.11.2 specification](https://nf-co.re/rnaseq/3.11.2/usage):
+The script generates a CSV file with the following columns conforming to the [nf-core/rnaseq input schema](https://raw.githubusercontent.com/nf-core/rnaseq/master/assets/schema_input.json):
 
-| Column | Description |
-|--------|-------------|
-| `sample` | Sample identifier (maps to `specimenID`) |
-| `single_end` | Whether reads are single-end (1) or paired-end (0) |
-| `fastq_1` | Synapse ID for Read 1 FASTQ file |
-| `fastq_2` | Synapse ID for Read 2 FASTQ file (empty for single-end) |
-| `strandedness` | Library strandedness (`auto`, `forward`, `reverse`, or `unstranded`) |
+| Column | Description | Required |
+|--------|-------------|----------|
+| `sample` | Sample identifier (maps to `specimenID`) - must not contain spaces | Yes |
+| `fastq_1` | Synapse URI for Read 1 FASTQ file (`syn://synXXXXXXXX`) | Yes |
+| `fastq_2` | Synapse URI for Read 2 FASTQ file (empty string for single-end) | No |
+| `strandedness` | Library strandedness (`auto`, `forward`, `reverse`, or `unstranded`) | Yes |
+
+**Note:** The official nf-core/rnaseq schema expects file paths with `.fq.gz` or `.fastq.gz` extensions. This script outputs Synapse URIs in the format `syn://synXXXXXXXX`.
 
 ### Example Output
 
 ```csv
-sample,single_end,fastq_1,fastq_2,strandedness
-NF0003_specimen1,0,syn15261791,syn15261900,auto
-NF0003_specimen2,0,syn15261974,syn15262033,auto
-NF0003_specimen3,0,syn15262157,syn15262216,forward
-NF0004_specimen1,1,syn15263000,,auto
+sample,fastq_1,fastq_2,strandedness
+NF0017-T2-organoids,syn://syn70079144,syn://syn70074497,auto
+NF0017-T2,syn://syn70078584,syn://syn70074500,auto
+NF0017-T5-organoids,syn://syn70074503,syn://syn70074506,auto
+NF0018-T2,syn://syn70074511,,auto
 ```
 
 ## Usage
@@ -57,7 +58,7 @@ INPUT_DATASET <- "syn70366294"
 OUTPUT_DESTINATION <- "syn70366350"
 
 # Output filename
-SAMPLESHEET_FILENAME <- "rnaseq_samplesheet.csv"
+SAMPLESHEET_FILENAME <- "samplesheet.csv"
 ```
 
 ### Running the Script
@@ -74,26 +75,6 @@ source("example_script/generate_rnaseq_samplesheet.R")
 main()
 ```
 
-## What the Script Does
-
-1. **Validates the dataset** (`validate_dataset`)
-   - Checks for required annotations
-   - Verifies file formats are appropriate for RNA-seq
-   - Validates read pairing (R1/R2 matching)
-   - Provides summary statistics
-
-2. **Generates the samplesheet** (`generate_samplesheet`)
-   - Maps `specimenID` to `sample`
-   - Converts Synapse entity IDs to URIs (`syn://synXXXXXXX`)
-   - Pairs R1 and R2 files for paired-end data
-   - Sets strandedness (from `libraryStrand` annotation or defaults to `auto`)
-   - Handles both single-end and paired-end sequencing
-
-3. **Uploads to Synapse** (`upload_samplesheet`)
-   - Writes CSV file with proper formatting
-   - Uploads to specified Synapse folder
-   - Adds descriptive metadata
-
 ## Handling Different Data Scenarios
 
 ### Paired-End Data
@@ -106,7 +87,6 @@ Files with `readPair` values of `1` and `2` will be matched by `specimenID`:
 # specimenID: sample1, readPair: 2, entityId: syn456
 
 # Output row:
-sample,fastq_1,fastq_2,strandedness
 sample1,syn://syn123,syn://syn456,auto
 ```
 
@@ -119,7 +99,6 @@ Files with only `readPair` value of `1` (or no R2 match):
 # specimenID: sample2, readPair: 1, entityId: syn789
 
 # Output row:
-sample,fastq_1,fastq_2,strandedness
 sample2,syn://syn789,,auto
 ```
 
@@ -135,7 +114,6 @@ Multiple files with the same `specimenID` will create multiple rows. The nf-core
 # specimenID: sample3, readPair: 2, entityId: syn444
 
 # Output rows:
-sample,fastq_1,fastq_2,strandedness
 sample3,syn://syn111,syn://syn222,auto
 sample3,syn://syn333,syn://syn444,auto
 ```
@@ -183,8 +161,24 @@ nextflow run nf-core/rnaseq \
 
 See the [nf-core/rnaseq documentation](https://nf-co.re/rnaseq/3.11.2/usage) for more details.
 
+## Schema Information
+
+### Modified Sage-specific Schema
+
+We use a known modification of the [official nf-core/rnaseq input schema](https://raw.githubusercontent.com/nf-core/rnaseq/master/assets/schema_input.json) with the following key differences:
+
+**Original nf-core schema requirements:**
+- `fastq_1` and `fastq_2` must be file paths with `.fq.gz` or `.fastq.gz` extensions
+- Files must exist on the filesystem
+
+**Modified Sage schema allowances:**
+- Accepts Synapse URIs in the format `syn://synXXXXXXXX`
+- Pattern for `fastq_1`: `^(syn://syn\\d+|\\S+\\.f(ast)?q\\.gz)$`
+- Pattern for `fastq_2`: `^(syn://syn\\d+|\\S*\\.f(ast)?q\\.gz)?$`
+- Enables direct integration with Synapse-stored data without downloading files first
+
+
 ## References
 
-- [nf-core/rnaseq v3.11.2 Usage](https://nf-co.re/rnaseq/3.11.2/usage)
-- [NF-OSI Nextflow Documentation](https://help.nf.synapse.org/NFdocs/nextflow-data-processing-configuration)
-- [Issue #236](https://github.com/nf-osi/nfportalutils/issues/236)
+- [nf-core/rnaseq Official Input Schema](https://raw.githubusercontent.com/nf-core/rnaseq/master/assets/schema_input.json)
+- [nf-core/rnaseq Usage Documentation](https://nf-co.re/rnaseq/latest/usage)
