@@ -10,7 +10,8 @@ annotate_nf_workflow(
   workflow = c("nf-rnaseq", "nf-sarek"),
   samplesheet = NULL,
   output_types = NULL,
-  parse_fun = function(x) gsub("_T[0-9]$", "", x),
+  parse_fun = function(x) gsub("_T[0-9]+$", "", x),
+  use_sample_as_specimen_id = FALSE,
   syn_out = NULL
 )
 }
@@ -18,7 +19,8 @@ annotate_nf_workflow(
 \item{publish_dir}{Synapse ID of the top-level workflow output directory (publishDir).
 This directory should contain the \code{pipeline_info} folder with workflow metadata.}
 
-\item{fileview}{Synapse ID of a fileview that includes the workflow output files.}
+\item{fileview}{Synapse ID of a fileview that includes the workflow output files.
+The fileview must have the \code{path} column enabled to support output discovery.}
 
 \item{workflow}{Type of workflow: "nf-rnaseq" or "nf-sarek".}
 
@@ -32,7 +34,12 @@ For nf-rnaseq: "STAR and Salmon", "featureCounts", "SAMtools".
 For nf-sarek: "CNVkit", "DeepVariant", "Strelka2", "Mutect2", "FreeBayes".}
 
 \item{parse_fun}{Optional function to parse sample names from samplesheet.
-Defaults to removing \code{"_T[0-9]$"} suffix (removes trailing technical replicate numbers).}
+Defaults to removing \code{"_T[0-9]+$"} suffix (removes trailing technical replicate numbers like _T1, _T2, _T10, etc.).}
+
+\item{use_sample_as_specimen_id}{If TRUE, sets specimenID from the sample column
+(parsed from directory structure/filenames) instead of inheriting from input files.
+Useful when directory structure provides more granular/accurate specimen identifiers than input file annotations.
+Defaults to FALSE (inherits specimenID from input files).}
 
 \item{syn_out}{Synapse ID of the specific output folder to annotate.
 For nf-rnaseq, this is typically the \code{star_salmon} folder within publish_dir.
@@ -74,7 +81,16 @@ result <- annotate_nf_workflow(
   publish_dir = "syn51476810",
   fileview = "syn11601481",
   workflow = "nf-rnaseq",
-  syn_out = "syn51476811"           # Custom star_salmon folder
+  syn_out = "syn51476811"  # Custom star_salmon folder
+)
+
+# Use sample names from directory structure as specimenID
+# (useful when input files have specimenID at higher level than samplesheet)
+result <- annotate_nf_workflow(
+  publish_dir = "syn51476810",
+  fileview = "syn11601481",
+  workflow = "nf-rnaseq",
+  use_sample_as_specimen_id = TRUE
 )
 }
 }

@@ -4,12 +4,14 @@
 \alias{annotate_with_samtools_stats}
 \title{Make annotations from samtools stats}
 \usage{
-annotate_with_samtools_stats(meta, samtools_stats_file = NULL)
+annotate_with_samtools_stats(meta, samtools_stats_file = NULL, verbose = TRUE)
 }
 \arguments{
 \item{meta}{Data to which tool stats will be added as additional meta.}
 
 \item{samtools_stats_file}{Path to file/syn id of file with samtools stats produced by the workflow.}
+
+\item{verbose}{Whether to output detailed debugging messages.}
 }
 \description{
 Extracts a subset of \href{http://www.htslib.org/doc/samtools-stats.html}{samtools stats}
