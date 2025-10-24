@@ -318,10 +318,10 @@ wf_links <- c(
 sample_io <- result$sample_io
 
 add_activity_batch(
-  output_id = sample_io$output_id,
-  activity_name = sample_io$workflow,
-  activity_link = wf_links[sample_io$workflow],
-  input_id = sample_io$input_id
+  entities = sample_io$output_id,
+  act_name = sample_io$workflow,
+  act_executed = wf_link,
+  used_inputs = sample_io$input_id
 )
 ```
 
