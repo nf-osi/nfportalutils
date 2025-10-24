@@ -11,7 +11,7 @@ AlignedReads"></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">nfportalutils</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9701</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9710</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -52,7 +52,7 @@ Regarding the selection of stats, see the Genomic Data Commons (GDC) model for
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">annotate_with_samtools_stats</span><span class="op">(</span><span class="va">meta</span>, samtools_stats_file <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">annotate_with_samtools_stats</span><span class="op">(</span><span class="va">meta</span>, samtools_stats_file <span class="op">=</span> <span class="cn">NULL</span>, verbose <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -65,6 +65,10 @@ Regarding the selection of stats, see the Genomic Data Commons (GDC) model for
 
 <dt id="arg-samtools-stats-file">samtools_stats_file<a class="anchor" aria-label="anchor" href="#arg-samtools-stats-file"></a></dt>
 <dd><p>Path to file/syn id of file with samtools stats produced by the workflow.</p></dd>
+
+
+<dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
+<dd><p>Whether to output detailed debugging messages.</p></dd>
 
 </dl></div>
 

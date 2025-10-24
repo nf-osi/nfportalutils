@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">nfportalutils</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9701</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9710</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -46,7 +46,13 @@
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">processed_meta</span><span class="op">(</span><span class="va">input</span>, <span class="va">output</span>, <span class="va">workflow_link</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">processed_meta</span><span class="op">(</span></span>
+<span>  <span class="va">input</span>,</span>
+<span>  <span class="va">output</span>,</span>
+<span>  <span class="va">workflow_link</span>,</span>
+<span>  use_sample_as_specimen_id <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  publish_dir <span class="op">=</span> <span class="cn">NULL</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -63,6 +69,15 @@
 
 <dt id="arg-workflow-link">workflow_link<a class="anchor" aria-label="anchor" href="#arg-workflow-link"></a></dt>
 <dd><p>Workflow link.</p></dd>
+
+
+<dt id="arg-use-sample-as-specimen-id">use_sample_as_specimen_id<a class="anchor" aria-label="anchor" href="#arg-use-sample-as-specimen-id"></a></dt>
+<dd><p>If TRUE, sets specimenID from the sample column
+(parsed from directory structure/filenames) instead of inheriting from input files.</p></dd>
+
+
+<dt id="arg-publish-dir">publish_dir<a class="anchor" aria-label="anchor" href="#arg-publish-dir"></a></dt>
+<dd><p>Top-level publish directory for finding workflow assets like SAMtools stats.</p></dd>
 
 </dl></div>
     <div class="section level2">

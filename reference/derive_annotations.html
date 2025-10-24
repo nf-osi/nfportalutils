@@ -13,7 +13,7 @@ These rules are hard-coded and might need to be expanded as the data model chang
 
     <a class="navbar-brand me-2" href="../index.html">nfportalutils</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9701</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9710</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -60,6 +60,7 @@ These rules are hard-coded and might need to be expanded as the data model chang
 <span>  template <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  schema <span class="op">=</span></span>
 <span>    <span class="st">"https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld"</span>,</span>
+<span>  use_sample_as_specimen_id <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -80,6 +81,12 @@ If not given, will use whatever is set for the attribute "template".</p></dd>
 
 <dt id="arg-schema">schema<a class="anchor" aria-label="anchor" href="#arg-schema"></a></dt>
 <dd><p>Reference to data model source.</p></dd>
+
+
+<dt id="arg-use-sample-as-specimen-id">use_sample_as_specimen_id<a class="anchor" aria-label="anchor" href="#arg-use-sample-as-specimen-id"></a></dt>
+<dd><p>If TRUE, sets specimenID from the sample column
+(parsed from directory structure/filenames) instead of inheriting from input files.
+Useful when directory structure provides more accurate specimen identifiers.</p></dd>
 
 
 <dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>

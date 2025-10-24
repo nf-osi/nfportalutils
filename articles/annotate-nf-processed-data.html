@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">nfportalutils</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9701</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9710</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -61,7 +61,7 @@
 
       <h1>Annotating nextflow processed data</h1>
             
-            <h4 data-toc-skip class="date">2022-10-17</h4>
+            <h4 data-toc-skip class="date">2025-10-24</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/nf-osi/nfportalutils/blob/develop/vignettes/annotate-nf-processed-data.Rmd" class="external-link"><code>vignettes/annotate-nf-processed-data.Rmd</code></a></small>
       <div class="d-none name"><code>annotate-nf-processed-data.Rmd</code></div>
@@ -70,266 +70,490 @@
     
     
 <div class="section level2">
-<h2 id="intro">Intro<a class="anchor" aria-label="anchor" href="#intro"></a>
+<h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
 </h2>
+<p>This vignette shows how to automatically generate metadata manifests
+and provenance information for data processed by nextflow workflows
+(nf-rnaseq and nf-sarek). These manifests can be validated and submitted
+to annotate files in Synapse or create <a href="https://help.synapse.org/docs/Datasets.2611281979.html" class="external-link">Synapse
+Datasets</a>.</p>
 <div class="section level3">
-<h3 id="purpose">Purpose<a class="anchor" aria-label="anchor" href="#purpose"></a>
+<h3 id="what-youll-learn">What you’ll learn<a class="anchor" aria-label="anchor" href="#what-youll-learn"></a>
 </h3>
-<p>This vignette documents in-practice usage of the annotation utils for
-nf-processed data files.</p>
-<p>The outputs are:<br>
-1. A metadata manifest for a processed dataset that can be further
-validated with schematic before submission. 2. Provenance meta.</p>
-<p>Typically, these are inspected/validated before submitting to Synapse
-as a final followup step.</p>
-<p>Examples can be run with READ access only to processed outputs, but
-requires you to have DOWNLOAD access or a local copy of the input
-samplesheet. To actually apply any annotations of course requires EDIT
-access.</p>
+<ol style="list-style-type: decimal">
+<li>How to extract workflow metadata automatically from
+<code>pipeline_info</code>
+</li>
+<li>How to generate annotation manifests for processed outputs</li>
+<li>How to add provenance linking outputs to inputs</li>
+<li>How to create Synapse Datasets from manifests</li>
+</ol>
 </div>
 <div class="section level3">
-<h3 id="general-idea">General idea<a class="anchor" aria-label="anchor" href="#general-idea"></a>
+<h3 id="prerequisites">Prerequisites<a class="anchor" aria-label="anchor" href="#prerequisites"></a>
 </h3>
-<p><img src="https://raw.githubusercontent.com/nf-core/rnaseq/3.14.0//docs/images/nf-core-rnaseq_metro_map_grey.png" alt="nf-core-rnaseq_metro_map" width="800"></p>
-<p>A nextflow workflow generates different types of outputs along the
-steps in the workflow (see figure above). At some of these steps/stops,
-we have products that can be collected and packaged into “level 2, 3, or
-4” datasets. For example, the <code>.bam/bai</code> outputs from
-SAMtools represent a “level 2” semi-processed dataset with a dataType of
-<code>AlignedReads</code>.</p>
-<p>Ideally, we would simply like to point to the main folder containing
-all processed output files and get back a list of manifests that
-represent all useful dataset products from the workflow. (What is a
-“useful”, selectable data product is encoded in this annotation
-workflow.)</p>
-<p>These manifests can then be used to annotate the files as well as for
-creation of <a href="https://help.synapse.org/docs/Datasets.2611281979.html" class="external-link">Synapse
-Datasets</a>.</p>
+<ul>
+<li>
+<strong>READ</strong> access to processed workflow outputs in
+Synapse</li>
+<li>
+<strong>DOWNLOAD</strong> access to the input samplesheet (or a
+local copy)</li>
+<li>
+<strong>EDIT</strong> access to apply annotations (for final
+submission step)</li>
+<li>A Synapse <strong>fileview</strong> that includes the workflow
+output files
+<ul>
+<li>
+<strong>Important:</strong> The fileview must have the
+<code>path</code> column enabled (this is required for output
+discovery)</li>
+</ul>
+</li>
+</ul>
 </div>
 </div>
 <div class="section level2">
-<h2 id="set-up">Set up<a class="anchor" aria-label="anchor" href="#set-up"></a>
+<h2 id="setup">Setup<a class="anchor" aria-label="anchor" href="#setup"></a>
 </h2>
-<p>First load the <code>nfportalutils</code> package and log in. The
-recommended default usage of <code>syn_login</code> is to use it without
-directly passing in credentials. Instead, have available the
-<code>SYNAPSE_AUTH_TOKEN</code> environment variable with your token
-stored therein.</p>
+<p>Load the package and log in with your Synapse authentication
+token:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/nf-osi/nfportalutils" class="external-link">nfportalutils</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://r-datatable.com" class="external-link">data.table</a></span><span class="op">)</span></span>
-<span><span class="fu"><a href="../reference/syn_login.html">syn_login</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<div class="section level3">
-<h3 id="steps">Steps<a class="anchor" aria-label="anchor" href="#steps"></a>
-</h3>
-<p><strong>The general annotation workflow steps are:</strong><br>
-1. Parse the input samplesheet.<br>
-2. Get basic context of processed outputs from the workflow run.<br>
-Because none of the indexed-back output files have annotations, we have
-to first construct initial info <strong>sample</strong>,
-<strong>caller</strong>, etc. out of the good ol’ folder hierarchy and
-file names.<br>
-3. Now with some sample and workflow context at least, link input-output
-data appropriately, check sample correspondence, and get into format
-expected for downstream.<br>
-4. Transfer other meta from input to output processed files (most
-important are <code>individualID</code>, basic individual attributes,
-<code>assay</code>).<br>
-5. Set annotations for processed data type based on workflow default
-rules.</p>
-<p><strong>Some potential issues should be noted:</strong></p>
-<ul>
-<li>If input files have missing or incorrect annotations, processed
-files will have missing or incorrect annotations.<br>
-</li>
-<li>If sample ids and other information are updated on the original raw
-input files, data must be reannotated by rerunning the pipeline.<br>
-</li>
-<li>Anything that deviates from a relatively standard workflow run,
-leading to changes in locations or naming of outputs, might yield poor
-results or require more manual composition of steps. Standard
-organization and naming of files is very important.</li>
-</ul>
-</div>
+<span><span class="fu"><a href="../reference/syn_login.html">syn_login</a></span><span class="op">(</span><span class="op">)</span>  <span class="co"># Requires SYNAPSE_AUTH_TOKEN environment variable</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="nf-rnaseq">nf-rnaseq<a class="anchor" aria-label="anchor" href="#nf-rnaseq"></a>
+<h2 id="quick-start-nf-rnaseq">Quick Start: nf-rnaseq<a class="anchor" aria-label="anchor" href="#quick-start-nf-rnaseq"></a>
+</h2>
+<p>Here’s a complete example annotating RNA-seq outputs with a single
+function call:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Simplest usage - everything auto-detected from standard workflow</span></span>
+<span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/annotate_nf_workflow.html">annotate_nf_workflow</a></span><span class="op">(</span></span>
+<span>  publish_dir <span class="op">=</span> <span class="st">"syn66351496"</span>,      <span class="co"># Top-level output directory (contains pipeline_info and star_salmon)</span></span>
+<span>  fileview <span class="op">=</span> <span class="st">"syn51301431"</span>,         <span class="co"># Fileview scoping the output files, *must* contain `path`</span></span>
+<span>  workflow <span class="op">=</span> <span class="st">"nf-rnaseq"</span>            <span class="co"># Workflow type</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Inspect results</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">result</span><span class="op">$</span><span class="va">manifests</span><span class="op">)</span>                      <span class="co"># Available output types</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">result</span><span class="op">$</span><span class="va">manifests</span><span class="op">$</span><span class="va">`STAR and Salmon`</span><span class="op">)</span>    <span class="co"># View manifest</span></span>
+<span><span class="va">result</span><span class="op">$</span><span class="va">workflow_info</span>                         <span class="co"># Workflow name and version</span></span></code></pre></div>
+<p>That’s it! The function automatically:</p>
+<ul>
+<li>Finds the samplesheet at
+<code>pipeline_info/samplesheet.valid.csv</code>
+</li>
+<li>Extracts workflow version from
+<code>pipeline_info/software_versions.yml</code>
+</li>
+<li>Parses the input samplesheet</li>
+<li>Discovers all available output types (which can depend on how
+workflow was run and how files were indexed back to Synapse)</li>
+<li>Generates properly annotated manifests for each output type</li>
+</ul>
+<p><strong>Optional/advanced parameters</strong> are available for: -
+Custom samplesheet location (e.g., manually corrected version) -
+Non-standard output folder organization - Selecting specific output
+types - Custom sample name parsing</p>
+</div>
+<div class="section level2">
+<h2 id="how-it-works">How it works<a class="anchor" aria-label="anchor" href="#how-it-works"></a>
 </h2>
 <div class="section level3">
-<h3 id="what-does-output-look-like">What does output look like?<a class="anchor" aria-label="anchor" href="#what-does-output-look-like"></a>
+<h3 id="understanding-nextflow-outputs">Understanding nextflow outputs<a class="anchor" aria-label="anchor" href="#understanding-nextflow-outputs"></a>
 </h3>
-<p>Use <code><a href="../reference/map_sample_output_rnaseq.html">?map_sample_output_rnaseq</a></code> to see which outputs are
-handled in the parameter <code>output</code>. <strong>But note that
-depending on how the workflow was run and data indexed back into
-Synapse, actual output availability may differ.</strong></p>
-<p>In some projects, bam/bai files may not even be indexed back into
-Synapse. As an illustrative example, the workflow outputs here
-<strong>does not</strong> include <strong>featureCounts</strong>:</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="va">syn_out</span> <span class="op">&lt;-</span> <span class="st">"syn57382909"</span></span>
-<span><span class="va">fileview</span> <span class="op">&lt;-</span> <span class="st">"syn11601495"</span></span>
-<span></span>
-<span><span class="va">o</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/map_sample_output_rnaseq.html">map_sample_output_rnaseq</a></span><span class="op">(</span><span class="va">syn_out</span>, <span class="va">fileview</span><span class="op">)</span> <span class="co"># check outputs only</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">o</span><span class="op">)</span></span></code></pre></div>
+<p><img src="https://raw.githubusercontent.com/nf-core/rnaseq/3.14.0//docs/images/nf-core-rnaseq_metro_map_grey.png" alt="nf-core-rnaseq_metro_map" width="800"></p>
+<p>Nextflow workflows generate different types of outputs at various
+steps (see figure above). At certain steps, we have products that can be
+packaged into “level 2, 3, or 4” datasets suitable for downstream
+analysis or sharing. For example:</p>
+<ul>
+<li>
+<code>.bam/.bai</code> files from SAMtools represent <strong>level
+2</strong> aligned reads</li>
+<li>
+<code>.sf</code> files from STAR and Salmon represent <strong>level
+3</strong> quantified expression data</li>
+<li>
+<code>.vcf</code> files from variant callers represent <strong>level
+3</strong> variant calls</li>
+</ul>
+<p>The goal is to <strong>point to a workflow output folder and
+automatically get back annotation manifests</strong> for all useful
+dataset products. The utilities automatically identify which output
+types are present and generate appropriate metadata for each.</p>
 </div>
 <div class="section level3">
-<h3 id="what-does-input-look-like">What does input look like?<a class="anchor" aria-label="anchor" href="#what-does-input-look-like"></a>
+<h3 id="the-annotation-workflow">The annotation workflow<a class="anchor" aria-label="anchor" href="#the-annotation-workflow"></a>
 </h3>
-<p>Like output, input is just another index of files and is actually the
-samplesheet used by the workflow to know what files to process.
-Samplesheets should be public and placed in the
-<code>pipeline_info</code> directory as part of the workflow (most of
-the time).</p>
-<p><strong>IMPORTANT: The samplesheet needs to be standard enough to
-parse correctly, i.e. to extract valid file Synapse ids from the first
-fastq.</strong> We use the same helper to parse samplesheets for the two
-workflows (both RNA-seq and Sarek), and the function will do its best to
-handle slight variations in samplesheet formats. Here are examples of
-what will work vs not:</p>
+<p>The <code><a href="../reference/annotate_nf_workflow.html">annotate_nf_workflow()</a></code> function automatically:</p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Extracts workflow version</strong> from
+<code>pipeline_info/software_versions.yml</code> using
+<code><a href="../reference/nf_workflow_version.html">nf_workflow_version()</a></code>
+</li>
+<li>
+<strong>Parses the input samplesheet</strong> to identify which raw
+files were processed</li>
+<li>
+<strong>Discovers processed outputs</strong> by querying the
+fileview for specific output types (e.g., BAM files, quantification
+files)</li>
+<li>
+<strong>Links inputs to outputs</strong> by matching sample
+identifiers from filenames and folder structure</li>
+<li>
+<strong>Transfers metadata</strong> from input files to output files
+(e.g., <code>individualID</code>, <code>assay</code>, specimen
+attributes)</li>
+<li>
+<strong>Applies workflow-specific annotations</strong> based on
+output type (e.g., <code>dataType</code>, <code>fileFormat</code>,
+<code>expressionUnit</code>)</li>
+</ol>
+<p>The function returns a list with:</p>
 <ul>
-<li>✔ OK. Excerpt from real samplesheet <a href="https://www.synapse.org/Synapse:syn51525432" class="external-link">syn51525432</a>.</li>
+<li>
+<code>manifests</code>: Named list of annotation manifests for each
+output type</li>
+<li>
+<code>sample_io</code>: Input-output mappings for provenance
+tracking</li>
+<li>
+<code>workflow_info</code>: Workflow name and version extracted from
+<code>software_versions.yml</code>
+</li>
 </ul>
+</div>
+<div class="section level3">
+<h3 id="step-by-step-workflow-advanced">Step-by-step workflow (advanced)<a class="anchor" aria-label="anchor" href="#step-by-step-workflow-advanced"></a>
+</h3>
+<p>If you need more control over individual steps, you can use the
+underlying functions directly:</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># 1. Extract workflow version</span></span>
+<span><span class="va">wf_info</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/nf_workflow_version.html">nf_workflow_version</a></span><span class="op">(</span><span class="va">syn_out</span><span class="op">)</span></span>
+<span><span class="va">wf_link</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"https://nf-co.re/rnaseq/%s/output#star-and-salmon"</span>, <span class="va">wf_info</span><span class="op">$</span><span class="va">version</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># 2. Parse input samplesheet</span></span>
+<span><span class="va">input</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/map_sample_input_ss.html">map_sample_input_ss</a></span><span class="op">(</span><span class="va">samplesheet</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># 3. Map outputs</span></span>
+<span><span class="va">output</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/map_sample_output_rnaseq.html">map_sample_output_rnaseq</a></span><span class="op">(</span><span class="va">syn_out</span>, <span class="va">fileview</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># 4. Generate manifests</span></span>
+<span><span class="va">meta</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/processed_meta.html">processed_meta</a></span><span class="op">(</span><span class="va">input</span>, <span class="va">output</span>, workflow_link <span class="op">=</span> <span class="va">wf_link</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="understanding-samplesheets">Understanding samplesheets<a class="anchor" aria-label="anchor" href="#understanding-samplesheets"></a>
+</h3>
+<p>Samplesheets are CSV files used by nextflow workflows to specify
+input files. They’re typically found in the <code>pipeline_info</code>
+directory after a workflow completes.</p>
+<p><strong>Requirements:</strong> The samplesheet must contain valid
+Synapse IDs in the fastq columns. The parser handles various
+formats:</p>
+<p>✔ <strong>Valid formats:</strong></p>
 <pre><code><span><span class="co">#&gt;                 sample     fastq_1     fastq_2 strandedness</span></span>
 <span><span class="co">#&gt; 1 JH-2-019-DB5EH-C461C syn15261791 syn15261900         auto</span></span>
-<span><span class="co">#&gt; 2 JH-2-007-B14BB-AG2A6 syn15261974 syn15262033         auto</span></span>
-<span><span class="co">#&gt; 3 JH-2-009-518B9-77BH3 syn15262157 syn15262216         auto</span></span></code></pre>
-<ul>
-<li>✔ OK. Excerpt from real samplesheet <a href="https://www.synapse.org/Synapse:syn63172939" class="external-link">syn63172939</a>.</li>
-</ul>
-<pre><code><span><span class="co">#&gt;   subject sex status     sample              lane            fastq1 fastq2</span></span>
-<span><span class="co">#&gt; 1  JHU002  XY      1 JHU002-043 JHU002-043-Lane-1 syn://syn22091879     NA</span></span>
-<span><span class="co">#&gt; 2  JHU002  XY      1 JHU002-048 JHU002-048-Lane-1 syn://syn22091925     NA</span></span>
-<span><span class="co">#&gt; 3  JHU023  XY      1 JHU023-044 JHU023-044-Lane-1 syn://syn22091973     NA</span></span>
-<span><span class="co">#&gt;     datasetId   projectId output_destination_id Germline Somatic</span></span>
-<span><span class="co">#&gt; 1 syn29783617 syn11638893           syn29429576        Y      NA</span></span>
-<span><span class="co">#&gt; 2 syn29783617 syn11638893           syn29429576        Y      NA</span></span>
-<span><span class="co">#&gt; 3 syn29783617 syn11638893           syn29429576        Y      NA</span></span></code></pre>
-<ul>
-<li>✖ No. Adapted from real samplesheet <a href="https://www.synapse.org/Synapse:syn63172939" class="external-link">syn63172939</a>. This
-will give an error because “x6” is not a valid Synapse ID. A manually
-corrected samplesheet will have to be provided.</li>
-</ul>
-<pre><code><span><span class="co">#&gt;               sample single_end</span></span>
-<span><span class="co">#&gt; 1 patient10tumor1_T1          0</span></span>
-<span><span class="co">#&gt; 2 patient10tumor2_T1          0</span></span>
-<span><span class="co">#&gt; 3 patient10tumor3_T1          0</span></span>
-<span><span class="co">#&gt;                                                             fastq_1</span></span>
-<span><span class="co">#&gt; 1         s3://some-tower-bucket/syn40134517/x6/SL106309_1.fastq.gz</span></span>
-<span><span class="co">#&gt; 2 s3://some-tower-bucket/syn40134517/syn7989846/SL106310_1.fastq.gz</span></span>
-<span><span class="co">#&gt; 3 s3://some-tower-bucket/syn40134517/syn7989852/SL106311_1.fastq.gz</span></span>
+<span><span class="co">#&gt; 2 JH-2-007-B14BB-AG2A6 syn15261974 syn15262033         auto</span></span></code></pre>
+<pre><code><span><span class="co">#&gt;       sample            fastq1 fastq2</span></span>
+<span><span class="co">#&gt; 1 JHU002-043 syn://syn22091879     NA</span></span>
+<span><span class="co">#&gt; 2 JHU023-044 syn://syn22091973     NA</span></span></code></pre>
+<p>✖ <strong>Invalid format:</strong></p>
+<pre><code><span><span class="co">#&gt;               sample                                                   fastq_1</span></span>
+<span><span class="co">#&gt; 1 patient10tumor1_T1 s3://some-tower-bucket/syn40134517/x6/SL106309_1.fastq.gz</span></span>
 <span><span class="co">#&gt;                                                             fastq_2</span></span>
-<span><span class="co">#&gt; 1 s3://some-tower-bucket/syn40134517/syn7989839/SL106309_2.fastq.gz</span></span>
-<span><span class="co">#&gt; 2 s3://some-tower-bucket/syn40134517/syn7989847/SL106310_2.fastq.gz</span></span>
-<span><span class="co">#&gt; 3 s3://some-tower-bucket/syn40134517/syn7989856/SL106311_2.fastq.gz</span></span>
-<span><span class="co">#&gt;   strandedness</span></span>
-<span><span class="co">#&gt; 1         auto</span></span>
-<span><span class="co">#&gt; 2         auto</span></span>
-<span><span class="co">#&gt; 3         auto</span></span></code></pre>
+<span><span class="co">#&gt; 1 s3://some-tower-bucket/syn40134517/syn7989839/SL106309_2.fastq.gz</span></span></code></pre>
+<p><strong>Note:</strong> If you encounter parsing errors, verify that
+all fastq paths contain valid Synapse IDs. You may need to manually
+correct the samplesheet.</p>
 </div>
 <div class="section level3">
-<h3 id="connecting-input-and-output-to-automate-filled-manifests">Connecting input and output to automate filled manifests<a class="anchor" aria-label="anchor" href="#connecting-input-and-output-to-automate-filled-manifests"></a>
+<h3 id="available-output-types">Available output types<a class="anchor" aria-label="anchor" href="#available-output-types"></a>
 </h3>
-<p>In contrast with the previous example, run this other example for an
-output directory that <em>does</em> all types of outputs we’re looking
-for in an nf-rnaseq workflow. This will be used for the rest of the
-demo. (Review the source code for <code>processed_meta</code> to see the
-steps encapsulated.)</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="va">samplesheet</span> <span class="op">&lt;-</span> <span class="st">"syn51408030"</span></span>
-<span><span class="va">syn_out</span> <span class="op">&lt;-</span> <span class="st">"syn51476810"</span></span>
-<span><span class="va">fileview</span> <span class="op">&lt;-</span> <span class="st">"syn11601481"</span></span>
-<span><span class="va">wf_link</span> <span class="op">&lt;-</span> <span class="st">"https://nf-co.re/rnaseq/3.11.2/output#star-and-salmon"</span></span>
-<span></span>
-<span><span class="va">input</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/map_sample_input_ss.html">map_sample_input_ss</a></span><span class="op">(</span><span class="va">samplesheet</span><span class="op">)</span></span>
-<span><span class="co"># Alternatively, use a local file if not on Synapse:</span></span>
-<span><span class="co"># input &lt;-  map_sample_input_ss("~/work/samplesheet.csv")</span></span>
+<p><strong>nf-rnaseq outputs:</strong></p>
+<ul>
+<li>
+<strong><code>STAR and Salmon</code></strong>: Gene quantification
+files (<code>.sf</code>) with TPM values
+<ul>
+<li>Annotations: <code>dataType</code>, <code>fileFormat</code>,
+<code>expressionUnit</code>, <code>workflowLink</code>
+</li>
+<li>QC metrics: None automatically added</li>
+</ul>
+</li>
+<li>
+<strong><code>featureCounts</code></strong>: Count matrices
+(<code>.txt</code>)
+<ul>
+<li>Annotations: <code>dataType</code>, <code>fileFormat</code>,
+<code>expressionUnit</code>, <code>workflowLink</code>
+</li>
+<li>QC metrics: None automatically added</li>
+</ul>
+</li>
+<li>
+<strong><code>SAMtools</code></strong>: Aligned reads
+(<code>.bam/.bai</code>)
+<ul>
+<li>Annotations: <code>dataType</code>, <code>fileFormat</code>,
+<code>genomicReference</code>, <code>workflowLink</code>
+</li>
+<li>
+<strong>QC metrics automatically added</strong> (from MultiQC
+SAMtools stats):
+<ul>
+<li><code>averageInsertSize</code></li>
+<li><code>averageReadLength</code></li>
+<li><code>averageBaseQuality</code></li>
+<li><code>pairsOnDifferentChr</code></li>
+<li><code>readsDuplicatedPercent</code></li>
+<li><code>readsMappedPercent</code></li>
+<li><code>totalReads</code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><strong>nf-sarek outputs:</strong></p>
+<ul>
+<li>
+<strong><code>DeepVariant</code>, <code>Strelka2</code>,
+<code>Mutect2</code>, <code>FreeBayes</code></strong>: Variant calls
+(<code>.vcf.gz/.tbi</code>)
+<ul>
+<li>Annotations: <code>dataType</code>, <code>fileFormat</code>,
+<code>workflowLink</code>
+</li>
+<li>QC metrics: None automatically added</li>
+</ul>
+</li>
+<li>
+<strong><code>CNVkit</code></strong>: Copy number analysis files
+<ul>
+<li>Annotations: <code>dataType</code>, <code>fileFormat</code>,
+<code>workflowLink</code>
+</li>
+<li>QC metrics: None automatically added</li>
+</ul>
+</li>
+</ul>
+<p>Use <code><a href="../reference/map_sample_output_rnaseq.html">?map_sample_output_rnaseq</a></code> or
+<code><a href="../reference/map_sample_output_sarek.html">?map_sample_output_sarek</a></code> for details.</p>
+<p><strong>Note:</strong> Actual output availability depends on workflow
+parameters and which files were indexed to Synapse. QC metrics for
+aligned reads follow the <a href="https://docs.gdc.cancer.gov/Data_Dictionary/viewer/#?view=table-definition-view&amp;id=aligned_reads" class="external-link">GDC
+AlignedReads model</a>.</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Check which outputs are available</span></span>
 <span><span class="va">output</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/map_sample_output_rnaseq.html">map_sample_output_rnaseq</a></span><span class="op">(</span><span class="va">syn_out</span>, <span class="va">fileview</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">output</span><span class="op">)</span></span></code></pre></div>
-<p>Generate the manifests and inspect an example result:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">meta</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/processed_meta.html">processed_meta</a></span><span class="op">(</span><span class="va">input</span>, <span class="va">output</span>, workflow_link <span class="op">=</span> <span class="va">wf_link</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">meta</span><span class="op">$</span><span class="va">manifests</span><span class="op">$</span><span class="va">SAMtools</span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="submit-manifest">Submit manifest<a class="anchor" aria-label="anchor" href="#submit-manifest"></a>
-</h3>
-<p>Manifests can be submitted with <a href="https://schematic.api.sagebionetworks.org/v1/ui/#" class="external-link">schematic</a>-compatible
-or using <code>annotate_with_manifest</code> as shown below.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">mannifest_1</span> <span class="op">&lt;-</span> <span class="va">meta</span><span class="op">$</span><span class="va">manifests</span><span class="op">$</span><span class="va">SAMtools</span></span>
-<span><span class="fu"><a href="../reference/annotate_with_manifest.html">annotate_with_manifest</a></span><span class="op">(</span><span class="va">manifest_1</span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="add-provenance">Add provenance<a class="anchor" aria-label="anchor" href="#add-provenance"></a>
-</h3>
-<p>Provenance is basically an annotation, though treated somewhat
-differently in Synapse. In the result <code>meta</code> object, there is
-something called <code>sample_io</code> that can be provided to
-<code>add_activity_batch</code> to add provenance.</p>
-<p>“Workflow” provides the general name to the activity, while “workflow
-link” provides a more persistent reference to some version/part of the
-workflow, which others can follow the link to get details.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="va">sample_io</span> <span class="op">&lt;-</span> <span class="va">meta</span><span class="op">$</span><span class="va">sample_io</span></span>
-<span><span class="va">prov</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/add_activity_batch.html">add_activity_batch</a></span><span class="op">(</span><span class="va">sample_io</span><span class="op">$</span><span class="va">output_id</span>, </span>
-<span>                           <span class="va">sample_io</span><span class="op">$</span><span class="va">workflow</span>, </span>
-<span>                           <span class="va">wf_link</span>,</span>
-<span>                           <span class="va">sample_io</span><span class="op">$</span><span class="va">input_id</span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="create-dataset">Create dataset<a class="anchor" aria-label="anchor" href="#create-dataset"></a>
-</h3>
-<p>To create a <a href="https://help.synapse.org/docs/Datasets.2611281979.html" class="external-link">Synapse
-Dataset</a>:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="va">items</span> <span class="op">&lt;-</span> <span class="va">manifest_1</span><span class="op">$</span><span class="va">entityId</span></span>
-<span><span class="va">project</span> <span class="op">&lt;-</span> <span class="st">"your-dev-project-synid"</span></span>
-<span><span class="va">dataset_1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/new_dataset.html">new_dataset</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"STAR Salmon Gene Expression Quantification from RNA-seq"</span>,</span>
-<span>                         parent <span class="op">=</span> <span class="va">project</span>,</span>
-<span>                         items <span class="op">=</span> <span class="va">items</span>,</span>
-<span>                         dry_run <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
-<h2 id="nf-sarek">nf-sarek<a class="anchor" aria-label="anchor" href="#nf-sarek"></a>
+<h2 id="submitting-annotations">Submitting annotations<a class="anchor" aria-label="anchor" href="#submitting-annotations"></a>
 </h2>
-<p>The only difference is usage of <code>map_sample_output_sarek</code>
-at Step 2.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="va">samplesheet</span> <span class="op">&lt;-</span> <span class="st">"syn38793905"</span> <span class="co"># samplesheet can be stored on Synapse or locally</span></span>
-<span><span class="va">syn_out</span> <span class="op">&lt;-</span> <span class="st">"syn27650634"</span></span>
-<span><span class="va">fileview</span> <span class="op">&lt;-</span> <span class="st">"syn13363852"</span></span>
-<span></span>
-<span><span class="va">i</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/map_sample_input_ss.html">map_sample_input_ss</a></span><span class="op">(</span><span class="va">samplesheet</span><span class="op">)</span> <span class="co">#1</span></span>
-<span><span class="va">o</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/map_sample_output_sarek.html">map_sample_output_sarek</a></span><span class="op">(</span><span class="va">syn_out</span>, <span class="va">fileview</span><span class="op">)</span> <span class="co">#2</span></span>
-<span><span class="va">sarek_meta</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/processed_meta.html">processed_meta</a></span><span class="op">(</span><span class="va">i</span>, <span class="va">o</span>, workflow_link <span class="op">=</span> <span class="st">"test"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># View first manifest</span></span>
-<span><span class="va">sarek_meta</span><span class="op">$</span><span class="va">manifests</span><span class="op">$</span><span class="va">Strelka2</span></span></code></pre></div>
 <div class="section level3">
-<h3 id="add-provenance-1">Add provenance<a class="anchor" aria-label="anchor" href="#add-provenance-1"></a>
+<h3 id="review-and-adjust-manifests">1. Review and adjust manifests<a class="anchor" aria-label="anchor" href="#review-and-adjust-manifests"></a>
 </h3>
-<p>Use the manifest to add provenance.</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Inspect manifest</span></span>
+<span><span class="va">manifest_salmon</span> <span class="op">&lt;-</span> <span class="va">result</span><span class="op">$</span><span class="va">manifests</span><span class="op">$</span><span class="va">`STAR and Salmon`</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">manifest_salmon</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Adjust annotations if needed (manifests are just data.tables)</span></span>
+<span><span class="co"># For example, if your workflow used a different genome reference:</span></span>
+<span><span class="va">manifest_bam</span> <span class="op">&lt;-</span> <span class="va">result</span><span class="op">$</span><span class="va">manifests</span><span class="op">$</span><span class="va">SAMtools</span></span>
+<span><span class="va">manifest_bam</span><span class="op">$</span><span class="va">genomicReference</span> <span class="op">&lt;-</span> <span class="st">"GRCh37"</span>  <span class="co"># Change from default GRCh38</span></span></code></pre></div>
+<p><strong>Note:</strong> The <code>genomicReference</code> for aligned
+reads defaults to <code>GRCh38</code>. If your workflow used a different
+reference genome (e.g., GRCh37, mm10), simply update the manifest table
+before submission.</p>
+</div>
+<div class="section level3">
+<h3 id="validate-manifest-recommended">2. Validate manifest (recommended)<a class="anchor" aria-label="anchor" href="#validate-manifest-recommended"></a>
+</h3>
+<p>We expect the result to valid, but it never hurts to check in case
+the latest data model specifications has changes that need code
+updates.</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
+<span><span class="co"># To validate, you must write out to a file first</span></span>
+<span><span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/fwrite.html" class="external-link">fwrite</a></span><span class="op">(</span><span class="va">manifest_salmon</span>, <span class="st">"manifest.csv"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># This may take a couple of minutes, depending on size</span></span>
+<span><span class="fu"><a href="../reference/manifest_validate.html">manifest_validate</a></span><span class="op">(</span>data_type <span class="op">=</span> <span class="st">"ProcessedExpressionTemplate"</span>, file <span class="op">=</span> <span class="st">"manifest.csv"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="submit-annotations-to-synapse">3. Submit annotations to Synapse<a class="anchor" aria-label="anchor" href="#submit-annotations-to-synapse"></a>
+</h3>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/annotate_with_manifest.html">annotate_with_manifest</a></span><span class="op">(</span><span class="va">manifest_salmon</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="add-provenance">4. Add provenance<a class="anchor" aria-label="anchor" href="#add-provenance"></a>
+</h3>
+<p>Link processed outputs to their raw input files:</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sample_io</span> <span class="op">&lt;-</span> <span class="va">result</span><span class="op">$</span><span class="va">sample_io</span></span>
+<span></span>
+<span><span class="co"># Extract workflow link from the result</span></span>
+<span><span class="va">wf_link</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span></span>
+<span>  <span class="st">"https://nf-co.re/rnaseq/%s/output#star-and-salmon"</span>,</span>
+<span>  <span class="va">result</span><span class="op">$</span><span class="va">workflow_info</span><span class="op">$</span><span class="va">version</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/add_activity_batch.html">add_activity_batch</a></span><span class="op">(</span></span>
+<span>  entities <span class="op">=</span> <span class="va">sample_io</span><span class="op">$</span><span class="va">output_id</span>,</span>
+<span>  act_name <span class="op">=</span> <span class="va">sample_io</span><span class="op">$</span><span class="va">workflow</span>,</span>
+<span>  act_executed <span class="op">=</span> <span class="va">wf_link</span>,</span>
+<span>  used_inputs <span class="op">=</span> <span class="va">sample_io</span><span class="op">$</span><span class="va">input_id</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p>Provenance establishes the computational lineage: raw data → workflow
+→ processed data.</p>
+</div>
+<div class="section level3">
+<h3 id="create-synapse-dataset-recommended">5. Create Synapse Dataset (recommended)<a class="anchor" aria-label="anchor" href="#create-synapse-dataset-recommended"></a>
+</h3>
+<p>Package the annotated files into a Synapse Dataset object:</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
-<span><span class="va">wf_link</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>FreeBayes <span class="op">=</span> <span class="st">"https://nf-co.re/sarek/3.2.3/output#freebayes"</span>,</span>
-<span>             Mutect2 <span class="op">=</span> <span class="st">"https://nf-co.re/sarek/3.2.3/output#gatk-mutect2"</span>,</span>
-<span>             Strelka2 <span class="op">=</span> <span class="st">"https://nf-co.re/sarek/3.2.3/output#strelka2"</span><span class="op">)</span></span>
+<span><span class="va">dataset_salmon</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/new_dataset.html">new_dataset</a></span><span class="op">(</span></span>
+<span>  name <span class="op">=</span> <span class="st">"STAR Salmon Gene Expression Quantification"</span>,</span>
+<span>  parent <span class="op">=</span> <span class="st">"syn12345678"</span>,  <span class="co"># Your project id</span></span>
+<span>  items <span class="op">=</span> <span class="va">manifest_salmon</span><span class="op">$</span><span class="va">entityId</span>,</span>
+<span>  dry_run <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+</div>
+</div>
+<div class="section level2">
+<h2 id="nf-sarek-workflow">nf-sarek workflow<a class="anchor" aria-label="anchor" href="#nf-sarek-workflow"></a>
+</h2>
+<p>The process is identical to nf-rnaseq, just specify
+<code>workflow = "nf-sarek"</code>:</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Generate manifests for sarek workflow</span></span>
+<span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/annotate_nf_workflow.html">annotate_nf_workflow</a></span><span class="op">(</span></span>
+<span>  syn_out <span class="op">=</span> <span class="st">"syn27650634"</span>,</span>
+<span>  fileview <span class="op">=</span> <span class="st">"syn13363852"</span>,</span>
+<span>  workflow <span class="op">=</span> <span class="st">"nf-sarek"</span>,</span>
+<span>  samplesheet <span class="op">=</span> <span class="st">"syn38793905"</span></span>
+<span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">sample_io</span> <span class="op">&lt;-</span> <span class="va">sarek_meta</span><span class="op">$</span><span class="va">sample_io</span></span>
+<span><span class="co"># View available manifests</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">result</span><span class="op">$</span><span class="va">manifests</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">result</span><span class="op">$</span><span class="va">manifests</span><span class="op">$</span><span class="va">Strelka2</span><span class="op">)</span></span></code></pre></div>
+<div class="section level3">
+<h3 id="sarek-provenance-with-caller-specific-links">Sarek provenance with caller-specific links<a class="anchor" aria-label="anchor" href="#sarek-provenance-with-caller-specific-links"></a>
+</h3>
+<p>For variant calling, you can provide caller-specific documentation
+links:</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Create caller-specific workflow links using extracted version</span></span>
+<span><span class="va">wf_links</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>  FreeBayes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"https://nf-co.re/sarek/%s/output#freebayes"</span>, <span class="va">result</span><span class="op">$</span><span class="va">workflow_info</span><span class="op">$</span><span class="va">version</span><span class="op">)</span>,</span>
+<span>  Mutect2 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"https://nf-co.re/sarek/%s/output#gatk-mutect2"</span>, <span class="va">result</span><span class="op">$</span><span class="va">workflow_info</span><span class="op">$</span><span class="va">version</span><span class="op">)</span>,</span>
+<span>  Strelka2 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"https://nf-co.re/sarek/%s/output#strelka2"</span>, <span class="va">result</span><span class="op">$</span><span class="va">workflow_info</span><span class="op">$</span><span class="va">version</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="../reference/add_activity_batch.html">add_activity_batch</a></span><span class="op">(</span><span class="va">sample_io</span><span class="op">$</span><span class="va">output_id</span>, </span>
-<span>                   <span class="va">sample_io</span><span class="op">$</span><span class="va">workflow</span>, </span>
-<span>                   <span class="va">wf_link</span><span class="op">[</span><span class="va">sample_io</span><span class="op">$</span><span class="va">workflow</span><span class="op">]</span>, </span>
-<span>                   <span class="va">sample_io</span><span class="op">$</span><span class="va">input_id</span><span class="op">)</span></span>
-<span>   </span></code></pre></div>
-<p>After provenance, the rest of the workflow for manifest submission or
-creating datasets is like the nf-rnaseq example.</p>
+<span><span class="va">sample_io</span> <span class="op">&lt;-</span> <span class="va">result</span><span class="op">$</span><span class="va">sample_io</span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/add_activity_batch.html">add_activity_batch</a></span><span class="op">(</span></span>
+<span>  entities <span class="op">=</span> <span class="va">sample_io</span><span class="op">$</span><span class="va">output_id</span>,</span>
+<span>  act_name <span class="op">=</span> <span class="va">sample_io</span><span class="op">$</span><span class="va">workflow</span>,</span>
+<span>  act_executed <span class="op">=</span> <span class="va">wf_links</span><span class="op">[</span><span class="va">sample_io</span><span class="op">$</span><span class="va">workflow</span><span class="op">]</span>,</span>
+<span>  used_inputs <span class="op">=</span> <span class="va">sample_io</span><span class="op">$</span><span class="va">input_id</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+</div>
+</div>
+<div class="section level2">
+<h2 id="troubleshooting">Troubleshooting<a class="anchor" aria-label="anchor" href="#troubleshooting"></a>
+</h2>
+<p><strong>Common issues:</strong></p>
+<ul>
+<li>
+<strong>Missing or incorrect annotations on outputs:</strong> Check
+that input files have complete, correct annotations. Outputs inherit
+metadata from inputs.</li>
+<li>
+<strong>Parsing errors:</strong> Verify samplesheet contains valid
+Synapse IDs. Use <code><a href="../reference/map_sample_input_ss.html">map_sample_input_ss()</a></code> on a local corrected
+copy if needed.</li>
+<li>
+<strong>Missing outputs:</strong> Ensure files are indexed to
+Synapse and included in the fileview. Check workflow parameters to
+confirm outputs were generated.</li>
+<li>
+<strong>Non-standard organization:</strong> The utils expect
+standard nf-core output structure. Custom workflows may require manual
+adjustments.</li>
+</ul>
+<p><strong>Best practices:</strong></p>
+<ul>
+<li>Always use <code>dry_run = TRUE</code> when testing annotation or
+dataset creation functions</li>
+<li>Validate manifests with schematic before bulk submission</li>
+<li>Keep workflow outputs in standard nf-core directory structure</li>
+<li>Maintain complete annotations on raw input files</li>
+</ul>
+</div>
+<div class="section level2">
+<h2 id="advanced-usage">Advanced usage<a class="anchor" aria-label="anchor" href="#advanced-usage"></a>
+</h2>
+<div class="section level3">
+<h3 id="using-local-samplesheets">Using local samplesheets<a class="anchor" aria-label="anchor" href="#using-local-samplesheets"></a>
+</h3>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/annotate_nf_workflow.html">annotate_nf_workflow</a></span><span class="op">(</span></span>
+<span>  syn_out <span class="op">=</span> <span class="st">"syn51476810"</span>,</span>
+<span>  fileview <span class="op">=</span> <span class="st">"syn11601481"</span>,</span>
+<span>  workflow <span class="op">=</span> <span class="st">"nf-rnaseq"</span>,</span>
+<span>  samplesheet <span class="op">=</span> <span class="st">"~/work/corrected_samplesheet.csv"</span>  <span class="co"># Local path</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="custom-sample-parsing">Custom sample parsing<a class="anchor" aria-label="anchor" href="#custom-sample-parsing"></a>
+</h3>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Custom function to parse sample names (e.g., remove technical replicate suffix)</span></span>
+<span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/annotate_nf_workflow.html">annotate_nf_workflow</a></span><span class="op">(</span></span>
+<span>  syn_out <span class="op">=</span> <span class="st">"syn51476810"</span>,</span>
+<span>  fileview <span class="op">=</span> <span class="st">"syn11601481"</span>,</span>
+<span>  workflow <span class="op">=</span> <span class="st">"nf-rnaseq"</span>,</span>
+<span>  samplesheet <span class="op">=</span> <span class="st">"syn51408030"</span>,</span>
+<span>  parse_fun <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">gsub</a></span><span class="op">(</span><span class="st">"_rep[0-9]$"</span>, <span class="st">""</span>, <span class="va">x</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="selecting-specific-outputs">Selecting specific outputs<a class="anchor" aria-label="anchor" href="#selecting-specific-outputs"></a>
+</h3>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Only process STAR and Salmon outputs (skip BAM files and featureCounts)</span></span>
+<span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/annotate_nf_workflow.html">annotate_nf_workflow</a></span><span class="op">(</span></span>
+<span>  syn_out <span class="op">=</span> <span class="st">"syn51476810"</span>,</span>
+<span>  fileview <span class="op">=</span> <span class="st">"syn11601481"</span>,</span>
+<span>  workflow <span class="op">=</span> <span class="st">"nf-rnaseq"</span>,</span>
+<span>  samplesheet <span class="op">=</span> <span class="st">"syn51408030"</span>,</span>
+<span>  output_types <span class="op">=</span> <span class="st">"STAR and Salmon"</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="auto-detecting-samplesheet">Auto-detecting samplesheet<a class="anchor" aria-label="anchor" href="#auto-detecting-samplesheet"></a>
+</h3>
+<p>For newer workflows, the samplesheet can be auto-detected:</p>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Omit samplesheet parameter - will search in pipeline_info</span></span>
+<span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/annotate_nf_workflow.html">annotate_nf_workflow</a></span><span class="op">(</span></span>
+<span>  syn_out <span class="op">=</span> <span class="st">"syn51476810"</span>,</span>
+<span>  fileview <span class="op">=</span> <span class="st">"syn11601481"</span>,</span>
+<span>  workflow <span class="op">=</span> <span class="st">"nf-rnaseq"</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 </div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
