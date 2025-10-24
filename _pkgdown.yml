@@ -54,6 +54,7 @@ reference:
   - map_sample_io
   - map_sample_output_rnaseq
   - map_sample_output_sarek
+  - annotate_nf_workflow
   - annotate_processed
   - annotate_aligned_reads
   - annotate_called_variants

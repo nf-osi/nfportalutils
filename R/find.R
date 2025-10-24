@@ -60,7 +60,7 @@ find_child <- function(child_name, parent) {
 #' @param id Synapse id
 #' @export
 find_parent <- function(id) {
-  .syn$get(syn_out, downloadFile = F)$properties$parentId
+  .syn$get(id, downloadFile = F)$properties$parentId
 }
 
 

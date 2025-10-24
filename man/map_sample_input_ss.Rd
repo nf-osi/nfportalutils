@@ -6,7 +6,7 @@
 \usage{
 map_sample_input_ss(
   samplesheet,
-  parse_fun = function(x) gsub("_T[0-9]$", "", x)
+  parse_fun = function(x) gsub("_T[0-9]+$", "", x)
 )
 }
 \arguments{

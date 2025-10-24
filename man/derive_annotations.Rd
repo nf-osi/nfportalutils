@@ -9,6 +9,7 @@ derive_annotations(
   template = NULL,
   schema =
     "https://raw.githubusercontent.com/nf-osi/nf-metadata-dictionary/main/NF.jsonld",
+  use_sample_as_specimen_id = FALSE,
   verbose = TRUE
 )
 }
@@ -20,6 +21,10 @@ This controls which attributes are relevant for transfer/keep.
 If not given, will use whatever is set for the attribute "template".}
 
 \item{schema}{Reference to data model source.}
+
+\item{use_sample_as_specimen_id}{If TRUE, sets specimenID from the sample column
+(parsed from directory structure/filenames) instead of inheriting from input files.
+Useful when directory structure provides more accurate specimen identifiers.}
 
 \item{verbose}{Whether to output detailed messages.}
 }

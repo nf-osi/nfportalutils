@@ -4,7 +4,13 @@
 \alias{processed_meta}
 \title{Metadata for processed products}
 \usage{
-processed_meta(input, output, workflow_link)
+processed_meta(
+  input,
+  output,
+  workflow_link,
+  use_sample_as_specimen_id = FALSE,
+  publish_dir = NULL
+)
 }
 \arguments{
 \item{input}{Data from \code{map_sample_input_ss}.}
@@ -12,6 +18,11 @@ processed_meta(input, output, workflow_link)
 \item{output}{Data from \verb{map_sample_output_*}.}
 
 \item{workflow_link}{Workflow link.}
+
+\item{use_sample_as_specimen_id}{If TRUE, sets specimenID from the sample column
+(parsed from directory structure/filenames) instead of inheriting from input files.}
+
+\item{publish_dir}{Top-level publish directory for finding workflow assets like SAMtools stats.}
 }
 \value{
 List \code{manifest} with manifests for each processed dataset,
