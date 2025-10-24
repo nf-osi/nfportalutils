@@ -328,7 +328,7 @@ derive_annotations <- function(sample_io,
     rbindlist(fill = T, idcol = "entityId")
 
   metadata <- merge(annotations,
-                    sample_io[, .(entityId = output_id, Filename = output_name, workflow, sample)],
+                    sample_io[, .(entityId = output_id, Filename = output_name, sample)],
                     by = "entityId")
 
   # Optionally override specimenID with sample from directory structure

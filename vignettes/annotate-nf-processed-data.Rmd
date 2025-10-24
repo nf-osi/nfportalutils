@@ -17,7 +17,7 @@ knitr::opts_chunk$set(
 
 ## Overview
 
-This vignette shows how to automatically generate metadata manifests and provenance information for data processed by nextflow workflows (nf-rnaseq and nf-sarek). These manifests can be validated with schematic and used to annotate files in Synapse or create [Synapse Datasets](https://help.synapse.org/docs/Datasets.2611281979.html).
+This vignette shows how to automatically generate metadata manifests and provenance information for data processed by nextflow workflows (nf-rnaseq and nf-sarek). These manifests can be validated and submitted to annotate files in Synapse or create [Synapse Datasets](https://help.synapse.org/docs/Datasets.2611281979.html).
 
 ### What you'll learn
 
@@ -51,8 +51,8 @@ Here's a complete example annotating RNA-seq outputs with a single function call
 ```{r rnaseq-quickstart, eval=FALSE}
 # Simplest usage - everything auto-detected from standard workflow
 result <- annotate_nf_workflow(
-  publish_dir = "syn51476810",      # Top-level output directory (contains pipeline_info)
-  fileview = "syn11601481",         # Fileview scoping the output files
+  publish_dir = "syn66351496",      # Top-level output directory (contains pipeline_info and star_salmon)
+  fileview = "syn51301431",         # Fileview scoping the output files, *must* contain `path`
   workflow = "nf-rnaseq"            # Workflow type
 )
 
@@ -67,10 +67,10 @@ That's it! The function automatically:
 - Finds the samplesheet at `pipeline_info/samplesheet.valid.csv`
 - Extracts workflow version from `pipeline_info/software_versions.yml`
 - Parses the input samplesheet
-- Discovers all available output types
+- Discovers all available output types (which can depend on how workflow was run and how files were indexed back to Synapse)
 - Generates properly annotated manifests for each output type
 
-**Optional parameters** are available for:
+**Optional/advanced parameters** are available for:
 - Custom samplesheet location (e.g., manually corrected version)
 - Non-standard output folder organization
 - Selecting specific output types
@@ -213,8 +213,8 @@ names(output)
 
 ### 1. Review and adjust manifests
 
-```{r submit-manifest, eval=FALSE}
-# Inspect manifest before submission
+```{r review-manifest, eval=FALSE}
+# Inspect manifest
 manifest_salmon <- result$manifests$`STAR and Salmon`
 head(manifest_salmon)
 
@@ -223,15 +223,32 @@ head(manifest_salmon)
 manifest_bam <- result$manifests$SAMtools
 manifest_bam$genomicReference <- "GRCh37"  # Change from default GRCh38
 
-# Submit annotations to Synapse
-annotate_with_manifest(manifest_salmon)
 ```
 
 **Note:** The `genomicReference` for aligned reads defaults to `GRCh38`. If your workflow used a different reference genome (e.g., GRCh37, mm10), simply update the manifest table before submission.
 
-Alternatively, validate with [schematic](https://schematic.api.sagebionetworks.org/v1/ui/) before submission.
+### 2. Validate manifest (recommended)
 
-### 2. Add provenance
+We expect the result to valid, but it never hurts to check in case the latest data model specifications has changes that need code updates.
+
+```{r validate-manifest, eval=FALSE}
+
+# To validate, you must write out to a file first
+fwrite(manifest_salmon, "manifest.csv")
+
+# This may take a couple of minutes, depending on size
+manifest_validate(data_type = "ProcessedExpressionTemplate", file = "manifest.csv")
+
+```
+
+### 3. Submit annotations to Synapse
+
+```{r submit-manifest, eval=FALSE}
+annotate_with_manifest(manifest_salmon)
+```
+
+
+### 4. Add provenance
 
 Link processed outputs to their raw input files:
 
@@ -254,14 +271,15 @@ add_activity_batch(
 
 Provenance establishes the computational lineage: raw data → workflow → processed data.
 
-### 3. Create Synapse Dataset (optional)
+### 5. Create Synapse Dataset (recommended)
 
-Package the annotated files as a reusable dataset:
+Package the annotated files into a Synapse Dataset object:
 
 ```{r create-dataset, eval=FALSE}
+
 dataset_salmon <- new_dataset(
   name = "STAR Salmon Gene Expression Quantification",
-  parent = "syn12345678",  # Your project or folder
+  parent = "syn12345678",  # Your project id
   items = manifest_salmon$entityId,
   dry_run = FALSE
 )
