@@ -46,6 +46,7 @@ reference:
   - precheck_manifest
   - remanifest
   - infer_data_type
+  - generate_nfcore_manifest
 - subtitle: Special annotation of nextflow processed data
   desc: Special annotation of nextflow processed data
 - contents:
