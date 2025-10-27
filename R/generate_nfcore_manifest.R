@@ -145,8 +145,8 @@ generate_nfcore_manifest <- function(dataset_id,
       ),
       # Determine if file is R1 or R2 based on filename
       read_type = dplyr::case_when(
-        grepl("-R1\\.fastq\\.gz$", name) ~ "R1",
-        grepl("-R2\\.fastq\\.gz$", name) ~ "R2",
+        grepl("_1\\.fq\\.gz$", name) ~ "R1",
+        grepl("_2\\.fq\\.gz$", name) ~ "R2",
         TRUE ~ "unknown"
       ),
       # Create file path based on synstage setting
