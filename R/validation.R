@@ -9,15 +9,14 @@
 #'
 #' @param id Id of entity to which schema will be bound
 #' @param schema_id Schema id as registered on Synapse.
-#' Examples for "latest" or explicitly versioned schemas: "org.synapse.nf-portalstudy", "org.synapse.nf-rnaseqtemplate-1.0.0".
-#' (e.g., use "1.8.1" not "1.08.1").
+#' Examples for "latest" or explicitly versioned schemas: "org.synapse.nf-portalstudy", "org.synapse.nf-rnaseqtemplate-10.2.0".
 #' @param derived_annotations Whether to enabled derived annotations.
 #' Default `FALSE` as this is the API default.
 #' @export
 #' @examples
 #' \dontrun{
 #' # Bind a dataset schema to a folder
-#' bind_schema(id = "syn12345678", schema_id = "org.synapse.nf-rnaseqtemplate-1.0.0")
+#' bind_schema(id = "syn12345678", schema_id = "org.synapse.nf-rnaseqtemplate-10.2.0")
 #'
 #' # Bind with derived annotations enabled
 #' bind_schema(id = "syn12345678",
@@ -25,7 +24,7 @@
 #'             derived_annotations = TRUE)
 #'
 #' # Replace an existing schema binding with a new one
-#' bind_schema(id = "syn12345678", schema_id = "org.synapse.nf-rnaseqtemplate-2.0.0")
+#' bind_schema(id = "syn12345678", schema_id = "org.synapse.nf-rnaseqtemplate-11.0.0")
 #' }
 bind_schema <- function(id, schema_id, derived_annotations = FALSE) {
   
