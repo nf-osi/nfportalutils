@@ -1,5 +1,5 @@
 ---
-title: "Revalidation workflows"
+title: "Validation workflows"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{revalidation-workflows}
@@ -8,32 +8,69 @@ vignette: >
 ---
 
 
-This vignette demonstrates variants of metadata revalidation workflows.
+This vignette demonstrates two approaches for programmatic metadata validation workflows using the utilities in this package. 
+Validating metadata via the UI is covered elsewhere. 
 
+First set up as usual:
 
-
-First set up as usual.
-
-```r
+```{r, eval = F}
 
 library(nfportalutils)
 syn_login(Sys.getenv("SYNAPSE_AUTH_TOKEN"))
+
 ```
 
-## Basics with Schematic API service
 
-Schematic API only works with dataset folders currently. Find a dataset folder.
+## Option 1: Using Synapse validation service
 
-1. To validate metadata, a manifest must be reconstituted.
+The Synapse validation service will be the main validation service to use starting in 2026. 
+Before validating with Synapse's native backend capabilities, make sure a JSON schema is "bound" to the folder. 
+Here's our example folder with several files; two directly under the folder and one in a subfolder.
+
+```{r}
+my_dataset <- "syn51106460"
+```
+
+1. Bind the schema that we know to be the appropriate one: 
+
+```{r, eval=F}
+
+# Preferred: Bind explicit version
+bind_schema(id = my_dataset, schema_id = "org.synapse.nf-generalmeasuredatatemplate-10.2.0")
+
+# Use carefully: Bind the "latest" (last registered) version
+# bind_schema(id = my_dataset, schema_id = "org.synapse.nf-generalmeasuredatatemplate")
+```
+
+2. Validate all items in the folder. 
+A fileview that includes the folder in the scope is required.
+The results are returned as the "raw" response; if you want a summary format, create a function to process the results as desired. 
+
+```{r, eval=F}
+validate_dataset_folder(my_dataset, fileview = "syn64364141")
+```
+
+
+## Option 2 (will be DEPRECATED in 2026): Using Schematic API service
+
+Most validation will use schematic service until 2026. 
+Note that the schematic API only works with dataset folders currently. 
+An example dataset folder is given below:
+
+```{r, eval=F}
+
+my_dataset <- "syn25386362"
+
+```
+
+1. To validate metadata, a manifest must be reconstituted, i.e. we create a csv from the annotations currently on the files. 
 Type `?manifest_generate` to read the docs.
 
-As seen in the params below, you do need to know the `data_type` to validate against.
-The `data_type` is the same as the "Component" in the schematic data model (and so the exact term depends on the data model).
+You need to know the `data_type` to validate against.
+The `data_type` is the same as the "Component" value in the schematic data model.
 If feeling lucky, try `infer_data_type`.
 
 ```r
-
-my_dataset <- "syn25386362"
 
 inferred <- infer_data_type(my_dataset)
 inferred
@@ -42,8 +79,13 @@ inferred
 #> 
 #> $notes
 #> [1] ""
+```
 
-data_type <- inferred$result
+Once `data_type` is in hand, here's the general invocation:
+
+```r
+
+data_type <- inferred$result # Or set manually otherwise
 
 manifest_generate(data_type, 
                   dataset_id = my_dataset,
@@ -54,7 +96,7 @@ manifest_generate(data_type,
 #> [1] "https://docs.google.com/spreadsheets/d/11ymlnESzn7XhHS3vHzlRFsDPhafJJehlhuCL9HgICt8"
 ```
 
-2. Go to google_sheet and download as `.csv`. If Excel was chosen, open in some spreadsheet editor and resave file as `.csv`.
+2. Go to the google_sheet and download as `.csv`. If Excel was chosen, open in some spreadsheet editor and resave file as `.csv`.
 Then validate.
 
 ```r
@@ -450,50 +492,5 @@ manifest_validate(data_type = data_type,
 
 3. Make corrections in the `.csv` according to validation laundry list.
 
-4. Submit corrected manifest via DCA.
+4. Submit corrected manifest via DCA (or via `annotate_with_manifest`).
 
-## Alternative with dataset entity
-
-For working with dataset entities or doing extra checks, this slightly different workflow can be applied instead.
-Dataset entities may be more complicated because they can combine files in different times and places (batches).
-
-1. Generate a manifest for Synapse dataset entity. 
-We need to use `remanifest`; to understand differences, read the docs by running `?remanifest`. 
-
-```r
-datasets <- list_project_datasets(project_id = "syn4939902", type = "dataset")
-new_datasets <- Filter(function(d) as.Date(d$createdOn) > as.Date("2023-12-01"), datasets) # or filter by name
-```
-
-We will use the first item as the demo.
-
-```r
-test <- new_datasets[[1]]$id
-remanifest(test, file = "manifest_rd1.csv")
-#> ✔️ Saved manifest as manifest_rd1.csv
-```
-
-For reproducibility this original manifest "manifest_rd1.csv" is in the vignettes folder.
-
-2. Run precheck.
-
-```r
-precheck_manifest("manifest_rd1.csv")
-#> ❌ Multiple components detected in a single manifest: 'RNASeqTemplate', 'GenomicsAssayTemplate', ''. This can happen when files were annotated at different eras.
-#> Suggestions: 1) Split up the manifest because schematic can only validate one type at a type. 2) Harmonize the components if this is sensible.
-#> For example, RNASeqTemplate is an alias for GenomicsAssayTemplate
-#> ❌ Blank value '' for Component detected. This can happen because files were annotated before 2022, when Component was introduced for most DCCs.
-#> ❌ The pattern of these attribute names suggest duplicates: '...1', '...44', '...46'. This may happen when metadata is supplemented programmatically with a data-type mismatch
-#> ⚠️ An attribute `Uuid` is present and should preferably be removed. See issue # .
-#> ⚠️ An attribute `eTag` is present and preferably be removed.
-#> ℹ️ Custom attributes (not documented in data model) were found: 'entityId', '...1', 'Uuid', 'DNA_ID', 'RNA_ID', 'tissue', 'bodyPart', 'parentSpecimenId', 'eTag', '...44', '...46', 'accessTeam', 'accessType', 'sciDataRelease', 'specimenIdSource', 'timePointUnit', 'transplantationDonorTissue', 'transplantationDonorSpecies'. In general, custom attributes added by the researcher to help with data management are fine.
-#> Just check that they are not PHI or added by mistake. If they are deemed generally useful or important enough, they can also be documented officially in the data model for others to reference.
-```
-
-3. Make a copy of "manifest_rd1.csv", e.g. "manifest_rd1_corrected.csv" and use precheck notes to help make corrections.
-
-4. Validate "manifest_rd1_corrected.csv" using schematic service (same as above, not run since general validation output has already been shown).
-
-5. Make *more* corrections as needed.
-
-6. Finally submit corrected manifest.
