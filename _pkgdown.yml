@@ -67,6 +67,8 @@ reference:
 - subtitle: Validate metadata
 - contents:
   - validate_bound_entity
+  - validate_dataset_folder
+  - validate_dataset_items
   - validate_collection_items
 
 - title: Dataset Creation and Management

@@ -2,20 +2,26 @@
 % Please edit documentation in R/validation.R
 \name{validate_collection_items}
 \alias{validate_collection_items}
+\alias{validate_dataset_items}
 \title{Validate metadata of items in a collection}
 \usage{
-validate_collection_items(collection_id, schema_id)
+validate_collection_items(collection_id, mc.cores = NULL)
+
+validate_dataset_items(collection_id, mc.cores = NULL)
 }
 \arguments{
 \item{collection_id}{Collection id.}
 
-\item{schema_id}{Id of schema that items are expected to be bound to, e.g. "org.synapse.nf-portaldataset".}
+\item{mc.cores}{Number of cores to use for parallel validation.
+Defaults to \code{min(parallel::detectCores() / 2, 4)} to be conservative.
+Set to 1 to disable parallel processing.}
+}
+\value{
+A list with \code{validation_error} component containing any validation errors found.
 }
 \description{
 This is usually used with a dataset collection.
-For each item in the collection, check first that it is bound to the expected schema.
-Then check that the item's annotations validate against the schema, using Synapse's native validation services.
-}
-\details{
-The result partitions any \code{bound_schema_error} and \code{validation_error} in a list.
+Items in a collection inherit the schema binding from the collection,
+so this function validates each item's annotations against the inherited schema
+using Synapse's native validation services.
 }

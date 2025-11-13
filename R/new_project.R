@@ -298,21 +298,3 @@ is_valid_team <- function(id) {
   if(length(status)) return(TRUE) else return(FALSE)
 }
 
-#' Wrapper for JSON schema binding
-#'
-#' See https://help.synapse.org/docs/JSON-Schemas.3107291536.html
-#'
-#' @param id Id of entity to which schema will be bound
-#' @param schema_id Schema id as registered on Synapse.
-#' @param derived_annotations Whether to enabled derived annotations.
-#' Default `FALSE` as this is the API default.
-#' @export
-bind_schema <- function(id, schema_id, derived_annotations = FALSE) {
-
-  bind_schema_request <- jsonlite::toJSON(list(entityId = id,
-                                               `schema$id` = schema_id,
-                                               enableDerivedAnnotations = derived_annotations),
-                                          auto_unbox = TRUE)
-  binding_uri <- glue::glue("https://repo-prod.prod.sagebase.org/repo/v1/entity/{id}/schema/binding")
-  try(.syn$restPUT(binding_uri, bind_schema_request))
-}
