@@ -1,0 +1,62 @@
+# Convert a delimited string to a stringlist annotation
+
+This is a schema change operation that updates 1) column type to list
+and 2) sets a new `max string length` parameter of a Synapse Table
+(usually shrinking the max value). It can optionally consult a metadata
+model about a good `max string length`. (and might handle
+`max list length` in the future if that could be encoded in the model as
+well). When a model *is* consulted, as a built-in check an error will be
+thrown if the data model doesn't recognize the key being changed, i.e.
+when one wants to be strict about a key in the Table not documented by
+the model. When there is no model to involve (`schema` = NULL), the
+`max string length` will simply be set based on the current values after
+processing the delimited list (the original code).
+
+## Usage
+
+``` r
+convert_to_stringlist(
+  fileview_id,
+  annotation_key,
+  sep = ",",
+  trim_ws = TRUE,
+  schema = NULL,
+  dry_run = TRUE
+)
+```
+
+## Arguments
+
+- fileview_id:
+
+  The synapse id of a fileview. Must have the desired annotations in the
+  schema, and must have the files to annotate included in the scope.
+  Must have write access to the files you want to re-annotate.
+
+- annotation_key:
+
+  A character string of the annotation to switch from a delimited string
+  to a stringlist.
+
+- sep:
+
+  The delimiter in the character string. Default = ",".
+
+- trim_ws:
+
+  Remove white space at the beginning and end of list items (e.g. "NF1,
+  NF2" and "NF1,NF2" will yield the same STRING_LIST result). Default =
+  TRUE.
+
+- schema:
+
+  Optional, path to a readable .jsonld schema to use for setting new col
+  schema. See details.
+
+- dry_run:
+
+  Skip upload to table and instead prints study tibble. Default = TRUE.
+
+## Value
+
+If dry_run == T, returns list of updates and skips upload.

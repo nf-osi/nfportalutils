@@ -7,8 +7,8 @@
 <url><loc>/articles/annotate-nf-processed-data.html</loc></url>
 <url><loc>/articles/exporting-data-to-other-platforms-cbioportal.html</loc></url>
 <url><loc>/articles/index.html</loc></url>
-<url><loc>/articles/revalidation-workflows.html</loc></url>
 <url><loc>/articles/survey-public-files.html</loc></url>
+<url><loc>/articles/validation-workflows.html</loc></url>
 <url><loc>/authors.html</loc></url>
 <url><loc>/index.html</loc></url>
 <url><loc>/reference/add_activity.html</loc></url>
@@ -178,6 +178,8 @@
 <url><loc>/reference/use_ref_map.html</loc></url>
 <url><loc>/reference/validate_bound_entity.html</loc></url>
 <url><loc>/reference/validate_collection_items.html</loc></url>
+<url><loc>/reference/validate_dataset_folder.html</loc></url>
+<url><loc>/reference/validate_entities_parallel.html</loc></url>
 <url><loc>/reference/walk.html</loc></url>
 <url><loc>/reference/which_coll_type.html</loc></url>
 <url><loc>/reference/wiki_mod.html</loc></url>

@@ -1,0 +1,40 @@
+# Convert a delimited string to a stringlist annotation
+
+Converts a delimited string to a stringlist annotation and adjust the
+associated schema in the portal fileview.
+
+## Usage
+
+``` r
+missing_annotation_email(
+  fileview_id,
+  annotation_key,
+  created_date,
+  dry_run = TRUE
+)
+```
+
+## Arguments
+
+- fileview_id:
+
+  The synapse id of a fileview. Must have the desired annotations in the
+  schema, and must have the files to annotate included in the scope.
+  Must have write access to the files you want to re-annotate.
+
+- annotation_key:
+
+  A character string of the annotation you'd like to use to detect
+  unannotated files.
+
+- created_date:
+
+  The date ('DD/MM/YYYY') to cut off
+
+- dry_run:
+
+  Default = TRUE. Skips emailing and instead prints summary tibble.
+
+## Value
+
+If dry_run == T, returns study tibble and skips upload.

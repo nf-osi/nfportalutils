@@ -1,0 +1,36 @@
+# Get the latest version
+
+Get latest version, with special handling for semantics of "latest"
+regarding new collection types. Datasets and dataset collections always
+start out as draft so unlike other entities there is a concept of a
+stable version which is the "real" latest, but which might not always
+exist. For datasets/dataset collections the latest version refers to a
+DRAFT, so latest stable version is `versionNumber` - 1 under the
+condition that the `versionNumber` is greater or equal to 2. When
+`versionNumber` = 1 and `isLatestVersion` is TRUE, this means there is
+not yet a stable version. When using stable version semantics, if a
+stable version does not exist an error will be thrown.
+
+## Usage
+
+``` r
+latest_version(id, version_semantics = c("abs", "stable"))
+```
+
+## Arguments
+
+- id:
+
+  Dataset id. See details.
+
+- version_semantics:
+
+  Use "abs" for absolute latest version or "stable". Only used for
+  collection entities. See details.
+
+## Details
+
+The parameter `version_semantics` allows user to specify "what type of
+*latest* do you mean?".
+
+Note: Do not use with versioned ids of the form "syn12345678.3"

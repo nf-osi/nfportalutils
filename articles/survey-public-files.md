@@ -1,0 +1,45 @@
+# Surveying public files in the portal
+
+## Intro
+
+This quick makes use of some functions to survey files in the portal and
+their access.
+
+## Set up
+
+The usual setup:
+
+``` r
+library(nfportalutils)
+syn_login()
+```
+
+## Files downloadable for Synapse registered users
+
+When talking about “public” files, this usually means files that are
+viewable and downloadable to Synapse users. This group has id `273948`,
+so we use in the query below:
+
+``` r
+public_access <- summarize_file_access(principal_id = 273948, "DOWNLOAD", "syn16858331")
+public_access
+```
+
+Breakdown as absolute number and as proportions:
+
+``` r
+public_access[, .(n_files = sum(N)), by = access][, .(access, n_files, proportion = n_files / sum(n_files))]
+```
+
+## Some Nuances
+
+While it would be nice to see the file access restrictions at different
+points in time, note that the underlying API only returns access control
+info at present. A file may have inherited from a benefactor at an
+earlier point, but then becomes its own benefactor later (i.e. more
+granular access control), so queries based on a past state will likely
+not work. Don’t try something like:
+
+``` r
+public_access_q3_2022 <- summarize_file_access(principal_id = 273948, "DOWNLOAD", "syn16858331.47")
+```
