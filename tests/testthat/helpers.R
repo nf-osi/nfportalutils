@@ -37,6 +37,9 @@ skip_if_no_token <- function() {
 # (e.g. someone pasted in wrong token), this creates a skip cascade for tests that presume
 # successful login.
 skip_if_no_login <- function() {
-  if(!exists(".syn") || is.null(.syn$username))
+  if(!exists(".syn", envir = .GlobalEnv))
+    skip("not logged in for tests")
+  .syn <- get(".syn", envir = .GlobalEnv)
+  if(is.null(.syn$username))
     skip("not logged in for tests")
 }
