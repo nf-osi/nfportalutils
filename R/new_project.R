@@ -1,128 +1,3 @@
-#' Create a new project
-#'
-#' Set up a new NF project with wiki, folders, fileview, and permissions.
-#' Most parameters come from a project intake & data sharing plan (DSP) form.
-#' Aside from default folders, folders are tailored for data mentioned in DSP.
-#' The NF-OSI team is hard-coded to be admin in addition to the funder team indicated by `funder`.
-#' Since this is intended for actual new projects, it will fail if a same existing project is detected.
-#'
-#' After project is created, NF Portal representation requires registration in backend:
-#' - New study row added to the Portal - Studies table.
-#' - Project added to Portal - Files scope.
-#'
-#' @param name Name of the project/study.
-#' @param pi Name of the principal investigator.
-#' @param lead Name(s) of the project lead/data coordinator, comma-sep if multiple, e.g. "Jane Doe, John Doe".
-#' @param admin_user (Optional) Single id or list of ids of users to be made admin(s).
-#' @param abstract Project abstract/description.
-#' @param institution Affiliated institution(s), **semicolon-sep if multiple**, e.g. "Stanford University; University of California, San Francisco".
-#' @param funder The funding agency. The relevant funder team will be made admin.
-#' @param initiative Title of funding initiative, e.g. "Young Investigator Award".
-#' @param datasets (Optional) List of datasets for which folders will be created under main data folder ("Raw Data").
-#' Attributes set on the list items become annotations on the dataset folders.
-#' @param other_resources (Optional) List of non-data resource types for which folders will be created.
-#' Attributes set on the list items become annotations on these folders.
-#' @param publicview Whether to put this project in the public view instead of staying private (registered or non-registered users can see project).
-#' @param webview Whether to open web browser to view newly created project. Defaults to FALSE.
-#' @param ... Additional arguments. Not used.
-#' @return The project object.
-#' @export
-new_project <- function(name,
-                        pi,
-                        lead,
-                        admin_user = NULL,
-                        abstract,
-                        institution,
-                        funder,
-                        initiative,
-                        datasets = NULL,
-                        other_resources = NULL,
-                        publicview = FALSE,
-                        webview = FALSE,
-                        ...) {
-
-  .check_login()
-
-  project <- new_project_strict(name)
-
-  # WIKI -----------------------------------------------------------------------#
-
-  wiki <- add_default_wiki(project,
-                           name,
-                           pi,
-                           lead,
-                           funder,
-                           initiative,
-                           abstract,
-                           institution)
-
-  # PERMISSIONS ----------------------------------------------------------------#
-  # Set NF-OSI Sage Team permissions to full admin
-  NF_sharing <- make_admin(project, principal_id = "3378999")
-
-  # Set grant funding team to full admin -- ignore funders not associated with a team (e.g. NIH-NCI)
-  funder <- switch(funder,
-                   CTF = "3359657", ##CTF team
-                   GFF = "3406072", ##GFF Admin team
-                   NTAP = "3331266") ##NTAP Admin team
-  if(!is.null(funder)) funder_sharing <- make_admin(project, funder)
-
-  # Set project lead/pi user to full admin user if given
-  if(!is.null(admin_user)) {
-    user_sharing <- lapply(admin_user, function(user) make_admin(project, user))
-  }
-
-  if(publicview) {
-    public_sharing <- make_public_viewable(project)
-  }
-
-  # ASSETS ---------------------------------------------------------------------#
-
-  # Folder structure looks something like this,
-  # where * elements are conditionally present on data given:
-  #├── Analysis
-  #├── Milestone Reports
-  #├── Protocols*
-  #├── Raw Data
-  #│   ├── IHC dataset*
-  #│   └── RNA-seq dataset*
-  #└── Scripts*
-
-  # Note that all protocol files, etc. is expected to live in a single protocol folder and not further nested.
-
-  # Create default upper-level folders
-  folders <- add_default_folders(project)
-  data_folder_id <- folders[["Raw Data"]]$properties$id
-
-  # Bind JSON schema so children folders have NF's dataset schemas, see
-  # https://repo-prod.prod.sagebase.org/repo/v1/schema/type/registered/org.synapse.nf-superdataset
-  bind_schema(id = data_folder_id, schema_id = "org.synapse.nf-superdataset", derived_annotations = TRUE)
-
-  # Create data-specific folders in "Raw Data"
-  if(length(datasets)) {
-    make_folder(parent = data_folder_id, folders = datasets)
-  }
-
-  # Create homes for non-data resources alongside "Raw Data"
-  if(length(other_resources)) {
-    other_resource_folders <- make_folder(parent = project, folders = other_resources)
-    if ("Protocols" %in% names(other_resource_folders)) {
-      bind_schema(id = other_resource_folders$Protocols$properties$id, schema_id = "org.synapse.nf-protocol", derived_annotations = FALSE)
-    }
-  }
-
-  # Aside from dataset schema, currently only have protocols schema
-
-
-  # Add Project Files and Metadata fileview, add NF schema; currently doesn't add facets
-  fv <- add_default_fileview(project)
-
-  if(webview) .syn$onweb(project)
-
-  attr(project, "fileview") <- fv$properties$id
-  return(project)
-}
-
 #' Create a strictly new project
 #'
 #' Internal handler for creating a project that
@@ -234,8 +109,14 @@ make_folder <- function(parent, folders) {
 #'
 #' Add the default wiki at project at creation or
 #' use to retrofit projects where creators have not created a wiki.
-#' @inheritParams new_project
 #' @param project Synapse id of project.
+#' @param name Name of the project/study.
+#' @param pi Name of the principal investigator.
+#' @param lead Name(s) of the project lead/data coordinator, comma-sep if multiple, e.g. "Jane Doe, John Doe".
+#' @param funder The funding agency.
+#' @param initiative Title of funding initiative, e.g. "Young Investigator Award".
+#' @param abstract Project abstract/description.
+#' @param institution Affiliated institution(s), **semicolon-sep if multiple**, e.g. "Stanford University; University of California, San Francisco".
 #' @export
 add_default_wiki <- function(project,
                              name,
@@ -297,4 +178,3 @@ is_valid_team <- function(id) {
   )
   if(length(status)) return(TRUE) else return(FALSE)
 }
-

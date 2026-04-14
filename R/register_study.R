@@ -1,27 +1,3 @@
-#' Register a NEW project for the NF Data Portal in **Portal - Project View**
-#'
-#' Add relevant study metadata to the project as annotations.
-#' Add to scope of NF-OSI data portal and management in **Portal - Project View**.
-#'
-#' @param id Synapse id of study.
-#' @param study_meta List of annotations representing study meta.
-#' @param summary Large summary string.
-#' @param study_summary_table Id of where to store summary (can be any table with a `summary` LARGETEXT column).
-#' @param portal_project_view View of DCC-managed projects (studies).
-#' @export
-register_study <- function(id,
-                           study_meta,
-                           summary,
-                           study_summary_table,
-                           portal_project_view = "syn52677631") {
-
-    add_new_study_meta(id, study_meta)
-    add_study_summary(id, summary, study_summary_table)
-    add_to_scope(portal_project_view, id)
-    message(glue::glue("Successfully added {id} to DCC study scope!"))
-}
-
-
 #' Register a project's files in **Portal - Files**
 #'
 #' Add a project to the scope of the **Portal - Files** fileview so that
