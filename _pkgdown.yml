@@ -10,9 +10,7 @@ reference:
   - starts_with("add_publication")
   - assign_study_data_types
   - calculate_related_studies
-  - register_study
   - add_people_from_table
-  - register_study_files
   - summarize_attribute
 - subtitle: Lower-level table maintenance
 - contents:
@@ -23,7 +21,6 @@ reference:
 - title: Project Configuration and Management
   desc: Create or retrofit an NF project to expected default structure and assets
 - contents:
-  - new_project
   - add_default_fileview
   - add_default_folders
   - make_admin
