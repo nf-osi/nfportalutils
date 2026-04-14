@@ -7,12 +7,13 @@
 infer_data_type(dataset_id)
 }
 \arguments{
-\item{dataset_id}{Synapse ID of the dataset to query.}
+\item{dataset_id}{Optional, if given this fills out manifest for existing dataset instead of generating a blank manifest.}
 }
 \value{
-\item{data_type}{Inferred data type of dataset_id. NA if unable to infer data 
-type or conflicting data types observed.}
+List of structure \code{list(result = result, notes = notes)}, where \code{result} can be \code{NA}.
 }
 \description{
 Infer the data type by checking the first few files.
+TODO: Check \code{dataType} instead of Component and derive Component
+because some older files does not have Component explicitly.
 }
