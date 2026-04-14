@@ -22,9 +22,11 @@ syn_login <- function(authtoken = Sys.getenv("SYNAPSE_AUTH_TOKEN")){
 #' @returns A message.
 #' @keywords internal
 .check_login <- function(){
-  if(!exists(".syn")){
+  if(!exists(".syn", envir = .GlobalEnv)){
     stop('Please run `nfportalutils::syn_login()` prior to running functions that require a connection to Synapse. (Alternatively, the Python `synapseclient` is unavailable.)')
-  }else if(capture.output(.syn) == "<pointer: 0x0>"){
+  }
+  .syn <- get(".syn", envir = .GlobalEnv)
+  if(capture.output(.syn) == "<pointer: 0x0>"){
     stop('Please run `nfportalutils::syn_login()` prior to running functions that require a connection to Synapse. (Alternatively, the Python `synapseclient` is unavailable.)')
   }
 }

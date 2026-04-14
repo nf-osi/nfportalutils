@@ -27,7 +27,9 @@
 #' bind_schema(id = "syn12345678", schema_id = "org.synapse.nf-rnaseqtemplate-11.0.0")
 #' }
 bind_schema <- function(id, schema_id, derived_annotations = FALSE) {
-  
+
+  .check_login()
+
   bind_schema_request <- jsonlite::toJSON(list(entityId = id,
                                                `schema$id` = schema_id,
                                                enableDerivedAnnotations = derived_annotations),
@@ -92,6 +94,7 @@ is_file <- function(id) {
 #' @param id Entity id.
 #' @export
 validate_bound_entity <- function(id) {
+  .check_login()
   .syn$restGET(glue::glue("https://repo-prod.prod.sagebase.org/repo/v1/entity/{id}/schema/validation"))
 }
 
@@ -148,6 +151,8 @@ validate_entities_parallel <- function(entity_ids, mc.cores = NULL) {
 #' @return A list with `validation_error` component containing any validation errors found for files.
 #' @export
 validate_dataset_folder <- function(id, fileview, mc.cores = NULL) {
+
+  .check_login()
 
   if(missing(fileview) || is.null(fileview)) {
     stop("A fileview is required to query files in the dataset folder.")
@@ -212,6 +217,7 @@ validate_dataset_folder <- function(id, fileview, mc.cores = NULL) {
 #' @export
 #' @aliases validate_dataset_items
 validate_collection_items <- function(collection_id, mc.cores = NULL) {
+  .check_login()
   coll <- .syn$get(collection_id)
   items <- coll$properties$datasetItems
   if(!length(items)) {
