@@ -99,32 +99,17 @@ Augment and update one of the main portal tables (e.g. Portal - Studies)
 
 - [`add_publication_from_pubmed()`](add_publication_from_pubmed.md) :
   Add a publication to the publication table
-
 - [`add_publication_from_unpaywall()`](add_publication_from_unpaywall.md)
   : Add a publication or preprint to the publication table via the
   Unpaywall API.
-
 - [`add_publications_from_file()`](add_publications_from_file.md) : Add
   a batch of publications from spreadsheet
-
 - [`assign_study_data_types()`](assign_study_data_types.md) : Summarize
   data types for the study
-
 - [`calculate_related_studies()`](calculate_related_studies.md) :
   Calculate and add related studies to study table
-
-- [`register_study()`](register_study.md) :
-
-  Register a NEW project for the NF Data Portal in **Portal - Project
-  View**
-
 - [`add_people_from_table()`](add_people_from_table.md) : Update the
   People table from a source Table or View column
-
-- [`register_study_files()`](register_study_files.md) :
-
-  Register a project's files in **Portal - Files**
-
 - [`summarize_attribute()`](summarize_attribute.md) : Helper
   summarization util
 
@@ -140,7 +125,6 @@ Augment and update one of the main portal tables (e.g. Portal - Studies)
 Create or retrofit an NF project to expected default structure and
 assets
 
-- [`new_project()`](new_project.md) : Create a new project
 - [`add_default_fileview()`](add_default_fileview.md) : Create default
   project fileview
 - [`add_default_folders()`](add_default_folders.md) : Create default

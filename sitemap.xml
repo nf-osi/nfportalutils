@@ -16,12 +16,10 @@
 <url><loc>/reference/add_default_fileview.html</loc></url>
 <url><loc>/reference/add_default_folders.html</loc></url>
 <url><loc>/reference/add_default_wiki.html</loc></url>
-<url><loc>/reference/add_new_study_meta.html</loc></url>
 <url><loc>/reference/add_people_from_table.html</loc></url>
 <url><loc>/reference/add_publication_from_pubmed.html</loc></url>
 <url><loc>/reference/add_publication_from_unpaywall.html</loc></url>
 <url><loc>/reference/add_publications_from_file.html</loc></url>
-<url><loc>/reference/add_study_summary.html</loc></url>
 <url><loc>/reference/add_to_collection.html</loc></url>
 <url><loc>/reference/add_to_scope.html</loc></url>
 <url><loc>/reference/adjust_list_length.html</loc></url>
@@ -145,8 +143,6 @@
 <url><loc>/reference/missing_annotation_email.html</loc></url>
 <url><loc>/reference/new_col.html</loc></url>
 <url><loc>/reference/new_dataset.html</loc></url>
-<url><loc>/reference/new_project.html</loc></url>
-<url><loc>/reference/new_project_strict.html</loc></url>
 <url><loc>/reference/new_view.html</loc></url>
 <url><loc>/reference/nf_workflow_version.html</loc></url>
 <url><loc>/reference/path_extract.html</loc></url>
@@ -155,8 +151,6 @@
 <url><loc>/reference/precheck_manifest.html</loc></url>
 <url><loc>/reference/processed_meta.html</loc></url>
 <url><loc>/reference/processing_flowchart.html</loc></url>
-<url><loc>/reference/register_study.html</loc></url>
-<url><loc>/reference/register_study_files.html</loc></url>
 <url><loc>/reference/remanifest.html</loc></url>
 <url><loc>/reference/remove_button.html</loc></url>
 <url><loc>/reference/remove_wiki_subpage.html</loc></url>

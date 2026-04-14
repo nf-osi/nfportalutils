@@ -39,7 +39,7 @@ add_default_wiki(
 
 - funder:
 
-  The funding agency. The relevant funder team will be made admin.
+  The funding agency.
 
 - initiative:
 
