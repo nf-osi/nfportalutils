@@ -119,9 +119,6 @@ add_default_wiki <- function(project,
   # Push wiki to Synapse
   wiki <- .syn$store(wiki)
 
-  # Add a subpage w/ links to the Data Curator App as of Dec 2021
-  wiki <- data_curator_app_subpage(project_id = project, dry_run = FALSE)
-
   return(wiki)
 
 }
