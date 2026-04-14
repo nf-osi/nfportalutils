@@ -12,13 +12,13 @@
 Source:
 [`DESCRIPTION`](https://github.com/nf-osi/nfportalutils/blob/develop/DESCRIPTION)
 
-Allaway R, Vu A (2025). *nfportalutils: NF Portal Utilities*. R package
+Allaway R, Vu A (2026). *nfportalutils: NF Portal Utilities*. R package
 version 0.9710, <https://github.com/nf-osi/nfportalutils>.
 
     @Manual{,
       title = {nfportalutils: NF Portal Utilities},
       author = {Robert Allaway and Anh Nguyet Vu},
-      year = {2025},
+      year = {2026},
       note = {R package version 0.9710},
       url = {https://github.com/nf-osi/nfportalutils},
     }
