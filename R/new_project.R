@@ -1,28 +1,3 @@
-#' Create a strictly new project
-#'
-#' Internal handler for creating a project that
-#' first checks whether project already exists and disallows overwriting.
-#' For a less strict version that allows overwriting with a warning,
-#' e.g. named `update_project`, implement with
-#' `createOrUpdate = TRUE` and then compare createdOn and modifiedOn to issue a warning
-#' (which would be more informative than current Python client).
-#' @param project_name Name of project to be created.
-#' @keywords internal
-new_project_strict <- function(project_name) {
-  id <- try(.syn$findEntityId(project_name))
-  if(class(id) == "try-error") {
-    # Error with 403 code if exists without writable permissions
-    stop("Project not created because of name collision with a non-NF project.", call. = FALSE)
-  } else if(class(id) == "character") {
-    # Likely already administering project if returns actual synID
-    stop("Project not created because of name collision with a current project. Check project entity?" , call. = FALSE)
-  } else { # NULL
-    project <- synapseclient$Project(project_name)
-    project <- .syn$store(project, createOrUpdate = FALSE)
-    project
-  }
-}
-
 #' Create default project fileview
 #'
 #' @param project A project entity.
